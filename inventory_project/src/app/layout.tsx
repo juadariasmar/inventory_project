@@ -1,0 +1,37 @@
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import ProveedorSesion from "@/componentes/ProveedorSesion";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Sistema de Inventarios",
+  description: "Gestión de inventarios - Juan",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="es">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
+      >
+        <ProveedorSesion>
+          {children}
+        </ProveedorSesion>
+      </body>
+    </html>
+  );
+}
