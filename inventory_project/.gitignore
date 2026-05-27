@@ -41,3 +41,17 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# ===== Android / Gradle (módulo /android) =====
+# Artefactos de compilación que NO deben versionarse (se regeneran al compilar)
+android/.gradle/
+android/build/
+android/app/build/
+android/.kotlin/
+android/.idea/
+android/local.properties
+android/captures/
+android/*.iml
+android/app/*.iml
+android/app/release/
+*.apk.idsig
