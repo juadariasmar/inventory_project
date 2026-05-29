@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sistema de Inventario — Aplicación Next.js
 
-## Getting Started
+Esta carpeta contiene el proyecto Next.js del Sistema de Inventario. Para la documentación completa (propósito, arquitectura, tecnologías, modelo de datos, despliegue), consulta el [README principal del repositorio](../README.md).
 
-First, run the development server:
+## Inicio rápido
 
 ```bash
+npm install
+cp .env.example .env       # configurar DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET
+npx prisma generate
+npx prisma migrate deploy
+npm run seed
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Credenciales de prueba:** `admin / admin123` (rol ADMIN) o `usuario / usuario123` (rol USUARIO).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Scripts disponibles
 
-## Learn More
+| Comando | Descripción |
+|---|---|
+| `npm run dev` | Servidor de desarrollo con recarga automática |
+| `npm run build` | Build de producción (genera Prisma Client y aplica migraciones) |
+| `npm start` | Servidor productivo |
+| `npm run lint` | Análisis estático con ESLint |
+| `npm test` | Pruebas unitarias con Jest |
+| `npm run test:coverage` | Pruebas con reporte de cobertura |
+| `npm run seed` | Cargar datos iniciales (usuarios y categorías) |
 
-To learn more about Next.js, take a look at the following resources:
+## Estructura
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+├── app/           # Páginas y API routes (App Router)
+│   ├── api/       # Endpoints REST
+│   ├── analisis/  # Reportes y alertas
+│   ├── productos/
+│   ├── categorias/
+│   ├── movimientos/
+│   ├── usuarios/  # CRUD usuarios (solo ADMIN)
+│   └── login/
+├── componentes/   # Componentes React reutilizables
+├── lib/
+│   ├── analisis.ts     # Lógica de reportes
+│   ├── auth.ts         # Configuración NextAuth
+│   ├── db.ts           # Prisma Client singleton
+│   ├── inventario.ts   # Funciones puras de dominio
+│   └── permisos.ts     # Helpers de autorización
+└── types/         # Tipos extendidos NextAuth
+prisma/
+├── schema.prisma  # Modelo de datos
+├── migrations/    # Migraciones PostgreSQL
+└── seed.ts        # Datos iniciales
+__tests__/         # Pruebas unitarias Jest
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Variables de entorno
 
-## Deploy on Vercel
+| Variable | Descripción |
+|---|---|
+| `DATABASE_URL` | Cadena de conexión PostgreSQL |
+| `NEXTAUTH_URL` | URL pública del sitio |
+| `NEXTAUTH_SECRET` | Cadena aleatoria (32+ caracteres) para firmar JWT |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Tecnologías principales
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Next.js 16 · React 19 · TypeScript 5 · Tailwind CSS 4 · NextAuth.js 4 · Prisma 5 · PostgreSQL · Recharts 3 · Jest 30.
+
+Para detalles completos del stack, arquitectura y despliegue, ver el [README principal](../README.md).
