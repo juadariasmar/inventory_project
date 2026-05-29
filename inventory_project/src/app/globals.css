@@ -32,3 +32,10 @@ textarea::placeholder {
   color: #9ca3af;
   opacity: 1;
 }
+
+/* Ocultar el icono nativo de "revelar contraseña" de Edge/IE para evitar
+   que aparezca duplicado junto al toggle propio del aplicativo. */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
