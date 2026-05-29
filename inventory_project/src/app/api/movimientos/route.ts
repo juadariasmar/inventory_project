@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { obtenerSesion } from '@/lib/permisos'
+import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 
 // GET - Obtener todos los movimientos (cualquier usuario autenticado)
 export async function GET() {
@@ -22,7 +22,7 @@ export async function GET() {
   }
 }
 
-// POST - Crear un nuevo movimiento (cualquier usuario autenticado)
+// POST - Crear un nuevo movimiento (requiere AGREGAR_STOCK o DESCONTAR_STOCK segun tipo)
 export async function POST(request: NextRequest) {
   if (!(await obtenerSesion())?.user) {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
@@ -33,6 +33,19 @@ export async function POST(request: NextRequest) {
     const productoId = parseInt(datos.productoId)
     const cantidad = parseInt(datos.cantidad)
     const tipo = datos.tipo // 'entrada' o 'salida'
+
+    const permisoRequerido = tipo === 'entrada' ? 'AGREGAR_STOCK' : 'DESCONTAR_STOCK'
+    if (!(await tienePermiso(permisoRequerido))) {
+      return NextResponse.json(
+        {
+          error:
+            tipo === 'entrada'
+              ? 'No tienes permiso para agregar stock'
+              : 'No tienes permiso para descontar stock',
+        },
+        { status: 403 }
+      )
+    }
 
     // Obtener el producto actual
     const producto = await prisma.producto.findUnique({

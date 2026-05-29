@@ -2,6 +2,8 @@ import { prisma } from '@/lib/db'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import FormularioMovimiento from '@/componentes/FormularioMovimiento'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { tienePermiso } from '@/lib/permisos'
 
 async function obtenerProductos() {
   return await prisma.producto.findMany({
@@ -16,6 +18,13 @@ async function obtenerProductos() {
 }
 
 export default async function PaginaNuevoMovimiento() {
+  const puedeAgregar = await tienePermiso('AGREGAR_STOCK')
+  const puedeDescontar = await tienePermiso('DESCONTAR_STOCK')
+
+  if (!puedeAgregar && !puedeDescontar) {
+    redirect('/movimientos')
+  }
+
   const productos = await obtenerProductos()
 
   return (
@@ -33,7 +42,11 @@ export default async function PaginaNuevoMovimiento() {
 
         {productos.length > 0 ? (
           <div className="bg-white rounded-lg shadow-md p-6">
-            <FormularioMovimiento productos={productos} />
+            <FormularioMovimiento
+              productos={productos}
+              puedeAgregar={puedeAgregar}
+              puedeDescontar={puedeDescontar}
+            />
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow-md p-8 text-center">

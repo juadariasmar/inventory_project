@@ -12,14 +12,22 @@ interface Producto {
 
 interface PropiedadesFormulario {
   productos: Producto[]
+  puedeAgregar: boolean
+  puedeDescontar: boolean
 }
 
-export default function FormularioMovimiento({ productos }: PropiedadesFormulario) {
+export default function FormularioMovimiento({
+  productos,
+  puedeAgregar,
+  puedeDescontar,
+}: PropiedadesFormulario) {
   const router = useRouter()
+
+  const tipoInicial = puedeAgregar ? 'entrada' : 'salida'
 
   const [datos, setDatos] = useState({
     productoId: '',
-    tipo: 'entrada',
+    tipo: tipoInicial,
     cantidad: '',
     notas: '',
   })
@@ -111,10 +119,25 @@ export default function FormularioMovimiento({ productos }: PropiedadesFormulari
             onChange={manejarCambio}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
+            disabled={!(puedeAgregar && puedeDescontar)}
           >
-            <option value="entrada">Entrada (Agregar stock)</option>
-            <option value="salida">Salida (Quitar stock)</option>
+            {puedeAgregar && (
+              <option value="entrada">Entrada (Agregar stock)</option>
+            )}
+            {puedeDescontar && (
+              <option value="salida">Salida (Quitar stock)</option>
+            )}
           </select>
+          {!puedeAgregar && puedeDescontar && (
+            <p className="text-xs text-gray-500 mt-1">
+              Solo tienes permiso para registrar salidas.
+            </p>
+          )}
+          {puedeAgregar && !puedeDescontar && (
+            <p className="text-xs text-gray-500 mt-1">
+              Solo tienes permiso para registrar entradas.
+            </p>
+          )}
         </div>
 
         <div>

@@ -17,6 +17,8 @@ enum Rol {
 enum Permiso {
   VER_ANALISIS
   EXPORTAR_REPORTES
+  AGREGAR_STOCK
+  DESCONTAR_STOCK
 }
 
 model Usuario {
