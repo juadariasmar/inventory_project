@@ -17,6 +17,7 @@ enum Rol {
 enum Permiso {
   VER_ANALISIS
   EXPORTAR_REPORTES
+  REGISTRAR_MOVIMIENTOS
 }
 
 model Usuario {

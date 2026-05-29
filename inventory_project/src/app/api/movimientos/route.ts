@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { obtenerSesion } from '@/lib/permisos'
+import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 
 // GET - Obtener todos los movimientos (cualquier usuario autenticado)
 export async function GET() {
@@ -22,10 +22,16 @@ export async function GET() {
   }
 }
 
-// POST - Crear un nuevo movimiento (cualquier usuario autenticado)
+// POST - Crear un nuevo movimiento (requiere permiso REGISTRAR_MOVIMIENTOS)
 export async function POST(request: NextRequest) {
   if (!(await obtenerSesion())?.user) {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+  }
+  if (!(await tienePermiso('REGISTRAR_MOVIMIENTOS'))) {
+    return NextResponse.json(
+      { error: 'No tienes permiso para registrar movimientos' },
+      { status: 403 }
+    )
   }
   try {
     const datos = await request.json()

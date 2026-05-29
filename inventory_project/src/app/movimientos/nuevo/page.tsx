@@ -2,6 +2,8 @@ import { prisma } from '@/lib/db'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import FormularioMovimiento from '@/componentes/FormularioMovimiento'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { tienePermiso } from '@/lib/permisos'
 
 async function obtenerProductos() {
   return await prisma.producto.findMany({
@@ -16,6 +18,9 @@ async function obtenerProductos() {
 }
 
 export default async function PaginaNuevoMovimiento() {
+  if (!(await tienePermiso('REGISTRAR_MOVIMIENTOS'))) {
+    redirect('/movimientos')
+  }
   const productos = await obtenerProductos()
 
   return (
