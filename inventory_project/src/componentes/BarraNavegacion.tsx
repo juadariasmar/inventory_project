@@ -11,12 +11,15 @@ export default function BarraNavegacion() {
   const [menuAbierto, setMenuAbierto] = useState(false)
 
   const esAdmin = sesion?.user?.rol === 'ADMIN'
+  const puedeVerAnalisis =
+    esAdmin || (sesion?.user?.permisos?.includes('VER_ANALISIS') ?? false)
 
   const enlaces = [
     { href: '/', etiqueta: 'Panel', visible: true },
     { href: '/productos', etiqueta: 'Productos', visible: true },
     { href: '/movimientos', etiqueta: 'Movimientos', visible: true },
     { href: '/categorias', etiqueta: 'Categorías', visible: true },
+    { href: '/analisis', etiqueta: 'Análisis', visible: puedeVerAnalisis },
     { href: '/usuarios', etiqueta: 'Usuarios', visible: esAdmin },
   ].filter((e) => e.visible)
 

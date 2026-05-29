@@ -38,6 +38,7 @@ export const opcionesAuth: NextAuthOptions = {
           name: usuario.nombre,
           email: usuario.nombreUsuario,
           rol: usuario.rol,
+          permisos: usuario.permisos,
         }
       }
     })
@@ -53,6 +54,7 @@ export const opcionesAuth: NextAuthOptions = {
       if (user) {
         token.id = user.id
         token.rol = user.rol
+        token.permisos = user.permisos
       }
       return token
     },
@@ -60,6 +62,7 @@ export const opcionesAuth: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id
         session.user.rol = token.rol
+        session.user.permisos = token.permisos
       }
       return session
     }

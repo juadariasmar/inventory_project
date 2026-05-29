@@ -3,16 +3,32 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
+type PermisoTipo = 'VER_ANALISIS' | 'EXPORTAR_REPORTES'
+
 interface DatosUsuario {
   id?: number
   nombreUsuario: string
   nombre: string
   rol: 'ADMIN' | 'USUARIO'
+  permisos?: PermisoTipo[]
 }
 
 interface PropiedadesFormulario {
   usuario?: DatosUsuario
 }
+
+const PERMISOS_DISPONIBLES: { valor: PermisoTipo; etiqueta: string; descripcion: string }[] = [
+  {
+    valor: 'VER_ANALISIS',
+    etiqueta: 'Ver análisis',
+    descripcion: 'Acceso a la página de análisis y reportes del inventario.',
+  },
+  {
+    valor: 'EXPORTAR_REPORTES',
+    etiqueta: 'Exportar reportes',
+    descripcion: 'Permite descargar los reportes en formato CSV.',
+  },
+]
 
 export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
   const router = useRouter()
@@ -24,6 +40,7 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
     rol: usuario?.rol || 'USUARIO',
     contrasena: '',
   })
+  const [permisos, setPermisos] = useState<PermisoTipo[]>(usuario?.permisos ?? [])
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
 
@@ -32,6 +49,12 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
   ) => {
     const { name, value } = e.target
     setDatos((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const togglePermiso = (permiso: PermisoTipo) => {
+    setPermisos((prev) =>
+      prev.includes(permiso) ? prev.filter((p) => p !== permiso) : [...prev, permiso]
+    )
   }
 
   const manejarEnvio = async (e: React.FormEvent) => {
@@ -53,10 +76,11 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
       const url = esEdicion ? `/api/usuarios/${usuario.id}` : '/api/usuarios'
       const metodo = esEdicion ? 'PUT' : 'POST'
 
-      const body: Record<string, string> = {
+      const body: Record<string, unknown> = {
         nombreUsuario: datos.nombreUsuario,
         nombre: datos.nombre,
         rol: datos.rol,
+        permisos,
       }
       if (datos.contrasena) {
         body.contrasena = datos.contrasena
@@ -82,6 +106,8 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
       setGuardando(false)
     }
   }
+
+  const esAdmin = datos.rol === 'ADMIN'
 
   return (
     <form onSubmit={manejarEnvio} className="space-y-6">
@@ -159,6 +185,34 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
             required={!esEdicion}
           />
         </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-medium text-gray-700 mb-2">Permisos adicionales</h3>
+        {esAdmin ? (
+          <p className="text-sm text-gray-500 italic">
+            El rol Administrador concede todos los permisos automáticamente.
+          </p>
+        ) : (
+          <div className="space-y-2 border border-gray-200 rounded-md p-3">
+            {PERMISOS_DISPONIBLES.map((p) => (
+              <label key={p.valor} className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={permisos.includes(p.valor)}
+                  onChange={() => togglePermiso(p.valor)}
+                  className="mt-1"
+                />
+                <span>
+                  <span className="block text-sm font-medium text-gray-800">
+                    {p.etiqueta}
+                  </span>
+                  <span className="block text-xs text-gray-500">{p.descripcion}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
