@@ -53,18 +53,25 @@ export async function POST(request: NextRequest) {
 
     const hash = await bcrypt.hash(datos.contrasena, 10)
 
+    const permisosValidos = ['VER_ANALISIS', 'EXPORTAR_REPORTES'] as const
+    const permisos = Array.isArray(datos.permisos)
+      ? datos.permisos.filter((p: string) => permisosValidos.includes(p as typeof permisosValidos[number]))
+      : []
+
     const usuario = await prisma.usuario.create({
       data: {
         nombreUsuario: datos.nombreUsuario,
         contrasena: hash,
         nombre: datos.nombre,
         rol: datos.rol === 'ADMIN' ? 'ADMIN' : 'USUARIO',
+        permisos,
       },
       select: {
         id: true,
         nombreUsuario: true,
         nombre: true,
         rol: true,
+        permisos: true,
         creadoEn: true,
       },
     })

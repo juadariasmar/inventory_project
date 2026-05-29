@@ -14,13 +14,19 @@ enum Rol {
   USUARIO
 }
 
+enum Permiso {
+  VER_ANALISIS
+  EXPORTAR_REPORTES
+}
+
 model Usuario {
-  id            Int      @id @default(autoincrement())
-  nombreUsuario String   @unique
+  id            Int       @id @default(autoincrement())
+  nombreUsuario String    @unique
   contrasena    String
   nombre        String
-  rol           Rol      @default(USUARIO)
-  creadoEn      DateTime @default(now())
+  rol           Rol       @default(USUARIO)
+  permisos      Permiso[] @default([])
+  creadoEn      DateTime  @default(now())
 }
 
 model Categoria {

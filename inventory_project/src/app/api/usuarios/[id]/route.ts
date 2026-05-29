@@ -12,7 +12,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   const { id } = await params
   const usuario = await prisma.usuario.findUnique({
     where: { id: parseInt(id, 10) },
-    select: { id: true, nombreUsuario: true, nombre: true, rol: true, creadoEn: true },
+    select: { id: true, nombreUsuario: true, nombre: true, rol: true, permisos: true, creadoEn: true },
   })
   if (!usuario) {
     return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
@@ -36,6 +36,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       nombreUsuario?: string
       rol?: 'ADMIN' | 'USUARIO'
       contrasena?: string
+      permisos?: ('VER_ANALISIS' | 'EXPORTAR_REPORTES')[]
     } = {}
 
     if (datos.nombre) datosActualizar.nombre = datos.nombre
@@ -49,10 +50,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       datosActualizar.contrasena = await bcrypt.hash(datos.contrasena, 10)
     }
 
+    if (Array.isArray(datos.permisos)) {
+      const permisosValidos = ['VER_ANALISIS', 'EXPORTAR_REPORTES'] as const
+      datosActualizar.permisos = datos.permisos.filter((p: string) =>
+        permisosValidos.includes(p as typeof permisosValidos[number])
+      )
+    }
+
     const usuario = await prisma.usuario.update({
       where: { id: usuarioId },
       data: datosActualizar,
-      select: { id: true, nombreUsuario: true, nombre: true, rol: true, creadoEn: true },
+      select: { id: true, nombreUsuario: true, nombre: true, rol: true, permisos: true, creadoEn: true },
     })
 
     return NextResponse.json(usuario)

@@ -2,7 +2,8 @@ import { prisma } from '@/lib/db'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import TarjetaEstadistica from '@/componentes/TarjetaEstadistica'
 import Link from 'next/link'
-import { obtenerSesion } from '@/lib/permisos'
+import { obtenerSesion, tienePermiso } from '@/lib/permisos'
+import { obtenerStockPorAgotarse, obtenerProductosSinMovimientos } from '@/lib/analisis'
 
 async function obtenerEstadisticas() {
   const [
@@ -48,10 +49,42 @@ export default async function PaginaPrincipal() {
   const sesion = await obtenerSesion()
   const esAdmin = sesion?.user?.rol === 'ADMIN'
 
+  const puedeVerAnalisis = await tienePermiso('VER_ANALISIS')
+  const [stockAgotarse, sinMovimientos] = puedeVerAnalisis
+    ? await Promise.all([obtenerStockPorAgotarse(), obtenerProductosSinMovimientos()])
+    : [[], []]
+  const alertasTotales = stockAgotarse.length + sinMovimientos.length
+
   return (
     <LayoutProtegido>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-gray-800">Panel Principal</h1>
+
+        {puedeVerAnalisis && alertasTotales > 0 && (
+          <Link
+            href="/analisis"
+            className="block bg-amber-50 border border-amber-300 text-amber-900 rounded-lg p-4 hover:bg-amber-100 transition-colors"
+          >
+            <div className="flex items-start gap-3">
+              <span className="text-2xl" aria-hidden>⚠️</span>
+              <div className="flex-1">
+                <div className="font-semibold">
+                  Tienes {alertasTotales} alerta{alertasTotales !== 1 ? 's' : ''} en el inventario
+                </div>
+                <div className="text-sm mt-1">
+                  {stockAgotarse.length > 0 && (
+                    <span>{stockAgotarse.length} por agotarse</span>
+                  )}
+                  {stockAgotarse.length > 0 && sinMovimientos.length > 0 && <span> · </span>}
+                  {sinMovimientos.length > 0 && (
+                    <span>{sinMovimientos.length} sin movimientos</span>
+                  )}
+                  . Ver análisis completo →
+                </div>
+              </div>
+            </div>
+          </Link>
+        )}
 
         {/* Tarjetas de estadísticas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
