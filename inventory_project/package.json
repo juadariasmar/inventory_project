@@ -19,7 +19,8 @@
     "next": "16.0.7",
     "next-auth": "^4.24.13",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react-dom": "19.2.0",
+    "recharts": "^3.8.1"
   },
   "devDependencies": {
     "@jest/globals": "^30.4.1",
