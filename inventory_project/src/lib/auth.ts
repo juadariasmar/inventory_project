@@ -36,7 +36,8 @@ export const opcionesAuth: NextAuthOptions = {
         return {
           id: usuario.id.toString(),
           name: usuario.nombre,
-          email: usuario.nombreUsuario
+          email: usuario.nombreUsuario,
+          rol: usuario.rol,
         }
       }
     })
@@ -51,12 +52,14 @@ export const opcionesAuth: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
+        token.rol = user.rol
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string
+        session.user.id = token.id
+        session.user.rol = token.rol
       }
       return session
     }

@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { esAdmin } from '@/lib/permisos'
 
 interface Parametros {
   params: Promise<{ id: string }>
 }
 
-// DELETE - Eliminar una categoría
+// DELETE - Eliminar una categoría (solo ADMIN)
 export async function DELETE(request: NextRequest, { params }: Parametros) {
+  if (!(await esAdmin())) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+  }
   try {
     const { id } = await params
 
