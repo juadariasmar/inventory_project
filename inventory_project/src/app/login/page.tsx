@@ -33,8 +33,8 @@ export default function PaginaLogin() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-8">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6 sm:p-8">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-800">
             Sistema de Inventarios
@@ -63,6 +63,8 @@ export default function PaginaLogin() {
               onChange={(e) => setNombreUsuario(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Ingresa tu usuario"
+              autoComplete="username"
+              autoCapitalize="none"
               required
             />
           </div>
@@ -81,6 +83,7 @@ export default function PaginaLogin() {
               onChange={(e) => setContrasena(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Ingresa tu contraseña"
+              autoComplete="current-password"
               required
             />
           </div>

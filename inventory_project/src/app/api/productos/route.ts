@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { esAdmin, obtenerSesion } from '@/lib/permisos'
 
 // GET - Obtener todos los productos
 export async function GET() {
+  if (!(await obtenerSesion())?.user) {
+    return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+  }
   try {
     const productos = await prisma.producto.findMany({
       include: { categoria: true },
@@ -18,8 +22,11 @@ export async function GET() {
   }
 }
 
-// POST - Crear un nuevo producto
+// POST - Crear un nuevo producto (solo ADMIN)
 export async function POST(request: NextRequest) {
+  if (!(await esAdmin())) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+  }
   try {
     const datos = await request.json()
 

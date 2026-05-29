@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { obtenerSesion } from '@/lib/permisos'
 
-// GET - Obtener todos los movimientos
+// GET - Obtener todos los movimientos (cualquier usuario autenticado)
 export async function GET() {
+  if (!(await obtenerSesion())?.user) {
+    return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+  }
   try {
     const movimientos = await prisma.movimiento.findMany({
       include: { producto: true },
@@ -18,8 +22,11 @@ export async function GET() {
   }
 }
 
-// POST - Crear un nuevo movimiento y actualizar stock
+// POST - Crear un nuevo movimiento (cualquier usuario autenticado)
 export async function POST(request: NextRequest) {
+  if (!(await obtenerSesion())?.user) {
+    return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+  }
   try {
     const datos = await request.json()
 

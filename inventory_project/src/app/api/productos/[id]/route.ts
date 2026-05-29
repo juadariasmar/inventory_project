@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { esAdmin, obtenerSesion } from '@/lib/permisos'
 
 interface Parametros {
   params: Promise<{ id: string }>
@@ -7,6 +8,9 @@ interface Parametros {
 
 // GET - Obtener un producto por ID
 export async function GET(request: NextRequest, { params }: Parametros) {
+  if (!(await obtenerSesion())?.user) {
+    return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+  }
   try {
     const { id } = await params
     const producto = await prisma.producto.findUnique({
@@ -31,8 +35,11 @@ export async function GET(request: NextRequest, { params }: Parametros) {
   }
 }
 
-// PUT - Actualizar un producto
+// PUT - Actualizar un producto (solo ADMIN)
 export async function PUT(request: NextRequest, { params }: Parametros) {
+  if (!(await esAdmin())) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+  }
   try {
     const { id } = await params
     const datos = await request.json()
@@ -60,8 +67,11 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
   }
 }
 
-// DELETE - Eliminar un producto
+// DELETE - Eliminar un producto (solo ADMIN)
 export async function DELETE(request: NextRequest, { params }: Parametros) {
+  if (!(await esAdmin())) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+  }
   try {
     const { id } = await params
     await prisma.producto.delete({

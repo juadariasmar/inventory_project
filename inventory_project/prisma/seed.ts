@@ -6,20 +6,35 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('Iniciando seed...')
 
-  // Crear usuario administrador
-  const contrasenaHash = await bcrypt.hash('admin123', 10)
-
-  const usuario = await prisma.usuario.upsert({
+  // Usuario administrador
+  const hashAdmin = await bcrypt.hash('admin123', 10)
+  const admin = await prisma.usuario.upsert({
     where: { nombreUsuario: 'admin' },
-    update: {},
+    update: { rol: 'ADMIN' },
     create: {
       nombreUsuario: 'admin',
-      contrasena: contrasenaHash,
+      contrasena: hashAdmin,
       nombre: 'Administrador',
+      rol: 'ADMIN',
     },
   })
 
-  console.log('Usuario creado:', usuario.nombreUsuario)
+  console.log('Usuario creado:', admin.nombreUsuario, '(', admin.rol, ')')
+
+  // Usuario regular de ejemplo
+  const hashUsuario = await bcrypt.hash('usuario123', 10)
+  const usuarioRegular = await prisma.usuario.upsert({
+    where: { nombreUsuario: 'usuario' },
+    update: { rol: 'USUARIO' },
+    create: {
+      nombreUsuario: 'usuario',
+      contrasena: hashUsuario,
+      nombre: 'Usuario de ejemplo',
+      rol: 'USUARIO',
+    },
+  })
+
+  console.log('Usuario creado:', usuarioRegular.nombreUsuario, '(', usuarioRegular.rol, ')')
 
   // Crear algunas categorías de ejemplo
   const categorias = [

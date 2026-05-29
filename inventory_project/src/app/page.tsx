@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import TarjetaEstadistica from '@/componentes/TarjetaEstadistica'
 import Link from 'next/link'
+import { obtenerSesion } from '@/lib/permisos'
 
 async function obtenerEstadisticas() {
   const [
@@ -44,6 +45,8 @@ async function obtenerEstadisticas() {
 
 export default async function PaginaPrincipal() {
   const estadisticas = await obtenerEstadisticas()
+  const sesion = await obtenerSesion()
+  const esAdmin = sesion?.user?.rol === 'ADMIN'
 
   return (
     <LayoutProtegido>
@@ -51,7 +54,7 @@ export default async function PaginaPrincipal() {
         <h1 className="text-2xl font-bold text-gray-800">Panel Principal</h1>
 
         {/* Tarjetas de estadísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <TarjetaEstadistica
             titulo="Total Productos"
             valor={estadisticas.totalProductos}
@@ -95,80 +98,113 @@ export default async function PaginaPrincipal() {
         </div>
 
         {/* Acciones rápidas */}
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Acciones Rápidas</h2>
-          <div className="flex flex-wrap gap-4">
-            <Link
-              href="/productos/nuevo"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              + Nuevo Producto
-            </Link>
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
+            {esAdmin && (
+              <Link
+                href="/productos/nuevo"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-center"
+              >
+                + Nuevo Producto
+              </Link>
+            )}
             <Link
               href="/movimientos/nuevo"
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-center"
             >
               + Registrar Movimiento
             </Link>
-            <Link
-              href="/categorias/nueva"
-              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-            >
-              + Nueva Categoría
-            </Link>
+            {esAdmin && (
+              <Link
+                href="/categorias/nueva"
+                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-center"
+              >
+                + Nueva Categoría
+              </Link>
+            )}
           </div>
         </div>
 
         {/* Movimientos recientes */}
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Movimientos Recientes</h2>
           {estadisticas.movimientosRecientes.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Producto
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tipo
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Cantidad
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Fecha
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {estadisticas.movimientosRecientes.map((movimiento) => (
-                    <tr key={movimiento.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {movimiento.producto.nombre}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            movimiento.tipo === 'entrada'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
-                        >
-                          {movimiento.tipo === 'entrada' ? 'Entrada' : 'Salida'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {movimiento.cantidad}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(movimiento.creadoEn).toLocaleDateString('es-MX')}
-                      </td>
+            <>
+              {/* Vista escritorio */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Producto
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tipo
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Cantidad
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Fecha
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {estadisticas.movimientosRecientes.map((movimiento) => (
+                      <tr key={movimiento.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {movimiento.producto.nombre}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              movimiento.tipo === 'entrada'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {movimiento.tipo === 'entrada' ? 'Entrada' : 'Salida'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {movimiento.cantidad}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(movimiento.creadoEn).toLocaleDateString('es-MX')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Vista móvil */}
+              <div className="md:hidden divide-y divide-gray-200">
+                {estadisticas.movimientosRecientes.map((m) => (
+                  <div key={m.id} className="py-3 flex justify-between items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-gray-900 truncate">
+                        {m.producto.nombre}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {new Date(m.creadoEn).toLocaleDateString('es-MX')}
+                      </div>
+                    </div>
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+                        m.tipo === 'entrada'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {m.tipo === 'entrada' ? '+' : '-'}
+                      {m.cantidad}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
           ) : (
             <p className="text-gray-500 text-center py-4">No hay movimientos registrados</p>
           )}
