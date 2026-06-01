@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { obtenerSesion } from '@/lib/permisos'
 
@@ -76,6 +77,12 @@ export async function POST(request: NextRequest) {
         data: { cantidad: nuevaCantidad },
       }),
     ])
+
+    revalidatePath('/movimientos')
+    revalidatePath('/movimientos/nuevo')
+    revalidatePath('/productos')
+    revalidatePath('/analisis')
+    revalidatePath('/')
 
     return NextResponse.json(movimiento, { status: 201 })
   } catch (error) {

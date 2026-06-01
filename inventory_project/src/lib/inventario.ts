@@ -11,8 +11,13 @@ export interface MovimientoBase {
   cantidad: number
 }
 
+// Margen por encima del stock minimo dentro del cual se considera "stock bajo".
+// Con MARGEN_ALERTA_STOCK = 2 y stockMinimo = 1, la alerta aparece cuando
+// quedan 2 o 3 unidades (cantidad <= stockMinimo + MARGEN_ALERTA_STOCK).
+export const MARGEN_ALERTA_STOCK = 2
+
 export function tieneStockBajo(producto: ProductoBase): boolean {
-  return producto.cantidad < producto.stockMinimo
+  return producto.cantidad <= producto.stockMinimo + MARGEN_ALERTA_STOCK
 }
 
 export function aplicarMovimiento(

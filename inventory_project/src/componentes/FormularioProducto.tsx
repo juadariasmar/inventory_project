@@ -37,7 +37,7 @@ export default function FormularioProducto({
     codigo: producto?.codigo || '',
     precio: producto?.precio?.toString() || '',
     cantidad: producto?.cantidad?.toString() || '0',
-    stockMinimo: producto?.stockMinimo?.toString() || '5',
+    stockMinimo: producto?.stockMinimo?.toString() || '1',
     categoriaId: producto?.categoriaId?.toString() || '',
   })
   const [guardando, setGuardando] = useState(false)

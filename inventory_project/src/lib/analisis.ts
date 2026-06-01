@@ -1,4 +1,5 @@
 import { prisma } from './db'
+import { MARGEN_ALERTA_STOCK } from './inventario'
 
 export interface AlertaStockAgotarse {
   productoId: number
@@ -178,13 +179,11 @@ export async function obtenerAltaRotacion(): Promise<ProductoAltaRotacion[]> {
 
 export async function obtenerStockCritico(): Promise<AlertaStockCritico[]> {
   const productos = await prisma.producto.findMany({
-    where: {
-      cantidad: { lte: prisma.producto.fields.stockMinimo },
-    },
     select: { id: true, nombre: true, codigo: true, cantidad: true, stockMinimo: true },
   })
 
   return productos
+    .filter((p) => p.cantidad <= p.stockMinimo + MARGEN_ALERTA_STOCK)
     .map((p) => ({
       productoId: p.id,
       nombre: p.nombre,

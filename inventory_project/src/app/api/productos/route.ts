@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
           codigo: datos.codigo,
           precio: parseFloat(datos.precio),
           cantidad: cantidadInicial,
-          stockMinimo: parseInt(datos.stockMinimo) || 5,
+          stockMinimo: parseInt(datos.stockMinimo) || 1,
           categoriaId: datos.categoriaId ? parseInt(datos.categoriaId) : null,
         },
       })
@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
     })
 
     revalidatePath('/movimientos')
+    revalidatePath('/movimientos/nuevo')
     revalidatePath('/productos')
     revalidatePath('/')
     revalidatePath('/analisis')
