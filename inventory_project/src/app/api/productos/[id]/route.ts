@@ -122,15 +122,25 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
 }
 
 // DELETE - Eliminar un producto (solo ADMIN)
+// Elimina también todos los movimientos asociados en la misma transacción,
+// ya que existe foreign key entre Movimiento.productoId y Producto.id.
 export async function DELETE(request: NextRequest, { params }: Parametros) {
   if (!(await esAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
   try {
     const { id } = await params
-    await prisma.producto.delete({
-      where: { id: parseInt(id) },
+    const productoId = parseInt(id)
+
+    await prisma.$transaction(async (tx) => {
+      await tx.movimiento.deleteMany({ where: { productoId } })
+      await tx.producto.delete({ where: { id: productoId } })
     })
+
+    revalidatePath('/movimientos')
+    revalidatePath('/productos')
+    revalidatePath('/')
+    revalidatePath('/analisis')
 
     return NextResponse.json({ mensaje: 'Producto eliminado correctamente' })
   } catch (error) {
