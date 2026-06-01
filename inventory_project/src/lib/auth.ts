@@ -44,7 +44,13 @@ export const opcionesAuth: NextAuthOptions = {
     })
   ],
   session: {
-    strategy: 'jwt'
+    strategy: 'jwt',
+    // 8 horas (una jornada laboral). Pasado este tiempo el usuario debe
+    // volver a iniciar sesion.
+    maxAge: 8 * 60 * 60,
+  },
+  jwt: {
+    maxAge: 8 * 60 * 60,
   },
   pages: {
     signIn: '/login'
