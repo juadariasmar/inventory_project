@@ -2,6 +2,8 @@ import { prisma } from '@/lib/db'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 async function obtenerMovimientos() {
   return await prisma.movimiento.findMany({
     include: { producto: true },

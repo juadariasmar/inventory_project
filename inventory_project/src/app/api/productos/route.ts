@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { esAdmin, obtenerSesion } from '@/lib/permisos'
 
@@ -59,6 +60,11 @@ export async function POST(request: NextRequest) {
 
       return nuevo
     })
+
+    revalidatePath('/movimientos')
+    revalidatePath('/productos')
+    revalidatePath('/')
+    revalidatePath('/analisis')
 
     return NextResponse.json(producto, { status: 201 })
   } catch (error) {
