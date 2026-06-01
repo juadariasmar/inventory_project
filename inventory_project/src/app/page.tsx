@@ -4,6 +4,9 @@ import TarjetaEstadistica from '@/componentes/TarjetaEstadistica'
 import Link from 'next/link'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 import { obtenerStockPorAgotarse, obtenerProductosSinMovimientos } from '@/lib/analisis'
+import { tieneStockBajo } from '@/lib/inventario'
+
+export const dynamic = 'force-dynamic'
 
 async function obtenerEstadisticas() {
   const [
@@ -24,9 +27,9 @@ async function obtenerEstadisticas() {
     }),
   ])
 
-  // Contar productos con stock bajo
-  const productosStockBajo = productos.filter(
-    (p) => p.cantidad <= p.stockMinimo
+  // Contar productos con stock bajo (incluye margen de alerta sobre el minimo)
+  const productosStockBajo = productos.filter((p) =>
+    tieneStockBajo({ nombre: '', codigo: '', ...p })
   ).length
 
   // Calcular valor total del inventario

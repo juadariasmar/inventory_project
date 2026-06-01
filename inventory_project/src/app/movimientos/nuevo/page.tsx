@@ -3,6 +3,8 @@ import LayoutProtegido from '@/componentes/LayoutProtegido'
 import FormularioMovimiento from '@/componentes/FormularioMovimiento'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 async function obtenerProductos() {
   return await prisma.producto.findMany({
     orderBy: { nombre: 'asc' },

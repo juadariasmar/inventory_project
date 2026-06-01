@@ -3,6 +3,7 @@ import LayoutProtegido from '@/componentes/LayoutProtegido'
 import Link from 'next/link'
 import BotonEliminarProducto from '@/componentes/BotonEliminarProducto'
 import { obtenerSesion } from '@/lib/permisos'
+import { tieneStockBajo } from '@/lib/inventario'
 
 export const dynamic = 'force-dynamic'
 
@@ -87,12 +88,12 @@ export default async function PaginaProductos() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`px-2 py-1 text-xs font-medium rounded-full ${
-                              producto.cantidad <= producto.stockMinimo
+                              tieneStockBajo(producto)
                                 ? 'bg-red-100 text-red-800'
                                 : 'bg-green-100 text-green-800'
                             }`}
                           >
-                            {producto.cantidad <= producto.stockMinimo
+                            {tieneStockBajo(producto)
                               ? 'Stock Bajo'
                               : 'Normal'}
                           </span>
@@ -135,12 +136,12 @@ export default async function PaginaProductos() {
                       </div>
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
-                          producto.cantidad <= producto.stockMinimo
+                          tieneStockBajo(producto)
                             ? 'bg-red-100 text-red-800'
                             : 'bg-green-100 text-green-800'
                         }`}
                       >
-                        {producto.cantidad <= producto.stockMinimo ? 'Stock Bajo' : 'Normal'}
+                        {tieneStockBajo(producto) ? 'Stock Bajo' : 'Normal'}
                       </span>
                     </div>
                     <div className="mt-2 grid grid-cols-2 gap-2 text-sm">

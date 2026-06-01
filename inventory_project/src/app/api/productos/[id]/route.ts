@@ -107,6 +107,7 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
     })
 
     revalidatePath('/movimientos')
+    revalidatePath('/movimientos/nuevo')
     revalidatePath('/productos')
     revalidatePath('/')
     revalidatePath('/analisis')
@@ -138,6 +139,7 @@ export async function DELETE(request: NextRequest, { params }: Parametros) {
     })
 
     revalidatePath('/movimientos')
+    revalidatePath('/movimientos/nuevo')
     revalidatePath('/productos')
     revalidatePath('/')
     revalidatePath('/analisis')

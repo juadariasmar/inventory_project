@@ -6,6 +6,8 @@ import BotonExportarAnalisis from '@/componentes/BotonExportarAnalisis'
 import { obtenerTodoAnalisis } from '@/lib/analisis'
 import { tienePermiso } from '@/lib/permisos'
 
+export const dynamic = 'force-dynamic'
+
 export default async function PaginaAnalisis() {
   if (!(await tienePermiso('VER_ANALISIS'))) {
     redirect('/')

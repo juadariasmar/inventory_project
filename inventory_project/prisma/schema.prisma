@@ -42,7 +42,7 @@ model Producto {
   codigo      String       @unique
   precio      Float
   cantidad    Int          @default(0)
-  stockMinimo Int          @default(5)
+  stockMinimo Int          @default(1)
   categoriaId Int?
   categoria   Categoria?   @relation(fields: [categoriaId], references: [id])
   movimientos Movimiento[]
