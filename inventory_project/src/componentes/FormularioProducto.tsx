@@ -190,7 +190,7 @@ export default function FormularioProducto({
             htmlFor="cantidad"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Cantidad Inicial
+            {esEdicion ? 'Cantidad actual' : 'Cantidad inicial'}
           </label>
           <input
             type="number"
@@ -198,9 +198,20 @@ export default function FormularioProducto({
             name="cantidad"
             value={datos.cantidad}
             onChange={manejarCambio}
-            min="0"
+            min={esEdicion ? producto?.cantidad ?? 0 : 0}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          {esEdicion ? (
+            <p className="text-xs text-gray-500 mt-1">
+              Aumentar genera un movimiento de entrada automático. Para reducir
+              el stock, registra un movimiento de salida desde Movimientos.
+            </p>
+          ) : (
+            <p className="text-xs text-gray-500 mt-1">
+              Si es mayor a 0, se registrará un movimiento de entrada como
+              &quot;Stock inicial&quot;.
+            </p>
+          )}
         </div>
 
         <div>
