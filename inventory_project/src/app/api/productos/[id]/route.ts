@@ -36,25 +36,73 @@ export async function GET(request: NextRequest, { params }: Parametros) {
 }
 
 // PUT - Actualizar un producto (solo ADMIN)
+// Reglas sobre la cantidad:
+//  - Si la nueva cantidad es MENOR a la actual, se rechaza la edición.
+//    Para reducir stock debe usarse un movimiento de salida desde /movimientos.
+//  - Si la nueva cantidad es MAYOR, se crea automáticamente un movimiento de
+//    entrada con la diferencia y nota "Ajuste por edición".
+//  - Si es igual, solo se actualizan los otros campos.
 export async function PUT(request: NextRequest, { params }: Parametros) {
   if (!(await esAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
   try {
     const { id } = await params
+    const productoId = parseInt(id)
     const datos = await request.json()
+    const nuevaCantidad = parseInt(datos.cantidad)
 
-    const producto = await prisma.producto.update({
-      where: { id: parseInt(id) },
-      data: {
-        nombre: datos.nombre,
-        descripcion: datos.descripcion || null,
-        codigo: datos.codigo,
-        precio: parseFloat(datos.precio),
-        cantidad: parseInt(datos.cantidad),
-        stockMinimo: parseInt(datos.stockMinimo),
-        categoriaId: datos.categoriaId ? parseInt(datos.categoriaId) : null,
-      },
+    const actual = await prisma.producto.findUnique({
+      where: { id: productoId },
+      select: { cantidad: true },
+    })
+
+    if (!actual) {
+      return NextResponse.json(
+        { error: 'Producto no encontrado' },
+        { status: 404 }
+      )
+    }
+
+    if (nuevaCantidad < actual.cantidad) {
+      return NextResponse.json(
+        {
+          error:
+            'No se puede reducir la cantidad desde la edición del producto. ' +
+            'Para descontar stock, registra un movimiento de salida desde Movimientos.',
+        },
+        { status: 400 }
+      )
+    }
+
+    const delta = nuevaCantidad - actual.cantidad
+
+    const producto = await prisma.$transaction(async (tx) => {
+      const actualizado = await tx.producto.update({
+        where: { id: productoId },
+        data: {
+          nombre: datos.nombre,
+          descripcion: datos.descripcion || null,
+          codigo: datos.codigo,
+          precio: parseFloat(datos.precio),
+          cantidad: nuevaCantidad,
+          stockMinimo: parseInt(datos.stockMinimo),
+          categoriaId: datos.categoriaId ? parseInt(datos.categoriaId) : null,
+        },
+      })
+
+      if (delta > 0) {
+        await tx.movimiento.create({
+          data: {
+            productoId,
+            tipo: 'entrada',
+            cantidad: delta,
+            notas: 'Ajuste por edición',
+          },
+        })
+      }
+
+      return actualizado
     })
 
     return NextResponse.json(producto)
