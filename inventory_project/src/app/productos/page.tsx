@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import Link from 'next/link'
 import BotonEliminarProducto from '@/componentes/BotonEliminarProducto'
+import BotonVenderProducto from '@/componentes/BotonVenderProducto'
 import { obtenerSesion } from '@/lib/permisos'
 import { tieneStockBajo } from '@/lib/inventario'
 
@@ -60,11 +61,9 @@ export default async function PaginaProductos() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Estado
                       </th>
-                      {esAdmin && (
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Acciones
-                        </th>
-                      )}
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Acciones
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -98,20 +97,28 @@ export default async function PaginaProductos() {
                               : 'Normal'}
                           </span>
                         </td>
-                        {esAdmin && (
-                          <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
-                            <Link
-                              href={`/productos/${producto.id}`}
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              Editar
-                            </Link>
-                            <BotonEliminarProducto
-                              id={producto.id}
-                              nombre={producto.nombre}
-                            />
-                          </td>
-                        )}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
+                          <BotonVenderProducto
+                            id={producto.id}
+                            nombre={producto.nombre}
+                            stockActual={producto.cantidad}
+                            precio={producto.precio}
+                          />
+                          {esAdmin && (
+                            <>
+                              <Link
+                                href={`/productos/${producto.id}`}
+                                className="text-blue-600 hover:text-blue-800"
+                              >
+                                Editar
+                              </Link>
+                              <BotonEliminarProducto
+                                id={producto.id}
+                                nombre={producto.nombre}
+                              />
+                            </>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -156,20 +163,28 @@ export default async function PaginaProductos() {
                         <div className="font-medium">{producto.cantidad}</div>
                       </div>
                     </div>
-                    {esAdmin && (
-                      <div className="mt-3 flex gap-4 text-sm">
-                        <Link
-                          href={`/productos/${producto.id}`}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          Editar
-                        </Link>
-                        <BotonEliminarProducto
-                          id={producto.id}
-                          nombre={producto.nombre}
-                        />
-                      </div>
-                    )}
+                    <div className="mt-3 flex gap-4 text-sm">
+                      <BotonVenderProducto
+                        id={producto.id}
+                        nombre={producto.nombre}
+                        stockActual={producto.cantidad}
+                        precio={producto.precio}
+                      />
+                      {esAdmin && (
+                        <>
+                          <Link
+                            href={`/productos/${producto.id}`}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            Editar
+                          </Link>
+                          <BotonEliminarProducto
+                            id={producto.id}
+                            nombre={producto.nombre}
+                          />
+                        </>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
