@@ -411,7 +411,7 @@ Para desplegar a un dominio propio: configurar el dominio en Vercel y actualizar
 
 ## Autor
 
-Proyecto desarrollado por **Juan** como parte del programa Tecnólogo en Análisis y Desarrollo de Software (ADSO) del SENA, Colombia.
+Proyecto desarrollado por **Juan David Arias** como parte del programa Tecnólogo en Análisis y Desarrollo de Software (ADSO) del SENA, Colombia.
 
 - GitHub: [@juadariasmar](https://github.com/juadariasmar)
 - Repositorio: https://github.com/juadariasmar/inventory_project
