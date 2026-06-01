@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { esAdmin, obtenerSesion } from '@/lib/permisos'
 
@@ -104,6 +105,11 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
 
       return actualizado
     })
+
+    revalidatePath('/movimientos')
+    revalidatePath('/productos')
+    revalidatePath('/')
+    revalidatePath('/analisis')
 
     return NextResponse.json(producto)
   } catch (error) {

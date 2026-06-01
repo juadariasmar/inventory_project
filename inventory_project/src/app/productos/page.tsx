@@ -4,6 +4,8 @@ import Link from 'next/link'
 import BotonEliminarProducto from '@/componentes/BotonEliminarProducto'
 import { obtenerSesion } from '@/lib/permisos'
 
+export const dynamic = 'force-dynamic'
+
 async function obtenerProductos() {
   return await prisma.producto.findMany({
     include: { categoria: true },
