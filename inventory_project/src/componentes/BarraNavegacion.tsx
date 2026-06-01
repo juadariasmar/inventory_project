@@ -16,6 +16,7 @@ export default function BarraNavegacion() {
 
   const enlaces = [
     { href: '/', etiqueta: 'Panel', visible: true },
+    { href: '/venta-rapida', etiqueta: 'Venta rápida', visible: true },
     { href: '/productos', etiqueta: 'Productos', visible: true },
     { href: '/movimientos', etiqueta: 'Movimientos', visible: true },
     { href: '/categorias', etiqueta: 'Categorías', visible: true },
