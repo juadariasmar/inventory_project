@@ -273,6 +273,12 @@ export default function ListaProductosFiltrable({
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
+                          <Link
+                            href={`/productos/${producto.id}/detalle`}
+                            className="text-gray-600 hover:text-gray-900"
+                          >
+                            Ver
+                          </Link>
                           {puedeVender && (
                             <BotonVenderProducto
                               id={producto.id}
@@ -341,6 +347,12 @@ export default function ListaProductosFiltrable({
                       </div>
                     </div>
                     <div className="mt-3 flex gap-4 text-sm">
+                      <Link
+                        href={`/productos/${producto.id}/detalle`}
+                        className="text-gray-600 hover:text-gray-900"
+                      >
+                        Ver
+                      </Link>
                       {puedeVender && (
                         <BotonVenderProducto
                           id={producto.id}
