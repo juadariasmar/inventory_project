@@ -22,11 +22,13 @@ interface DatosProducto {
 interface PropiedadesFormulario {
   producto?: DatosProducto
   categorias: Categoria[]
+  codigoSugerido?: string
 }
 
 export default function FormularioProducto({
   producto,
   categorias,
+  codigoSugerido,
 }: PropiedadesFormulario) {
   const router = useRouter()
   const esEdicion = !!producto?.id
@@ -34,7 +36,7 @@ export default function FormularioProducto({
   const [datos, setDatos] = useState({
     nombre: producto?.nombre || '',
     descripcion: producto?.descripcion || '',
-    codigo: producto?.codigo || '',
+    codigo: producto?.codigo || codigoSugerido || '',
     precio: producto?.precio?.toString() || '',
     cantidad: producto?.cantidad?.toString() || '0',
     stockMinimo: producto?.stockMinimo?.toString() || '1',
@@ -105,6 +107,11 @@ export default function FormularioProducto({
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
+          {!esEdicion && codigoSugerido && (
+            <p className="text-xs text-gray-500 mt-1">
+              Sugerido automáticamente. Puedes editarlo si prefieres otro.
+            </p>
+          )}
         </div>
 
         <div>
