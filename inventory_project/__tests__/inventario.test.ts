@@ -5,6 +5,7 @@ import {
   validarProducto,
   formatearPrecio,
   ProductoBase,
+  MARGEN_ALERTA_STOCK,
 } from '../src/lib/inventario'
 
 const productoBase: ProductoBase = {
@@ -16,17 +17,30 @@ const productoBase: ProductoBase = {
 }
 
 describe('tieneStockBajo', () => {
-  test('retorna false cuando la cantidad es mayor al stock mínimo', () => {
-    expect(tieneStockBajo(productoBase)).toBe(false)
+  // La alerta se activa cuando cantidad <= stockMinimo + MARGEN_ALERTA_STOCK.
+  // productoBase: stockMinimo=5, MARGEN_ALERTA_STOCK=2, umbral de alerta = 7.
+
+  test('retorna false cuando la cantidad supera el stock mínimo más el margen', () => {
+    expect(tieneStockBajo(productoBase)).toBe(false) // cantidad=10 > 7
   })
 
-  test('retorna true cuando la cantidad es menor al stock mínimo', () => {
+  test('retorna true cuando la cantidad es muy inferior al stock mínimo', () => {
     const producto = { ...productoBase, cantidad: 2 }
     expect(tieneStockBajo(producto)).toBe(true)
   })
 
-  test('retorna false cuando la cantidad es exactamente igual al stock mínimo', () => {
+  test('retorna true cuando la cantidad es exactamente igual al stock mínimo (margen activo)', () => {
     const producto = { ...productoBase, cantidad: 5 }
+    expect(tieneStockBajo(producto)).toBe(true)
+  })
+
+  test('retorna true en el borde superior del margen (stockMinimo + MARGEN_ALERTA_STOCK)', () => {
+    const producto = { ...productoBase, cantidad: 5 + MARGEN_ALERTA_STOCK }
+    expect(tieneStockBajo(producto)).toBe(true)
+  })
+
+  test('retorna false una unidad por encima del margen', () => {
+    const producto = { ...productoBase, cantidad: 5 + MARGEN_ALERTA_STOCK + 1 }
     expect(tieneStockBajo(producto)).toBe(false)
   })
 })
