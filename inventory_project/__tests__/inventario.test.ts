@@ -4,6 +4,7 @@ import {
   calcularValorTotalInventario,
   validarProducto,
   formatearPrecio,
+  calcularSugerenciaCompra,
   ProductoBase,
   MARGEN_ALERTA_STOCK,
 } from '../src/lib/inventario'
@@ -123,6 +124,53 @@ describe('validarProducto', () => {
       stockMinimo: -2,
     })
     expect(errores.length).toBeGreaterThanOrEqual(4)
+  })
+})
+
+describe('calcularSugerenciaCompra', () => {
+  // Recordatorio: un producto es critico cuando cantidad <= stockMinimo + MARGEN_ALERTA_STOCK.
+  // La sugerencia debe sacarlo de ese umbral y, cuando se pueda, llevarlo al doble del minimo.
+
+  test('al stockMinimo + MARGEN exacto, sugiere lo justo para superar el umbral', () => {
+    // stockMinimo=5, MARGEN=2 -> critico hasta cantidad=7.
+    // objetivo = max(10, 8) = 10. sugerencia = 10 - 7 = 3.
+    expect(calcularSugerenciaCompra(5, 5 + MARGEN_ALERTA_STOCK)).toBe(3)
+  })
+
+  test('al stockMinimo exacto sugiere completar al doble', () => {
+    // stockMinimo=5, cantidad=5 -> objetivo=10, sugerencia=5.
+    expect(calcularSugerenciaCompra(5, 5)).toBe(5)
+  })
+
+  test('con stock=0 sugiere al menos el doble del mínimo', () => {
+    expect(calcularSugerenciaCompra(5, 0)).toBe(10)
+  })
+
+  test('caso del bug original: stockMinimo=1 y cantidad=2 sugiere mayor a cero', () => {
+    // Antes del fix devolvia 0. Ahora debe sacarlo de la zona critica.
+    // objetivo = max(2, 1+2+1=4) = 4. sugerencia = 4 - 2 = 2.
+    const sug = calcularSugerenciaCompra(1, 2)
+    expect(sug).toBeGreaterThan(0)
+    expect(sug).toBe(2)
+  })
+
+  test('caso del bug: stockMinimo=2 y cantidad=4 sugiere mayor a cero', () => {
+    // objetivo = max(4, 2+2+1=5) = 5. sugerencia = 5 - 4 = 1.
+    const sug = calcularSugerenciaCompra(2, 4)
+    expect(sug).toBeGreaterThan(0)
+    expect(sug).toBe(1)
+  })
+
+  test('al recibir la sugerencia, el producto sale del umbral critico', () => {
+    // Casos limites donde el bug se manifestaba.
+    const casos: Array<[number, number]> = [
+      [1, 2], [1, 3], [2, 4], [3, 5], [4, 6],
+    ]
+    for (const [stockMinimo, cantidad] of casos) {
+      const sug = calcularSugerenciaCompra(stockMinimo, cantidad)
+      const cantidadDespues = cantidad + sug
+      expect(cantidadDespues).toBeGreaterThan(stockMinimo + MARGEN_ALERTA_STOCK)
+    }
   })
 })
 
