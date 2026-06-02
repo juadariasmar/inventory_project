@@ -183,7 +183,7 @@ export default function ListaMovimientosFiltrable({ movimientos }: Propiedades) 
         {filtrados.length > 0 ? (
           <>
             {/* Vista escritorio */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden lg:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -254,7 +254,7 @@ export default function ListaMovimientosFiltrable({ movimientos }: Propiedades) 
             </div>
 
             {/* Vista móvil */}
-            <div className="md:hidden divide-y divide-gray-200">
+            <div className="lg:hidden divide-y divide-gray-200">
               {filtrados.map((m) => (
                 <div key={m.id} className="p-4">
                   <div className="flex justify-between items-start gap-2">

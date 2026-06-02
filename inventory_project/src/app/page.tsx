@@ -100,7 +100,7 @@ export default async function PaginaPrincipal() {
         )}
 
         {/* Tarjetas de estadísticas */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           <TarjetaEstadisticaDoble
             titulo="Inventario"
             colorFondo="bg-blue-100 text-blue-600"
@@ -129,7 +129,7 @@ export default async function PaginaPrincipal() {
           />
           <TarjetaEstadistica
             titulo="Valor inventario"
-            valor={`$${estadisticas.valorInventario.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`}
+            valor={`$${estadisticas.valorInventario.toLocaleString('es-MX')}`}
             colorFondo="bg-purple-100 text-purple-600"
             icono={
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -186,7 +186,7 @@ export default async function PaginaPrincipal() {
           {estadisticas.movimientosRecientes.length > 0 ? (
             <>
               {/* Vista escritorio */}
-              <div className="hidden md:block overflow-x-auto">
+              <div className="hidden lg:block overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
@@ -234,7 +234,7 @@ export default async function PaginaPrincipal() {
               </div>
 
               {/* Vista móvil */}
-              <div className="md:hidden divide-y divide-gray-200">
+              <div className="lg:hidden divide-y divide-gray-200">
                 {estadisticas.movimientosRecientes.map((m) => (
                   <div key={m.id} className="py-3 flex justify-between items-center gap-2">
                     <div className="flex-1 min-w-0">
