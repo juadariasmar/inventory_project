@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { esAdmin } from '@/lib/permisos'
+import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
 
 interface Parametros {
   params: Promise<{ id: string }>
@@ -26,8 +27,20 @@ export async function DELETE(request: NextRequest, { params }: Parametros) {
       )
     }
 
+    const categoriaExistente = await prisma.categoria.findUnique({
+      where: { id: parseInt(id) },
+    })
+
     await prisma.categoria.delete({
       where: { id: parseInt(id) },
+    })
+
+    await registrarAuditoria({
+      accion: 'ELIMINAR',
+      entidad: 'Categoria',
+      entidadId: parseInt(id),
+      datos: { antes: categoriaExistente },
+      ip: extraerIp(request),
     })
 
     return NextResponse.json({ mensaje: 'Categoría eliminada correctamente' })

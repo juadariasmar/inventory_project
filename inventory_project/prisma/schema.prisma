@@ -28,13 +28,14 @@ enum Permiso {
 }
 
 model Usuario {
-  id            Int       @id @default(autoincrement())
-  nombreUsuario String    @unique
+  id            Int         @id @default(autoincrement())
+  nombreUsuario String      @unique
   contrasena    String
   nombre        String
-  rol           Rol       @default(USUARIO)
-  permisos      Permiso[] @default([])
-  creadoEn      DateTime  @default(now())
+  rol           Rol         @default(USUARIO)
+  permisos      Permiso[]   @default([])
+  creadoEn      DateTime    @default(now())
+  auditorias    Auditoria[]
 }
 
 model Categoria {
@@ -65,4 +66,21 @@ model Movimiento {
   cantidad   Int
   notas      String?
   creadoEn   DateTime @default(now())
+}
+
+model Auditoria {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int?
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  accion    String   // CREAR | ACTUALIZAR | ELIMINAR | LOGIN | LOGIN_FALLIDO
+  entidad   String   // Producto | Categoria | Movimiento | Usuario | Sesion
+  entidadId Int?
+  datos     Json?    // { antes: {...}, despues: {...} } o detalles especificos del evento
+  ip        String?
+  creadoEn  DateTime @default(now())
+
+  @@index([creadoEn(sort: Desc)])
+  @@index([usuarioId])
+  @@index([entidad, entidadId])
+  @@index([accion])
 }
