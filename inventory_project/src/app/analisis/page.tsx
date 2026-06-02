@@ -23,8 +23,14 @@ export default async function PaginaAnalisis() {
   } = await obtenerTodoAnalisis()
   const puedeExportar = await tienePermiso('EXPORTAR_REPORTES')
 
-  const totalAlertas =
-    stockAgotarse.length + sinMovimientos.length + stockCritico.length
+  // Contar productos UNICOS para evitar duplicados: muchos productos en
+  // stock critico tambien aparecen en "por agotarse" porque ahora ambas
+  // listas comparten el criterio de zona critica.
+  const productosUnicosEnAlerta = new Set<number>()
+  for (const a of stockCritico) productosUnicosEnAlerta.add(a.productoId)
+  for (const a of stockAgotarse) productosUnicosEnAlerta.add(a.productoId)
+  for (const a of sinMovimientos) productosUnicosEnAlerta.add(a.productoId)
+  const totalAlertas = productosUnicosEnAlerta.size
 
   return (
     <LayoutProtegido>
