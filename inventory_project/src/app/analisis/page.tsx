@@ -102,33 +102,21 @@ export default async function PaginaAnalisis() {
           )}
         </section>
 
-        {/* Stock por agotarse */}
+        {/* Productos en riesgo */}
         <section className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">
-            Productos por agotarse en menos de 7 días
+          <h2 className="text-lg font-semibold text-gray-800 mb-1">
+            Productos en riesgo de agotarse
           </h2>
+          <p className="text-sm text-gray-500 mb-3">
+            Productos con stock dentro del umbral crítico o cuyo agotamiento se
+            proyecta en 7 días o menos según el consumo histórico.
+          </p>
           {stockAgotarse.length > 0 ? (
             <TablaStockAgotarse datos={stockAgotarse} />
           ) : (
-            <div className="text-gray-500 text-sm space-y-1">
-              <p>No hay productos en riesgo de agotarse.</p>
-              {(() => {
-                const enRiesgo = inventarioGeneral.filter(
-                  (p) => p.estado === 'Stock bajo' || p.estado === 'Sin stock'
-                )
-                if (enRiesgo.length > 0) {
-                  return (
-                    <p className="text-amber-600">
-                      ⚠️ Hay {enRiesgo.length} producto(s) en estado crítico
-                      según el Inventario general (
-                      {enRiesgo.map((p) => p.nombre).join(', ')}). Si no aparecen
-                      aquí, refresca con Ctrl + F5.
-                    </p>
-                  )
-                }
-                return null
-              })()}
-            </div>
+            <p className="text-gray-500 text-sm">
+              No hay productos en riesgo de agotarse.
+            </p>
           )}
         </section>
 
