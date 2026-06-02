@@ -4,6 +4,8 @@ import FormularioProducto from '@/componentes/FormularioProducto'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+export const dynamic = 'force-dynamic'
+
 interface PropiedadesPagina {
   params: Promise<{ id: string }>
 }
