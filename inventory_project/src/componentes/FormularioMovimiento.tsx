@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 interface Producto {
   id: number
@@ -23,6 +23,7 @@ export default function FormularioMovimiento({ productos }: PropiedadesFormulari
     cantidad: '',
     notas: '',
   })
+  const [busqueda, setBusqueda] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
 
@@ -30,11 +31,39 @@ export default function FormularioMovimiento({ productos }: PropiedadesFormulari
     (p) => p.id === parseInt(datos.productoId)
   )
 
+  const resultadosBusqueda = useMemo(() => {
+    const q = busqueda.trim().toLowerCase()
+    if (!q) return []
+    return productos
+      .filter(
+        (p) =>
+          p.codigo.toLowerCase().includes(q) ||
+          p.nombre.toLowerCase().includes(q)
+      )
+      .slice(0, 8)
+  }, [busqueda, productos])
+
+  const seleccionarProducto = (p: Producto) => {
+    setDatos((prev) => ({ ...prev, productoId: String(p.id) }))
+    setBusqueda(`${p.codigo} - ${p.nombre}`)
+  }
+
+  const manejarTeclaBusqueda = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && resultadosBusqueda.length > 0) {
+      e.preventDefault()
+      seleccionarProducto(resultadosBusqueda[0])
+    }
+  }
+
   const manejarCambio = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target
     setDatos((prev) => ({ ...prev, [name]: value }))
+    if (name === 'productoId') {
+      const p = productos.find((p) => p.id === parseInt(value))
+      setBusqueda(p ? `${p.codigo} - ${p.nombre}` : '')
+    }
   }
 
   const manejarEnvio = async (e: React.FormEvent) => {
@@ -75,8 +104,48 @@ export default function FormularioMovimiento({ productos }: PropiedadesFormulari
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="md:col-span-2">
           <label
-            htmlFor="productoId"
+            htmlFor="busquedaProducto"
             className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Buscar producto (código o nombre)
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              id="busquedaProducto"
+              value={busqueda}
+              onChange={(e) => {
+                setBusqueda(e.target.value)
+                setDatos((prev) => ({ ...prev, productoId: '' }))
+              }}
+              onKeyDown={manejarTeclaBusqueda}
+              placeholder="Escribe para buscar… (Enter selecciona la primera coincidencia)"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {resultadosBusqueda.length > 0 && !productoSeleccionado && (
+              <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-72 overflow-y-auto">
+                {resultadosBusqueda.map((p, i) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => seleccionarProducto(p)}
+                    className={`w-full text-left px-3 py-2 hover:bg-gray-100 border-b border-gray-100 last:border-b-0 ${
+                      i === 0 ? 'bg-blue-50' : ''
+                    }`}
+                  >
+                    <div className="font-medium text-gray-900">{p.nombre}</div>
+                    <div className="text-xs text-gray-500">
+                      {p.codigo} · Stock: {p.cantidad}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <label
+            htmlFor="productoId"
+            className="block text-sm font-medium text-gray-700 mt-3 mb-1"
           >
             Producto *
           </label>
