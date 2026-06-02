@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { esAdmin } from '@/lib/permisos'
 import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
@@ -42,6 +43,10 @@ export async function DELETE(request: NextRequest, { params }: Parametros) {
       datos: { antes: categoriaExistente },
       ip: extraerIp(request),
     })
+
+    revalidatePath('/categorias')
+    revalidatePath('/productos/nuevo')
+    revalidatePath('/productos', 'layout')
 
     return NextResponse.json({ mensaje: 'Categoría eliminada correctamente' })
   } catch (error) {

@@ -2,15 +2,15 @@ import { prisma } from '@/lib/db'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import FormularioProducto from '@/componentes/FormularioProducto'
 import Link from 'next/link'
+import { siguienteCodigoConsecutivo } from '@/lib/codigos'
 
-async function obtenerCategorias() {
-  return await prisma.categoria.findMany({
-    orderBy: { nombre: 'asc' },
-  })
-}
+export const dynamic = 'force-dynamic'
 
 export default async function PaginaNuevoProducto() {
-  const categorias = await obtenerCategorias()
+  const [categorias, codigoSugerido] = await Promise.all([
+    prisma.categoria.findMany({ orderBy: { nombre: 'asc' } }),
+    siguienteCodigoConsecutivo(),
+  ])
 
   return (
     <LayoutProtegido>
@@ -26,7 +26,7 @@ export default async function PaginaNuevoProducto() {
         <h1 className="text-2xl font-bold text-gray-800">Nuevo Producto</h1>
 
         <div className="bg-white rounded-lg shadow-md p-6">
-          <FormularioProducto categorias={categorias} />
+          <FormularioProducto categorias={categorias} codigoSugerido={codigoSugerido} />
         </div>
       </div>
     </LayoutProtegido>
