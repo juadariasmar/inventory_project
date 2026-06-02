@@ -31,8 +31,13 @@ export async function GET(request: NextRequest) {
     orderBy: { creadoEn: 'desc' },
   })
 
-  const fechaIso = new Date().toISOString().slice(0, 10)
-  const fechaCo = new Date().toLocaleString('es-MX', { timeZone: 'America/Bogota' })
+  const ahora = new Date()
+  const stampCo = ahora
+    .toLocaleString('sv-SE', { timeZone: 'America/Bogota', hour12: false })
+    .replace(/[-: ]/g, '')
+    .slice(0, 14)
+  const nombreArchivo = `auditoria_${stampCo.slice(0, 8)}_${stampCo.slice(8)}.xlsx`
+  const fechaCo = ahora.toLocaleString('es-MX', { timeZone: 'America/Bogota' })
 
   const filtrosTexto: string[] = []
   if (sp.get('usuario')) filtrosTexto.push(`usuario #${sp.get('usuario')}`)
@@ -87,7 +92,8 @@ export async function GET(request: NextRequest) {
   return new NextResponse(new Uint8Array(buffer), {
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'Content-Disposition': `attachment; filename="auditoria_${fechaIso}.xlsx"`,
+      'Content-Disposition': `attachment; filename="${nombreArchivo}"`,
+      'Cache-Control': 'no-store',
     },
   })
 }
