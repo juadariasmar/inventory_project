@@ -101,11 +101,14 @@ export async function obtenerStockPorAgotarse(): Promise<AlertaStockAgotarse[]> 
     const datos = consumo.get(p.id)
     const cantidadVendida = datos?.cantidadVendida ?? 0
     const tieneHistorial = cantidadVendida > 0
+    const enUmbralCritico = p.cantidad <= p.stockMinimo + MARGEN_ALERTA_STOCK
 
     if (tieneHistorial) {
       const consumoDiarioPromedio = cantidadVendida / DIAS_VENTANA_CONSUMO
       const diasParaAgotarse = p.cantidad / consumoDiarioPromedio
-      if (diasParaAgotarse <= DIAS_LIMITE_AGOTARSE) {
+      // Mostrar si el cálculo proyecta agotamiento en 7 días O si el stock
+      // ya está en zona crítica (regla "si ya está bajo, alertar siempre").
+      if (diasParaAgotarse <= DIAS_LIMITE_AGOTARSE || enUmbralCritico) {
         alertas.push({
           productoId: p.id,
           nombre: p.nombre,
@@ -116,9 +119,8 @@ export async function obtenerStockPorAgotarse(): Promise<AlertaStockAgotarse[]> 
           diasParaAgotarse: Math.round(diasParaAgotarse * 10) / 10,
         })
       }
-    } else if (p.cantidad <= p.stockMinimo + MARGEN_ALERTA_STOCK) {
-      // Sin historial pero el stock ya está dentro del umbral crítico:
-      // no se puede proyectar agotamiento exacto, pero sí avisar.
+    } else if (enUmbralCritico) {
+      // Sin historial pero el stock ya está en zona crítica.
       alertas.push({
         productoId: p.id,
         nombre: p.nombre,
