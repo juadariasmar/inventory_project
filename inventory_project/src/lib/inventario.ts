@@ -20,17 +20,44 @@ export function tieneStockBajo(producto: ProductoBase): boolean {
   return producto.cantidad <= producto.stockMinimo + MARGEN_ALERTA_STOCK
 }
 
+// Cuantos dias de stock queremos tener entre pedidos. Si el producto vende
+// 5 unidades al dia, el objetivo es tener stock para 14 dias = 70 unidades
+// (mas el colchon del stockMinimo).
+export const DIAS_COBERTURA_OBJETIVO = 14
+
 // Sugiere cuantas unidades comprar para sacar al producto del umbral critico.
 // Garantiza que la sugerencia, al sumarse a la cantidad actual, deje el stock
 // por encima del umbral de alerta (cantidad > stockMinimo + MARGEN_ALERTA_STOCK)
 // y, cuando es posible, lleve el stock al doble del minimo (colchon recomendable).
 // Devuelve siempre un entero >= 1 si el producto esta en zona critica.
+// Esta es la formula simple (sin tener en cuenta movimientos). Se usa como
+// fallback cuando no hay historial de ventas para proyectar.
 export function calcularSugerenciaCompra(
   stockMinimo: number,
   cantidadActual: number,
 ): number {
   const umbralSalida = stockMinimo + MARGEN_ALERTA_STOCK + 1
   const objetivo = Math.max(stockMinimo * 2, umbralSalida)
+  return Math.max(0, objetivo - cantidadActual)
+}
+
+// Sugiere cuantas unidades comprar basandose en el consumo diario promedio
+// de los ultimos N dias (DIAS_VENTANA_CONSUMO en analisis.ts).
+// El objetivo es cubrir DIAS_COBERTURA_OBJETIVO dias de ventas + el stockMinimo
+// como colchon de seguridad. Si el producto no tiene historial (consumo = 0),
+// cae a la formula simple para no dejarlo sin sugerencia.
+export function calcularSugerenciaCompraInteligente(
+  stockMinimo: number,
+  cantidadActual: number,
+  consumoDiarioPromedio: number,
+): number {
+  if (consumoDiarioPromedio <= 0) {
+    return calcularSugerenciaCompra(stockMinimo, cantidadActual)
+  }
+  const umbralSalida = stockMinimo + MARGEN_ALERTA_STOCK + 1
+  const objetivoCobertura =
+    Math.ceil(consumoDiarioPromedio * DIAS_COBERTURA_OBJETIVO) + stockMinimo
+  const objetivo = Math.max(umbralSalida, objetivoCobertura)
   return Math.max(0, objetivo - cantidadActual)
 }
 
