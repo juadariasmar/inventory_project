@@ -4,7 +4,7 @@ import TarjetaEstadistica from '@/componentes/TarjetaEstadistica'
 import Link from 'next/link'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 import { obtenerStockPorAgotarse, obtenerProductosSinMovimientos } from '@/lib/analisis'
-import { tieneStockBajo } from '@/lib/inventario'
+import { estadoStock } from '@/lib/inventario'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,10 +27,14 @@ async function obtenerEstadisticas() {
     }),
   ])
 
-  // Contar productos con stock bajo (incluye margen de alerta sobre el minimo)
-  const productosStockBajo = productos.filter((p) =>
-    tieneStockBajo({ nombre: '', codigo: '', ...p })
-  ).length
+  // Separar conteos de "sin stock" y "stock bajo" para mostrar en tarjetas distintas
+  let productosSinStock = 0
+  let productosStockBajo = 0
+  for (const p of productos) {
+    const e = estadoStock({ nombre: '', codigo: '', ...p })
+    if (e === 'sin_stock') productosSinStock++
+    else if (e === 'stock_bajo') productosStockBajo++
+  }
 
   // Calcular valor total del inventario
   const valorInventario = productos.reduce(
@@ -41,6 +45,7 @@ async function obtenerEstadisticas() {
   return {
     totalProductos,
     totalCategorias,
+    productosSinStock,
     productosStockBajo,
     movimientosRecientes,
     valorInventario,
@@ -90,7 +95,7 @@ export default async function PaginaPrincipal() {
         )}
 
         {/* Tarjetas de estadísticas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           <TarjetaEstadistica
             titulo="Total Productos"
             valor={estadisticas.totalProductos}
@@ -118,6 +123,16 @@ export default async function PaginaPrincipal() {
             icono={
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            }
+          />
+          <TarjetaEstadistica
+            titulo="Sin Stock"
+            valor={estadisticas.productosSinStock}
+            colorFondo="bg-gray-200 text-gray-700"
+            icono={
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L5.636 5.636" />
               </svg>
             }
           />
