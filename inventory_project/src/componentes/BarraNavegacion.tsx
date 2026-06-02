@@ -13,9 +13,14 @@ export default function BarraNavegacion() {
   const esAdmin = sesion?.user?.rol === 'ADMIN'
   const puedeVerAnalisis =
     esAdmin || (sesion?.user?.permisos?.includes('VER_ANALISIS') ?? false)
+  const puedeVender =
+    esAdmin ||
+    (sesion?.user?.permisos?.includes('REALIZAR_VENTAS') ?? false) ||
+    (sesion?.user?.permisos?.includes('REGISTRAR_MOVIMIENTOS') ?? false)
 
   const enlaces = [
     { href: '/', etiqueta: 'Panel', visible: true },
+    { href: '/venta-rapida', etiqueta: 'Venta rápida', visible: puedeVender },
     { href: '/productos', etiqueta: 'Productos', visible: true },
     { href: '/movimientos', etiqueta: 'Movimientos', visible: true },
     { href: '/categorias', etiqueta: 'Categorías', visible: true },

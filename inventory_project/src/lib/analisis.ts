@@ -1,12 +1,16 @@
 import { prisma } from './db'
+import { MARGEN_ALERTA_STOCK } from './inventario'
 
 export interface AlertaStockAgotarse {
   productoId: number
   nombre: string
   codigo: string
   cantidadActual: number
+  stockMinimo: number
   consumoDiarioPromedio: number
-  diasParaAgotarse: number
+  // null cuando el producto no tiene historial de ventas pero su stock
+  // ya está bajo el umbral crítico (no se puede proyectar agotamiento).
+  diasParaAgotarse: number | null
 }
 
 export interface AlertaSinMovimientos {
@@ -39,6 +43,19 @@ export interface ResumenMovimientos {
   fecha: string
   entradas: number
   salidas: number
+}
+
+export interface FilaInventarioGeneral {
+  productoId: number
+  codigo: string
+  nombre: string
+  categoria: string
+  cantidad: number
+  stockMinimo: number
+  precio: number
+  valorEnStock: number
+  estado: 'Sin stock' | 'Stock bajo' | 'Normal'
+  diasDesdeUltimaActividad: number | null
 }
 
 const DIAS_VENTANA_CONSUMO = 30
@@ -74,31 +91,56 @@ async function consumoPorProducto(diasVentana: number) {
 
 export async function obtenerStockPorAgotarse(): Promise<AlertaStockAgotarse[]> {
   const productos = await prisma.producto.findMany({
-    select: { id: true, nombre: true, codigo: true, cantidad: true },
+    select: { id: true, nombre: true, codigo: true, cantidad: true, stockMinimo: true },
   })
   const consumo = await consumoPorProducto(DIAS_VENTANA_CONSUMO)
 
   const alertas: AlertaStockAgotarse[] = []
   for (const p of productos) {
+    if (p.cantidad <= 0) continue
     const datos = consumo.get(p.id)
-    if (!datos || datos.cantidadVendida === 0) continue
+    const cantidadVendida = datos?.cantidadVendida ?? 0
+    const tieneHistorial = cantidadVendida > 0
+    const enUmbralCritico = p.cantidad <= p.stockMinimo + MARGEN_ALERTA_STOCK
 
-    const consumoDiarioPromedio = datos.cantidadVendida / DIAS_VENTANA_CONSUMO
-    if (consumoDiarioPromedio <= 0 || p.cantidad <= 0) continue
-
-    const diasParaAgotarse = p.cantidad / consumoDiarioPromedio
-    if (diasParaAgotarse <= DIAS_LIMITE_AGOTARSE) {
+    if (tieneHistorial) {
+      const consumoDiarioPromedio = cantidadVendida / DIAS_VENTANA_CONSUMO
+      const diasParaAgotarse = p.cantidad / consumoDiarioPromedio
+      // Mostrar si el cálculo proyecta agotamiento en 7 días O si el stock
+      // ya está en zona crítica (regla "si ya está bajo, alertar siempre").
+      if (diasParaAgotarse <= DIAS_LIMITE_AGOTARSE || enUmbralCritico) {
+        alertas.push({
+          productoId: p.id,
+          nombre: p.nombre,
+          codigo: p.codigo,
+          cantidadActual: p.cantidad,
+          stockMinimo: p.stockMinimo,
+          consumoDiarioPromedio: Math.round(consumoDiarioPromedio * 100) / 100,
+          diasParaAgotarse: Math.round(diasParaAgotarse * 10) / 10,
+        })
+      }
+    } else if (enUmbralCritico) {
+      // Sin historial pero el stock ya está en zona crítica.
       alertas.push({
         productoId: p.id,
         nombre: p.nombre,
         codigo: p.codigo,
         cantidadActual: p.cantidad,
-        consumoDiarioPromedio: Math.round(consumoDiarioPromedio * 100) / 100,
-        diasParaAgotarse: Math.round(diasParaAgotarse * 10) / 10,
+        stockMinimo: p.stockMinimo,
+        consumoDiarioPromedio: 0,
+        diasParaAgotarse: null,
       })
     }
   }
-  return alertas.sort((a, b) => a.diasParaAgotarse - b.diasParaAgotarse)
+  // Sin histórico primero (más urgente), luego por días ascendente.
+  return alertas.sort((a, b) => {
+    if (a.diasParaAgotarse === null && b.diasParaAgotarse === null) {
+      return a.cantidadActual - b.cantidadActual
+    }
+    if (a.diasParaAgotarse === null) return -1
+    if (b.diasParaAgotarse === null) return 1
+    return a.diasParaAgotarse - b.diasParaAgotarse
+  })
 }
 
 export async function obtenerProductosSinMovimientos(): Promise<AlertaSinMovimientos[]> {
@@ -178,13 +220,11 @@ export async function obtenerAltaRotacion(): Promise<ProductoAltaRotacion[]> {
 
 export async function obtenerStockCritico(): Promise<AlertaStockCritico[]> {
   const productos = await prisma.producto.findMany({
-    where: {
-      cantidad: { lte: prisma.producto.fields.stockMinimo },
-    },
     select: { id: true, nombre: true, codigo: true, cantidad: true, stockMinimo: true },
   })
 
   return productos
+    .filter((p) => p.cantidad <= p.stockMinimo + MARGEN_ALERTA_STOCK)
     .map((p) => ({
       productoId: p.id,
       nombre: p.nombre,
@@ -233,13 +273,73 @@ export async function obtenerResumenMovimientos(dias = 30): Promise<ResumenMovim
   }))
 }
 
+export async function obtenerInventarioGeneral(): Promise<FilaInventarioGeneral[]> {
+  const productos = await prisma.producto.findMany({
+    select: {
+      id: true,
+      codigo: true,
+      nombre: true,
+      precio: true,
+      cantidad: true,
+      stockMinimo: true,
+      categoria: { select: { nombre: true } },
+      movimientos: {
+        orderBy: { creadoEn: 'desc' },
+        take: 1,
+        select: { creadoEn: true },
+      },
+    },
+    orderBy: { nombre: 'asc' },
+  })
+
+  const hoy = new Date()
+  return productos.map((p) => {
+    const ultimo = p.movimientos[0]?.creadoEn
+    const diasDesdeUltimaActividad = ultimo
+      ? Math.floor((hoy.getTime() - ultimo.getTime()) / (1000 * 60 * 60 * 24))
+      : null
+    let estado: FilaInventarioGeneral['estado']
+    if (p.cantidad <= 0) estado = 'Sin stock'
+    else if (p.cantidad <= p.stockMinimo + MARGEN_ALERTA_STOCK) estado = 'Stock bajo'
+    else estado = 'Normal'
+
+    return {
+      productoId: p.id,
+      codigo: p.codigo,
+      nombre: p.nombre,
+      categoria: p.categoria?.nombre ?? 'Sin categoría',
+      cantidad: p.cantidad,
+      stockMinimo: p.stockMinimo,
+      precio: p.precio,
+      valorEnStock: Math.round(p.precio * p.cantidad),
+      estado,
+      diasDesdeUltimaActividad,
+    }
+  })
+}
+
 export async function obtenerTodoAnalisis() {
-  const [stockAgotarse, sinMovimientos, altaRotacion, stockCritico, resumen] = await Promise.all([
+  const [
+    inventarioGeneral,
+    stockAgotarse,
+    sinMovimientos,
+    altaRotacion,
+    stockCritico,
+    resumen,
+  ] = await Promise.all([
+    obtenerInventarioGeneral(),
     obtenerStockPorAgotarse(),
     obtenerProductosSinMovimientos(),
     obtenerAltaRotacion(),
     obtenerStockCritico(),
     obtenerResumenMovimientos(30),
   ])
-  return { stockAgotarse, sinMovimientos, altaRotacion, stockCritico, resumen }
+  return {
+    inventarioGeneral,
+    stockAgotarse,
+    sinMovimientos,
+    altaRotacion,
+    stockCritico,
+    resumen,
+  }
 }
