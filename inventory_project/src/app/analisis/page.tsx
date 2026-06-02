@@ -190,7 +190,7 @@ function TablaResponsive({
 }) {
   return (
     <>
-      <div className="hidden md:block overflow-x-auto">
+      <div className="hidden lg:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -217,7 +217,7 @@ function TablaResponsive({
           </tbody>
         </table>
       </div>
-      <div className="md:hidden divide-y divide-gray-200">
+      <div className="lg:hidden divide-y divide-gray-200">
         {filas.map((fila, i) => (
           <div key={i} className="py-3 grid grid-cols-2 gap-1 text-sm">
             {cabeceras.map((c, j) => (
