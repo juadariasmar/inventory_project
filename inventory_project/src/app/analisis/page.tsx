@@ -283,7 +283,7 @@ function TablaAltaRotacion({
 function TablaStockCritico({
   datos,
 }: {
-  datos: { nombre: string; codigo: string; cantidadActual: number; stockMinimo: number; faltanteParaDuplicarMinimo: number }[]
+  datos: { nombre: string; codigo: string; cantidadActual: number; stockMinimo: number; sugerenciaCompra: number }[]
 }) {
   return (
     <TablaResponsive
@@ -293,7 +293,7 @@ function TablaStockCritico({
         d.codigo,
         d.cantidadActual,
         d.stockMinimo,
-        d.faltanteParaDuplicarMinimo,
+        d.sugerenciaCompra,
       ])}
     />
   )
