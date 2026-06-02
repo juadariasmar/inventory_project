@@ -20,6 +20,20 @@ export function tieneStockBajo(producto: ProductoBase): boolean {
   return producto.cantidad <= producto.stockMinimo + MARGEN_ALERTA_STOCK
 }
 
+// Sugiere cuantas unidades comprar para sacar al producto del umbral critico.
+// Garantiza que la sugerencia, al sumarse a la cantidad actual, deje el stock
+// por encima del umbral de alerta (cantidad > stockMinimo + MARGEN_ALERTA_STOCK)
+// y, cuando es posible, lleve el stock al doble del minimo (colchon recomendable).
+// Devuelve siempre un entero >= 1 si el producto esta en zona critica.
+export function calcularSugerenciaCompra(
+  stockMinimo: number,
+  cantidadActual: number,
+): number {
+  const umbralSalida = stockMinimo + MARGEN_ALERTA_STOCK + 1
+  const objetivo = Math.max(stockMinimo * 2, umbralSalida)
+  return Math.max(0, objetivo - cantidadActual)
+}
+
 export type EstadoStock = 'sin_stock' | 'stock_bajo' | 'normal'
 
 // Estado del stock con tres niveles:
