@@ -4,7 +4,13 @@ import Link from 'next/link'
 import BotonEliminarProducto from '@/componentes/BotonEliminarProducto'
 import BotonVenderProducto from '@/componentes/BotonVenderProducto'
 import { obtenerSesion } from '@/lib/permisos'
-import { tieneStockBajo } from '@/lib/inventario'
+import { estadoStock, etiquetaEstadoStock } from '@/lib/inventario'
+
+const CLASES_ESTADO = {
+  sin_stock: 'bg-gray-200 text-gray-800',
+  stock_bajo: 'bg-red-100 text-red-800',
+  normal: 'bg-green-100 text-green-800',
+} as const
 
 export const dynamic = 'force-dynamic'
 
@@ -85,17 +91,16 @@ export default async function PaginaProductos() {
                           {producto.cantidad}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`px-2 py-1 text-xs font-medium rounded-full ${
-                              tieneStockBajo(producto)
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-green-100 text-green-800'
-                            }`}
-                          >
-                            {tieneStockBajo(producto)
-                              ? 'Stock Bajo'
-                              : 'Normal'}
-                          </span>
+                          {(() => {
+                            const e = estadoStock(producto)
+                            return (
+                              <span
+                                className={`px-2 py-1 text-xs font-medium rounded-full ${CLASES_ESTADO[e]}`}
+                              >
+                                {etiquetaEstadoStock(e)}
+                              </span>
+                            )
+                          })()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
                           <BotonVenderProducto
@@ -141,15 +146,16 @@ export default async function PaginaProductos() {
                           )}
                         </div>
                       </div>
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
-                          tieneStockBajo(producto)
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-green-100 text-green-800'
-                        }`}
-                      >
-                        {tieneStockBajo(producto) ? 'Stock Bajo' : 'Normal'}
-                      </span>
+                      {(() => {
+                        const e = estadoStock(producto)
+                        return (
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${CLASES_ESTADO[e]}`}
+                          >
+                            {etiquetaEstadoStock(e)}
+                          </span>
+                        )
+                      })()}
                     </div>
                     <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
                       <div>
