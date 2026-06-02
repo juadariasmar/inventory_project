@@ -1,5 +1,8 @@
 import { prisma } from './db'
-import { MARGEN_ALERTA_STOCK, calcularSugerenciaCompra } from './inventario'
+import {
+  MARGEN_ALERTA_STOCK,
+  calcularSugerenciaCompraInteligente,
+} from './inventario'
 
 export interface AlertaStockAgotarse {
   productoId: number
@@ -36,6 +39,7 @@ export interface AlertaStockCritico {
   codigo: string
   cantidadActual: number
   stockMinimo: number
+  consumoDiarioPromedio: number
   sugerenciaCompra: number
 }
 
@@ -219,21 +223,33 @@ export async function obtenerAltaRotacion(): Promise<ProductoAltaRotacion[]> {
 }
 
 export async function obtenerStockCritico(): Promise<AlertaStockCritico[]> {
-  const productos = await prisma.producto.findMany({
-    select: { id: true, nombre: true, codigo: true, cantidad: true, stockMinimo: true },
-  })
+  const [productos, consumo] = await Promise.all([
+    prisma.producto.findMany({
+      select: { id: true, nombre: true, codigo: true, cantidad: true, stockMinimo: true },
+    }),
+    consumoPorProducto(DIAS_VENTANA_CONSUMO),
+  ])
 
   return productos
     .filter((p) => p.cantidad <= p.stockMinimo + MARGEN_ALERTA_STOCK)
-    .map((p) => ({
-      productoId: p.id,
-      nombre: p.nombre,
-      codigo: p.codigo,
-      cantidadActual: p.cantidad,
-      stockMinimo: p.stockMinimo,
-      sugerenciaCompra: calcularSugerenciaCompra(p.stockMinimo, p.cantidad),
-    }))
-    .sort((a, b) => a.cantidadActual - b.cantidadActual)
+    .map((p) => {
+      const cantidadVendida = consumo.get(p.id)?.cantidadVendida ?? 0
+      const consumoDiarioPromedio = cantidadVendida / DIAS_VENTANA_CONSUMO
+      return {
+        productoId: p.id,
+        nombre: p.nombre,
+        codigo: p.codigo,
+        cantidadActual: p.cantidad,
+        stockMinimo: p.stockMinimo,
+        consumoDiarioPromedio: Math.round(consumoDiarioPromedio * 100) / 100,
+        sugerenciaCompra: calcularSugerenciaCompraInteligente(
+          p.stockMinimo,
+          p.cantidad,
+          consumoDiarioPromedio,
+        ),
+      }
+    })
+    .sort((a, b) => b.sugerenciaCompra - a.sugerenciaCompra)
 }
 
 /**
