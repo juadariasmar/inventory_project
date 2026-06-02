@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/db'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import TerminalVentaRapida from '@/componentes/TerminalVentaRapida'
+import { redirect } from 'next/navigation'
+import { tienePermiso } from '@/lib/permisos'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +20,12 @@ async function obtenerProductos() {
 }
 
 export default async function PaginaVentaRapida() {
+  const puedeVender =
+    (await tienePermiso('REALIZAR_VENTAS')) ||
+    (await tienePermiso('REGISTRAR_MOVIMIENTOS'))
+  if (!puedeVender) {
+    redirect('/')
+  }
   const productos = await obtenerProductos()
 
   return (

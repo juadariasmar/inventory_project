@@ -3,7 +3,11 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-type PermisoTipo = 'VER_ANALISIS' | 'EXPORTAR_REPORTES'
+type PermisoTipo =
+  | 'VER_ANALISIS'
+  | 'EXPORTAR_REPORTES'
+  | 'REGISTRAR_MOVIMIENTOS'
+  | 'REALIZAR_VENTAS'
 
 interface DatosUsuario {
   id?: number
@@ -27,6 +31,16 @@ const PERMISOS_DISPONIBLES: { valor: PermisoTipo; etiqueta: string; descripcion:
     valor: 'EXPORTAR_REPORTES',
     etiqueta: 'Exportar reportes',
     descripcion: 'Permite descargar los reportes en formato CSV.',
+  },
+  {
+    valor: 'REGISTRAR_MOVIMIENTOS',
+    etiqueta: 'Registrar movimientos',
+    descripcion: 'Permite registrar entradas y salidas en /movimientos/nuevo.',
+  },
+  {
+    valor: 'REALIZAR_VENTAS',
+    etiqueta: 'Realizar ventas',
+    descripcion: 'Permite usar el botón Vender y la pantalla de Venta rápida. Internamente crea movimientos de salida.',
   },
 ]
 
@@ -161,7 +175,7 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
             onChange={manejarCambio}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="USUARIO">Usuario (solo movimientos)</option>
+            <option value="USUARIO">Usuario (lectura por defecto)</option>
             <option value="ADMIN">Administrador (acceso total)</option>
           </select>
         </div>
