@@ -63,4 +63,30 @@ describe('parsearCsv', () => {
     const r = parsearCsv(csv)
     expect(r.filas).toEqual([{ a: '1', b: '2' }, { a: '3', b: '4' }])
   })
+
+  test('quita comillas envolventes aunque haya espacios alrededor', () => {
+    // El parser principal no entra al modo "comilla" cuando hay un espacio
+    // antes de la comilla. limpiarComillasEnvolventes lo recupera al final.
+    const csv = 'codigo,nombre,precio\nA-1, "Producto X" , "5000"'
+    const r = parsearCsv(csv)
+    expect(r.filas[0]).toEqual({ codigo: 'A-1', nombre: 'Producto X', precio: '5000' })
+  })
+
+  test('valores con comillas dobles internas se preservan', () => {
+    const csv = 'nombre\n"Botella de 750 ""ml"" verde"'
+    const r = parsearCsv(csv)
+    expect(r.filas[0].nombre).toBe('Botella de 750 "ml" verde')
+  })
+
+  test('valor sin comillas pasa intacto', () => {
+    const csv = 'nombre\nLápiz HB'
+    const r = parsearCsv(csv)
+    expect(r.filas[0].nombre).toBe('Lápiz HB')
+  })
+
+  test('comillas desbalanceadas no se quitan', () => {
+    const csv = 'nombre\n"rota'
+    const r = parsearCsv(csv)
+    expect(r.filas[0].nombre).toContain('rota')
+  })
 })
