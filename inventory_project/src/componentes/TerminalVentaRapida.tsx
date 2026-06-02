@@ -58,6 +58,19 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
     setExito('')
   }
 
+  const manejarTeclaBusqueda = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && resultados.length > 0 && !seleccionado) {
+      e.preventDefault()
+      seleccionar(resultados[0])
+    }
+  }
+
+  const seleccionarDesdeMenu = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const id = parseInt(e.target.value)
+    const p = productos.find((p) => p.id === id)
+    if (p) seleccionar(p)
+  }
+
   const limpiar = () => {
     setBusqueda('')
     setSeleccionado(null)
@@ -154,18 +167,21 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
                 setBusqueda(e.target.value)
                 setSeleccionado(null)
               }}
+              onKeyDown={manejarTeclaBusqueda}
               autoFocus
-              placeholder="Escribe para buscar…"
+              placeholder="Escribe para buscar… (Enter selecciona la primera coincidencia)"
               className="w-full px-3 py-3 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
             {resultados.length > 0 && !seleccionado && (
               <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-72 overflow-y-auto">
-                {resultados.map((p) => (
+                {resultados.map((p, i) => (
                   <button
                     key={p.id}
                     type="button"
                     onClick={() => seleccionar(p)}
-                    className="w-full text-left px-3 py-2 hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+                    className={`w-full text-left px-3 py-2 hover:bg-gray-100 border-b border-gray-100 last:border-b-0 ${
+                      i === 0 ? 'bg-emerald-50' : ''
+                    }`}
                   >
                     <div className="flex justify-between items-center">
                       <div>
@@ -184,6 +200,23 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
                 ))}
               </div>
             )}
+          </div>
+          <div className="mt-2">
+            <label className="block text-xs font-medium text-gray-500 mb-1">
+              O elegir del listado completo
+            </label>
+            <select
+              value={seleccionado?.id ?? ''}
+              onChange={seleccionarDesdeMenu}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+              <option value="">Selecciona un producto…</option>
+              {productos.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.codigo} - {p.nombre} (Stock: {p.cantidad})
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
