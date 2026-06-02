@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { esAdmin, obtenerSesion } from '@/lib/permisos'
+import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
 
 interface Parametros {
   params: Promise<{ id: string }>
@@ -55,7 +56,6 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
 
     const actual = await prisma.producto.findUnique({
       where: { id: productoId },
-      select: { cantidad: true },
     })
 
     if (!actual) {
@@ -106,6 +106,14 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
       return actualizado
     })
 
+    await registrarAuditoria({
+      accion: 'ACTUALIZAR',
+      entidad: 'Producto',
+      entidadId: producto.id,
+      datos: { antes: actual, despues: producto },
+      ip: extraerIp(request),
+    })
+
     revalidatePath('/movimientos')
     revalidatePath('/movimientos/nuevo')
     revalidatePath('/productos')
@@ -133,9 +141,28 @@ export async function DELETE(request: NextRequest, { params }: Parametros) {
     const { id } = await params
     const productoId = parseInt(id)
 
+    const productoExistente = await prisma.producto.findUnique({
+      where: { id: productoId },
+    })
+
+    if (!productoExistente) {
+      return NextResponse.json(
+        { error: 'Producto no encontrado' },
+        { status: 404 }
+      )
+    }
+
     await prisma.$transaction(async (tx) => {
       await tx.movimiento.deleteMany({ where: { productoId } })
       await tx.producto.delete({ where: { id: productoId } })
+    })
+
+    await registrarAuditoria({
+      accion: 'ELIMINAR',
+      entidad: 'Producto',
+      entidadId: productoId,
+      datos: { antes: productoExistente },
+      ip: extraerIp(request),
     })
 
     revalidatePath('/movimientos')
