@@ -2,6 +2,9 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { formatearHora } from '@/lib/fechas'
+
+const STORAGE_KEY_RECIENTES = 'venta-rapida:ventas-recientes'
 
 interface ProductoLite {
   id: number
@@ -35,6 +38,21 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
   const [recientes, setRecientes] = useState<VentaReciente[]>([])
   const [abierto, setAbierto] = useState(false)
   const contenedorRef = useRef<HTMLDivElement>(null)
+
+  // Persistir ventas recientes en sessionStorage para que sobrevivan
+  // al navegar fuera de /venta-rapida dentro de la misma sesion del navegador.
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_KEY_RECIENTES)
+      if (raw) setRecientes(JSON.parse(raw))
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(STORAGE_KEY_RECIENTES, JSON.stringify(recientes))
+    } catch {}
+  }, [recientes])
 
   const opciones = useMemo(() => {
     const q = busqueda.trim().toLowerCase()
@@ -125,10 +143,7 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
       })
       if (resp.ok) {
         const total = cantidadNum * seleccionado.precio
-        const hora = new Date().toLocaleTimeString('es-MX', {
-          hour: '2-digit',
-          minute: '2-digit',
-        })
+        const hora = formatearHora(new Date())
         setRecientes((prev) => [
           {
             id: seleccionado.id,

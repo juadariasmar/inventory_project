@@ -4,6 +4,7 @@ import LayoutProtegido from '@/componentes/LayoutProtegido'
 import BotonEliminarUsuario from '@/componentes/BotonEliminarUsuario'
 import { prisma } from '@/lib/db'
 import { obtenerSesion } from '@/lib/permisos'
+import { formatearFecha } from '@/lib/fechas'
 
 export default async function PaginaUsuarios() {
   const sesion = await obtenerSesion()
@@ -79,7 +80,7 @@ export default async function PaginaUsuarios() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(u.creadoEn).toLocaleDateString('es-MX')}
+                      {formatearFecha(u.creadoEn)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
                       <Link
@@ -120,7 +121,7 @@ export default async function PaginaUsuarios() {
                   </span>
                 </div>
                 <div className="mt-2 text-xs text-gray-500">
-                  Creado: {new Date(u.creadoEn).toLocaleDateString('es-MX')}
+                  Creado: {formatearFecha(u.creadoEn)}
                 </div>
                 <div className="mt-3 flex gap-4 text-sm">
                   <Link
