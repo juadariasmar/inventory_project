@@ -60,3 +60,8 @@ android/*.iml
 android/app/*.iml
 android/app/release/
 *.apk.idsig
+
+# playwright (aunque no este la rama de e2e mergeada, evitamos accidentes)
+/test-results/
+/playwright-report/
+/playwright/.cache/
