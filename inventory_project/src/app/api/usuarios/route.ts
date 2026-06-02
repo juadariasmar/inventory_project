@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     const hash = await bcrypt.hash(datos.contrasena, 10)
 
-    const permisosValidos = ['VER_ANALISIS', 'EXPORTAR_REPORTES'] as const
+    const permisosValidos = ['VER_ANALISIS', 'EXPORTAR_REPORTES', 'REGISTRAR_MOVIMIENTOS', 'REALIZAR_VENTAS'] as const
     const permisos = Array.isArray(datos.permisos)
       ? datos.permisos.filter((p: string) => permisosValidos.includes(p as typeof permisosValidos[number]))
       : []
