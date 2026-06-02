@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 interface ProductoLite {
   id: number
@@ -33,18 +33,34 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
   const [exito, setExito] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [recientes, setRecientes] = useState<VentaReciente[]>([])
+  const [abierto, setAbierto] = useState(false)
+  const contenedorRef = useRef<HTMLDivElement>(null)
 
-  const resultados = useMemo(() => {
+  const opciones = useMemo(() => {
     const q = busqueda.trim().toLowerCase()
-    if (!q) return []
-    return productos
-      .filter(
-        (p) =>
-          p.codigo.toLowerCase().includes(q) ||
-          p.nombre.toLowerCase().includes(q)
-      )
-      .slice(0, 8)
-  }, [busqueda, productos])
+    if (!q || seleccionado) return productos
+    return productos.filter(
+      (p) =>
+        p.codigo.toLowerCase().includes(q) ||
+        p.nombre.toLowerCase().includes(q)
+    )
+  }, [busqueda, productos, seleccionado])
+
+  const resultados = !seleccionado && busqueda.trim() ? opciones : []
+
+  useEffect(() => {
+    if (!abierto) return
+    const cerrarSiClicFuera = (e: MouseEvent) => {
+      if (
+        contenedorRef.current &&
+        !contenedorRef.current.contains(e.target as Node)
+      ) {
+        setAbierto(false)
+      }
+    }
+    document.addEventListener('mousedown', cerrarSiClicFuera)
+    return () => document.removeEventListener('mousedown', cerrarSiClicFuera)
+  }, [abierto])
 
   const totalVenta = seleccionado
     ? (parseInt(cantidad) || 0) * seleccionado.precio
@@ -56,19 +72,18 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
     setCantidad('1')
     setError('')
     setExito('')
+    setAbierto(false)
   }
 
   const manejarTeclaBusqueda = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && resultados.length > 0 && !seleccionado) {
       e.preventDefault()
       seleccionar(resultados[0])
+    } else if (e.key === 'Escape') {
+      setAbierto(false)
+    } else if (e.key === 'ArrowDown' && !abierto) {
+      setAbierto(true)
     }
-  }
-
-  const seleccionarDesdeMenu = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const id = parseInt(e.target.value)
-    const p = productos.find((p) => p.id === id)
-    if (p) seleccionar(p)
   }
 
   const limpiar = () => {
@@ -157,66 +172,70 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Producto (código o nombre)
+            Producto (escribe para buscar o abre el listado)
           </label>
-          <div className="relative">
+          <div className="relative" ref={contenedorRef}>
             <input
               type="text"
               value={busqueda}
               onChange={(e) => {
                 setBusqueda(e.target.value)
                 setSeleccionado(null)
+                setAbierto(true)
               }}
+              onFocus={() => setAbierto(true)}
               onKeyDown={manejarTeclaBusqueda}
               autoFocus
-              placeholder="Escribe para buscar… (Enter selecciona la primera coincidencia)"
-              className="w-full px-3 py-3 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Escribe para buscar o haz clic en ▾ para ver todos"
+              className="w-full px-3 py-3 pr-10 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
-            {resultados.length > 0 && !seleccionado && (
+            <button
+              type="button"
+              onClick={() => setAbierto((v) => !v)}
+              aria-label="Abrir listado de productos"
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-gray-500 hover:text-gray-800"
+            >
+              <span className={`inline-block transition-transform ${abierto ? 'rotate-180' : ''}`}>
+                ▾
+              </span>
+            </button>
+            {abierto && opciones.length > 0 && (
               <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-72 overflow-y-auto">
-                {resultados.map((p, i) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => seleccionar(p)}
-                    className={`w-full text-left px-3 py-2 hover:bg-gray-100 border-b border-gray-100 last:border-b-0 ${
-                      i === 0 ? 'bg-emerald-50' : ''
-                    }`}
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {p.nombre}
+                {opciones.map((p, i) => {
+                  const esPrimeraCoincidencia =
+                    !seleccionado && busqueda.trim() && i === 0
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => seleccionar(p)}
+                      className={`w-full text-left px-3 py-2 hover:bg-gray-100 border-b border-gray-100 last:border-b-0 ${
+                        esPrimeraCoincidencia ? 'bg-emerald-50' : ''
+                      }`}
+                    >
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            {p.nombre}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {p.codigo} · Stock: {p.cantidad}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {p.codigo} · Stock: {p.cantidad}
+                        <div className="text-sm font-semibold text-emerald-700">
+                          ${p.precio.toLocaleString('es-MX')}
                         </div>
                       </div>
-                      <div className="text-sm font-semibold text-emerald-700">
-                        ${p.precio.toLocaleString('es-MX')}
-                      </div>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  )
+                })}
               </div>
             )}
-          </div>
-          <div className="mt-2">
-            <label className="block text-xs font-medium text-gray-500 mb-1">
-              O elegir del listado completo
-            </label>
-            <select
-              value={seleccionado?.id ?? ''}
-              onChange={seleccionarDesdeMenu}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              <option value="">Selecciona un producto…</option>
-              {productos.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.codigo} - {p.nombre} (Stock: {p.cantidad})
-                </option>
-              ))}
-            </select>
+            {abierto && opciones.length === 0 && (
+              <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg px-3 py-2 text-sm text-gray-500">
+                Sin coincidencias
+              </div>
+            )}
           </div>
         </div>
 
