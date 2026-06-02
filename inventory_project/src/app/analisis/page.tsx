@@ -13,8 +13,14 @@ export default async function PaginaAnalisis() {
     redirect('/')
   }
 
-  const { stockAgotarse, sinMovimientos, altaRotacion, stockCritico, resumen } =
-    await obtenerTodoAnalisis()
+  const {
+    inventarioGeneral,
+    stockAgotarse,
+    sinMovimientos,
+    altaRotacion,
+    stockCritico,
+    resumen,
+  } = await obtenerTodoAnalisis()
   const puedeExportar = await tienePermiso('EXPORTAR_REPORTES')
 
   const totalAlertas =
@@ -32,6 +38,20 @@ export default async function PaginaAnalisis() {
           </div>
           {puedeExportar && <BotonExportarAnalisis />}
         </div>
+
+        {/* Inventario general */}
+        <section className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-3">
+            Inventario general
+          </h2>
+          {inventarioGeneral.length > 0 ? (
+            <TablaInventarioGeneral datos={inventarioGeneral} />
+          ) : (
+            <p className="text-gray-500 text-sm">
+              Aún no hay productos registrados.
+            </p>
+          )}
+        </section>
 
         {/* Resumen de alertas */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -198,7 +218,7 @@ function TablaResponsive({
 function TablaStockAgotarse({
   datos,
 }: {
-  datos: { nombre: string; codigo: string; cantidadActual: number; consumoDiarioPromedio: number; diasParaAgotarse: number }[]
+  datos: { nombre: string; codigo: string; cantidadActual: number; consumoDiarioPromedio: number; diasParaAgotarse: number | null }[]
 }) {
   return (
     <TablaResponsive
@@ -208,7 +228,7 @@ function TablaStockAgotarse({
         d.codigo,
         d.cantidadActual,
         d.consumoDiarioPromedio,
-        d.diasParaAgotarse,
+        d.diasParaAgotarse === null ? 'Sin histórico' : d.diasParaAgotarse,
       ])}
     />
   )
@@ -262,6 +282,45 @@ function TablaStockCritico({
         d.cantidadActual,
         d.stockMinimo,
         d.faltanteParaDuplicarMinimo,
+      ])}
+    />
+  )
+}
+
+function TablaInventarioGeneral({
+  datos,
+}: {
+  datos: {
+    codigo: string
+    nombre: string
+    categoria: string
+    cantidad: number
+    valorEnStock: number
+    estado: 'Sin stock' | 'Stock bajo' | 'Normal'
+    diasDesdeUltimaActividad: number | null
+  }[]
+}) {
+  return (
+    <TablaResponsive
+      cabeceras={[
+        'Producto',
+        'Código',
+        'Categoría',
+        'Cantidad',
+        'Valor en stock',
+        'Estado',
+        'Días sin actividad',
+      ]}
+      filas={datos.map((d) => [
+        d.nombre,
+        d.codigo,
+        d.categoria,
+        d.cantidad,
+        `$${d.valorEnStock.toLocaleString('es-MX')}`,
+        d.estado,
+        d.diasDesdeUltimaActividad === null
+          ? 'Sin actividad'
+          : d.diasDesdeUltimaActividad,
       ])}
     />
   )

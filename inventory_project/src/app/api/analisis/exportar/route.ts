@@ -25,10 +25,46 @@ export async function GET() {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
   try {
-    const { stockAgotarse, sinMovimientos, altaRotacion, stockCritico, resumen } =
-      await obtenerTodoAnalisis()
+    const {
+      inventarioGeneral,
+      stockAgotarse,
+      sinMovimientos,
+      altaRotacion,
+      stockCritico,
+      resumen,
+    } = await obtenerTodoAnalisis()
 
     const secciones: string[] = []
+
+    secciones.push(
+      tablaCsv(
+        'Inventario general',
+        [
+          'Producto',
+          'Código',
+          'Categoría',
+          'Cantidad',
+          'Stock mínimo',
+          'Precio unitario',
+          'Valor en stock',
+          'Estado',
+          'Días sin actividad',
+        ],
+        inventarioGeneral.map((p) => [
+          p.nombre,
+          p.codigo,
+          p.categoria,
+          p.cantidad,
+          p.stockMinimo,
+          p.precio,
+          p.valorEnStock,
+          p.estado,
+          p.diasDesdeUltimaActividad === null
+            ? 'Sin actividad'
+            : p.diasDesdeUltimaActividad,
+        ])
+      )
+    )
 
     secciones.push(
       tablaCsv(
@@ -39,7 +75,7 @@ export async function GET() {
           a.codigo,
           a.cantidadActual,
           a.consumoDiarioPromedio,
-          a.diasParaAgotarse,
+          a.diasParaAgotarse === null ? 'Sin histórico' : a.diasParaAgotarse,
         ])
       )
     )

@@ -20,6 +20,29 @@ export function tieneStockBajo(producto: ProductoBase): boolean {
   return producto.cantidad <= producto.stockMinimo + MARGEN_ALERTA_STOCK
 }
 
+export type EstadoStock = 'sin_stock' | 'stock_bajo' | 'normal'
+
+// Estado del stock con tres niveles:
+//   - sin_stock: cantidad = 0 (sin existencias)
+//   - stock_bajo: cantidad dentro del umbral de alerta
+//   - normal: por encima del umbral
+export function estadoStock(producto: ProductoBase): EstadoStock {
+  if (producto.cantidad <= 0) return 'sin_stock'
+  if (tieneStockBajo(producto)) return 'stock_bajo'
+  return 'normal'
+}
+
+export function etiquetaEstadoStock(estado: EstadoStock): string {
+  switch (estado) {
+    case 'sin_stock':
+      return 'Sin stock'
+    case 'stock_bajo':
+      return 'Stock bajo'
+    case 'normal':
+      return 'Normal'
+  }
+}
+
 export function aplicarMovimiento(
   producto: ProductoBase,
   movimiento: MovimientoBase,
