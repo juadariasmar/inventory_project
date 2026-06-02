@@ -277,6 +277,7 @@ export default function ListaProductosFiltrable({
                             <BotonVenderProducto
                               id={producto.id}
                               nombre={producto.nombre}
+                              codigo={producto.codigo}
                               stockActual={producto.cantidad}
                               precio={producto.precio}
                             />
@@ -344,6 +345,7 @@ export default function ListaProductosFiltrable({
                         <BotonVenderProducto
                           id={producto.id}
                           nombre={producto.nombre}
+                          codigo={producto.codigo}
                           stockActual={producto.cantidad}
                           precio={producto.precio}
                         />
