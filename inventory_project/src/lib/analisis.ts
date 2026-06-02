@@ -1,5 +1,5 @@
 import { prisma } from './db'
-import { MARGEN_ALERTA_STOCK } from './inventario'
+import { MARGEN_ALERTA_STOCK, calcularSugerenciaCompra } from './inventario'
 
 export interface AlertaStockAgotarse {
   productoId: number
@@ -36,7 +36,7 @@ export interface AlertaStockCritico {
   codigo: string
   cantidadActual: number
   stockMinimo: number
-  faltanteParaDuplicarMinimo: number
+  sugerenciaCompra: number
 }
 
 export interface ResumenMovimientos {
@@ -231,7 +231,7 @@ export async function obtenerStockCritico(): Promise<AlertaStockCritico[]> {
       codigo: p.codigo,
       cantidadActual: p.cantidad,
       stockMinimo: p.stockMinimo,
-      faltanteParaDuplicarMinimo: Math.max(0, p.stockMinimo * 2 - p.cantidad),
+      sugerenciaCompra: calcularSugerenciaCompra(p.stockMinimo, p.cantidad),
     }))
     .sort((a, b) => a.cantidadActual - b.cantidadActual)
 }
