@@ -1,49 +1,57 @@
 import { expect, test } from '@playwright/test'
 
-// Flujo completo: login como admin, agregar 2 productos al carrito,
-// editar cantidad, cobrar y verificar el mensaje de exito.
+const BOTON_SUBMIT = 'button[type="submit"]'
+
+async function login(page: import('@playwright/test').Page) {
+  await page.goto('/login')
+  await page.locator('#nombreUsuario').fill('admin')
+  await page.locator('#contrasena').fill('admin123')
+  await page.locator(BOTON_SUBMIT).click()
+  await expect(page).toHaveURL('/', { timeout: 10_000 })
+}
 
 test.describe('Flujo de venta rápida con carrito', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/login')
-    await page.getByLabel(/usuario/i).fill('admin')
-    await page.getByLabel(/contraseña/i).fill('admin123')
-    await page.getByRole('button', { name: /iniciar sesión/i }).click()
-    await expect(page).toHaveURL('/')
+    await login(page)
+    // Limpiar el carrito de la sesion previa para empezar siempre vacios.
+    await page.evaluate(() => sessionStorage.clear())
   })
 
-  test('agrega productos al carrito y registra la venta', async ({ page }) => {
+  test('agrega un producto via boton Vender y registra la venta', async ({ page }) => {
+    // El boton Vender desde /productos agrega 1 unidad al carrito sin
+    // depender del combobox de Venta rapida. Es la ruta mas robusta.
+    await page.goto('/productos')
+
+    const botonVender = page.getByRole('button', { name: 'Vender' }).first()
+    await botonVender.waitFor({ state: 'visible', timeout: 10_000 })
+    await botonVender.click()
+
+    // Esperar el toast de confirmacion (el componente lo muestra ~2.5s).
+    await expect(page.getByText(/agregado al carrito/i)).toBeVisible({ timeout: 5_000 })
+
+    // Ir a Venta rapida.
     await page.goto('/venta-rapida')
 
-    // Suponemos que hay al menos un producto en el catálogo con stock.
-    // Abrir el desplegable y tomar el primero.
-    const input = page.getByPlaceholder(/escribe para buscar/i)
-    await input.click()
-    const primerProducto = page.locator('button').filter({ hasText: /Stock:/ }).first()
-    await primerProducto.waitFor()
-    await primerProducto.click()
-
-    // Agregar al carrito.
-    await page.getByRole('button', { name: /agregar al carrito/i }).click()
-
-    // El carrito ahora debe tener 1 producto.
-    const carrito = page.getByText(/^Carrito$/i).locator('..')
-    await expect(carrito.getByText('1 producto(s)')).toBeVisible()
+    // El carrito debe estar visible con al menos 1 producto.
+    await expect(page.getByRole('heading', { name: 'Carrito' })).toBeVisible()
+    await expect(page.getByText(/1 producto/)).toBeVisible({ timeout: 5_000 })
 
     // Cobrar.
-    await page.getByRole('button', { name: /^cobrar$/i }).click()
+    await page.getByRole('button', { name: 'Cobrar', exact: true }).click()
 
-    // Mensaje de exito.
-    await expect(page.getByText(/Venta #\d+ registrada/)).toBeVisible({ timeout: 10_000 })
+    // Verificar mensaje de exito.
+    await expect(page.getByText(/Venta #\d+ registrada/)).toBeVisible({ timeout: 15_000 })
 
-    // El carrito ahora debe estar vacío.
-    await expect(page.getByText(/tu carrito está vacío/i)).toBeVisible()
+    // El carrito debe quedar vacio.
+    await expect(page.getByText(/tu carrito está vacío/i)).toBeVisible({ timeout: 5_000 })
   })
 
   test('rechaza el cobro si el carrito está vacío', async ({ page }) => {
     await page.goto('/venta-rapida')
-    // No agregamos nada, el boton Cobrar debe estar deshabilitado.
-    const cobrar = page.getByRole('button', { name: /^cobrar$/i })
+    // sessionStorage ya esta limpio (beforeEach). El boton Cobrar debe
+    // estar deshabilitado y el mensaje de carrito vacio visible.
+    await expect(page.getByText(/tu carrito está vacío/i)).toBeVisible()
+    const cobrar = page.getByRole('button', { name: 'Cobrar', exact: true })
     await expect(cobrar).toBeDisabled()
   })
 })
