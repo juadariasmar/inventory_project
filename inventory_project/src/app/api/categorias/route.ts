@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { esAdmin, obtenerSesion } from '@/lib/permisos'
 import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
@@ -48,6 +49,10 @@ export async function POST(request: NextRequest) {
       datos: { despues: categoria },
       ip: extraerIp(request),
     })
+
+    revalidatePath('/categorias')
+    revalidatePath('/productos/nuevo')
+    revalidatePath('/productos', 'layout')
 
     return NextResponse.json(categoria, { status: 201 })
   } catch (error) {
