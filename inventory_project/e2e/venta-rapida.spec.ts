@@ -32,9 +32,11 @@ test.describe('Flujo de venta rápida con carrito', () => {
     // Ir a Venta rapida.
     await page.goto('/venta-rapida')
 
-    // El carrito debe estar visible con al menos 1 producto.
+    // El carrito debe estar visible con al menos 1 producto. El texto
+    // '1 producto(s)' aparece dos veces (en la seccion Carrito y en el
+    // sidebar 'Resumen de venta'); .first() resuelve la ambigüedad.
     await expect(page.getByRole('heading', { name: 'Carrito' })).toBeVisible()
-    await expect(page.getByText(/1 producto/)).toBeVisible({ timeout: 5_000 })
+    await expect(page.getByText(/1 producto/).first()).toBeVisible({ timeout: 5_000 })
 
     // Cobrar.
     await page.getByRole('button', { name: 'Cobrar', exact: true }).click()
