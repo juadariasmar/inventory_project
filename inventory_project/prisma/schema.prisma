@@ -19,6 +19,12 @@ enum Permiso {
   EXPORTAR_REPORTES
   REGISTRAR_MOVIMIENTOS
   REALIZAR_VENTAS
+  // Esta rama (C) solo usa REGISTRAR_MOVIMIENTOS y REALIZAR_VENTAS en su
+  // UI/logica, pero el enum debe incluir todos los valores que existen en
+  // la BD para que Prisma no falle al hidratar registros con permisos de
+  // ramas hermanas.
+  AGREGAR_STOCK
+  DESCONTAR_STOCK
 }
 
 model Usuario {
