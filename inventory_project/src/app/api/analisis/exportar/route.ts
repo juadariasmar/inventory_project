@@ -105,12 +105,13 @@ export async function GET() {
     secciones.push(
       tablaCsv(
         'Stock crítico',
-        ['Producto', 'Código', 'Cantidad actual', 'Stock mínimo', 'Sugerencia compra'],
+        ['Producto', 'Código', 'Cantidad actual', 'Stock mínimo', 'Consumo/día', 'Sugerencia compra'],
         stockCritico.map((a) => [
           a.nombre,
           a.codigo,
           a.cantidadActual,
           a.stockMinimo,
+          a.consumoDiarioPromedio,
           a.sugerenciaCompra,
         ])
       )
