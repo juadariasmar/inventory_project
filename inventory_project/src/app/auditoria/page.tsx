@@ -147,7 +147,7 @@ export default async function PaginaAuditoria({ searchParams }: Props) {
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{r.entidadId ?? '—'}</td>
                         <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-500 font-mono">{r.ip ?? '—'}</td>
                         <td className="px-4 py-3 text-sm">
-                          <DetalleAuditoria datos={r.datos} />
+                          <DetalleAuditoria registro={{ accion: r.accion, entidad: r.entidad, entidadId: r.entidadId, datos: r.datos }} />
                         </td>
                       </tr>
                     ))}
@@ -181,7 +181,7 @@ export default async function PaginaAuditoria({ searchParams }: Props) {
                       {r.entidad}{r.entidadId !== null && r.entidadId !== undefined ? ` #${r.entidadId}` : ''}
                     </div>
                     <div className="mt-2">
-                      <DetalleAuditoria datos={r.datos} />
+                      <DetalleAuditoria registro={{ accion: r.accion, entidad: r.entidad, entidadId: r.entidadId, datos: r.datos }} />
                     </div>
                   </div>
                 ))}
