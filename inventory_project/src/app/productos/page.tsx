@@ -27,12 +27,20 @@ export default async function PaginaProductos() {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <h1 className="text-2xl font-bold text-gray-800">Productos</h1>
           {esAdmin && (
-            <Link
-              href="/productos/nuevo"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-center"
-            >
-              + Nuevo Producto
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/productos/importar"
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-center text-sm"
+              >
+                Importar CSV
+              </Link>
+              <Link
+                href="/productos/nuevo"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-center"
+              >
+                + Nuevo Producto
+              </Link>
+            </div>
           )}
         </div>
 
