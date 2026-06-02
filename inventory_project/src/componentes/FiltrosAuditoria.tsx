@@ -129,7 +129,7 @@ export default function FiltrosAuditoria({ usuarios, permiteExportar }: Propieda
             href={urlExportar()}
             className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm text-center"
           >
-            Exportar a CSV
+            Exportar a Excel
           </a>
         )}
       </div>
