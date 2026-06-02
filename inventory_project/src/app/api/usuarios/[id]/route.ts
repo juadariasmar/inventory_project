@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/db'
 import { esAdmin, obtenerSesion } from '@/lib/permisos'
+import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
 
 // GET - Obtener un usuario
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -57,10 +58,27 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       )
     }
 
+    const antes = await prisma.usuario.findUnique({
+      where: { id: usuarioId },
+      select: { id: true, nombreUsuario: true, nombre: true, rol: true, permisos: true, creadoEn: true },
+    })
+
     const usuario = await prisma.usuario.update({
       where: { id: usuarioId },
       data: datosActualizar,
       select: { id: true, nombreUsuario: true, nombre: true, rol: true, permisos: true, creadoEn: true },
+    })
+
+    await registrarAuditoria({
+      accion: 'ACTUALIZAR',
+      entidad: 'Usuario',
+      entidadId: usuario.id,
+      datos: {
+        antes,
+        despues: usuario,
+        contrasenaCambiada: Boolean(datos.contrasena && datos.contrasena.length > 0),
+      },
+      ip: extraerIp(request),
     })
 
     return NextResponse.json(usuario)
@@ -71,7 +89,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // DELETE - Eliminar usuario (solo ADMIN, no puede eliminarse a sí mismo)
-export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!(await esAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
@@ -88,7 +106,21 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
       )
     }
 
+    const antes = await prisma.usuario.findUnique({
+      where: { id: usuarioId },
+      select: { id: true, nombreUsuario: true, nombre: true, rol: true, permisos: true, creadoEn: true },
+    })
+
     await prisma.usuario.delete({ where: { id: usuarioId } })
+
+    await registrarAuditoria({
+      accion: 'ELIMINAR',
+      entidad: 'Usuario',
+      entidadId: usuarioId,
+      datos: { antes },
+      ip: extraerIp(request),
+    })
+
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error('Error al eliminar usuario:', error)

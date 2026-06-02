@@ -2,6 +2,14 @@ import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { prisma } from './db'
+import { registrarAuditoria } from './auditoria'
+
+function extraerIpDeHeaders(headers: Record<string, string> | undefined): string | null {
+  if (!headers) return null
+  const fwd = headers['x-forwarded-for']
+  if (fwd) return fwd.split(',')[0].trim()
+  return headers['x-real-ip'] || null
+}
 
 export const opcionesAuth: NextAuthOptions = {
   providers: [
@@ -11,16 +19,26 @@ export const opcionesAuth: NextAuthOptions = {
         nombreUsuario: { label: 'Usuario', type: 'text' },
         contrasena: { label: 'Contraseña', type: 'password' }
       },
-      async authorize(credenciales) {
-        if (!credenciales?.nombreUsuario || !credenciales?.contrasena) {
+      async authorize(credenciales, req) {
+        const ip = extraerIpDeHeaders(req?.headers as Record<string, string> | undefined)
+        const nombreUsuario = credenciales?.nombreUsuario
+
+        if (!nombreUsuario || !credenciales?.contrasena) {
           return null
         }
 
         const usuario = await prisma.usuario.findUnique({
-          where: { nombreUsuario: credenciales.nombreUsuario }
+          where: { nombreUsuario }
         })
 
         if (!usuario) {
+          await registrarAuditoria({
+            accion: 'LOGIN_FALLIDO',
+            entidad: 'Sesion',
+            usuarioId: null,
+            datos: { nombreUsuario, motivo: 'USUARIO_NO_EXISTE' },
+            ip,
+          })
           return null
         }
 
@@ -30,8 +48,23 @@ export const opcionesAuth: NextAuthOptions = {
         )
 
         if (!contrasenaValida) {
+          await registrarAuditoria({
+            accion: 'LOGIN_FALLIDO',
+            entidad: 'Sesion',
+            usuarioId: usuario.id,
+            datos: { nombreUsuario, motivo: 'CONTRASENA_INCORRECTA' },
+            ip,
+          })
           return null
         }
+
+        await registrarAuditoria({
+          accion: 'LOGIN',
+          entidad: 'Sesion',
+          usuarioId: usuario.id,
+          datos: { nombreUsuario },
+          ip,
+        })
 
         return {
           id: usuario.id.toString(),

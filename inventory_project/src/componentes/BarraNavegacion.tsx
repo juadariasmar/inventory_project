@@ -26,6 +26,7 @@ export default function BarraNavegacion() {
     { href: '/categorias', etiqueta: 'Categorías', visible: true },
     { href: '/analisis', etiqueta: 'Análisis', visible: puedeVerAnalisis },
     { href: '/usuarios', etiqueta: 'Usuarios', visible: esAdmin },
+    { href: '/auditoria', etiqueta: 'Auditoría', visible: esAdmin },
   ].filter((e) => e.visible)
 
   const esActivo = (href: string) => {
