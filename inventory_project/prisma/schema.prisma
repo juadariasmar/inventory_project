@@ -36,6 +36,7 @@ model Usuario {
   permisos      Permiso[]   @default([])
   creadoEn      DateTime    @default(now())
   auditorias    Auditoria[]
+  ventas        Venta[]
 }
 
 model Categoria {
@@ -55,6 +56,7 @@ model Producto {
   categoriaId Int?
   categoria   Categoria?   @relation(fields: [categoriaId], references: [id])
   movimientos Movimiento[]
+  itemsVenta  ItemVenta[]
   creadoEn    DateTime     @default(now())
 }
 
@@ -65,7 +67,39 @@ model Movimiento {
   tipo       String   // "entrada" o "salida"
   cantidad   Int
   notas      String?
+  ventaId    Int?
+  venta      Venta?   @relation(fields: [ventaId], references: [id], onDelete: SetNull)
   creadoEn   DateTime @default(now())
+
+  @@index([ventaId])
+}
+
+model Venta {
+  id          Int          @id @default(autoincrement())
+  vendedorId  Int?
+  vendedor    Usuario?     @relation(fields: [vendedorId], references: [id], onDelete: SetNull)
+  total       Float
+  notas       String?
+  items       ItemVenta[]
+  movimientos Movimiento[]
+  creadoEn    DateTime     @default(now())
+
+  @@index([creadoEn(sort: Desc)])
+  @@index([vendedorId])
+}
+
+model ItemVenta {
+  id             Int      @id @default(autoincrement())
+  ventaId        Int
+  venta          Venta    @relation(fields: [ventaId], references: [id], onDelete: Cascade)
+  productoId     Int
+  producto       Producto @relation(fields: [productoId], references: [id])
+  cantidad       Int
+  precioUnitario Float
+  subtotal       Float
+
+  @@index([ventaId])
+  @@index([productoId])
 }
 
 model Auditoria {
