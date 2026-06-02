@@ -181,6 +181,22 @@ export function describirAuditoria(r: RegistroParaDescribir): string {
     }
   }
 
+  // ----- VENTA -----
+  if (r.entidad === 'Venta' && r.accion === 'CREAR') {
+    const total = despues.total
+    const totalItems = despues.totalItems
+    const totalUnidades = despues.totalUnidades
+    const items = Array.isArray(despues.items) ? (despues.items as Array<Record<string, unknown>>) : []
+    const detalleItems = items.slice(0, 3).map((it) => {
+      const nombre = asString(it.nombre)
+      const cant = asString(it.cantidad)
+      return `${cant}× ${nombre}`
+    }).join(', ')
+    const masItems = items.length > 3 ? ` y ${items.length - 3} más` : ''
+    const totalStr = typeof total === 'number' ? precio(total) : asString(total)
+    return `Registró venta #${r.entidadId ?? ''} por ${totalStr} (${totalItems ?? items.length} producto(s), ${totalUnidades ?? '?'} unidades): ${detalleItems}${masItems}.`
+  }
+
   // Fallback generico
   return `${r.accion} sobre ${r.entidad}${r.entidadId ? ` #${r.entidadId}` : ''}.`
 }
