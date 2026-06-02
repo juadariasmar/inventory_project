@@ -55,7 +55,7 @@ export default function FiltrosAuditoria({ usuarios, permiteExportar }: Propieda
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4">
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">Usuario</label>
           <select
