@@ -2,7 +2,17 @@ import { prisma } from '@/lib/db'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import Link from 'next/link'
 import BotonEliminarProducto from '@/componentes/BotonEliminarProducto'
-import { obtenerSesion } from '@/lib/permisos'
+import BotonVenderProducto from '@/componentes/BotonVenderProducto'
+import { obtenerSesion, tienePermiso } from '@/lib/permisos'
+import { estadoStock, etiquetaEstadoStock } from '@/lib/inventario'
+
+const CLASES_ESTADO = {
+  sin_stock: 'bg-gray-200 text-gray-800',
+  stock_bajo: 'bg-red-100 text-red-800',
+  normal: 'bg-green-100 text-green-800',
+} as const
+
+export const dynamic = 'force-dynamic'
 
 async function obtenerProductos() {
   return await prisma.producto.findMany({
@@ -15,6 +25,9 @@ export default async function PaginaProductos() {
   const productos = await obtenerProductos()
   const sesion = await obtenerSesion()
   const esAdmin = sesion?.user?.rol === 'ADMIN'
+  const puedeVender =
+    (await tienePermiso('REALIZAR_VENTAS')) ||
+    (await tienePermiso('REGISTRAR_MOVIMIENTOS'))
 
   return (
     <LayoutProtegido>
@@ -57,11 +70,9 @@ export default async function PaginaProductos() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Estado
                       </th>
-                      {esAdmin && (
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Acciones
-                        </th>
-                      )}
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Acciones
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -83,32 +94,41 @@ export default async function PaginaProductos() {
                           {producto.cantidad}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`px-2 py-1 text-xs font-medium rounded-full ${
-                              producto.cantidad <= producto.stockMinimo
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-green-100 text-green-800'
-                            }`}
-                          >
-                            {producto.cantidad <= producto.stockMinimo
-                              ? 'Stock Bajo'
-                              : 'Normal'}
-                          </span>
+                          {(() => {
+                            const e = estadoStock(producto)
+                            return (
+                              <span
+                                className={`px-2 py-1 text-xs font-medium rounded-full ${CLASES_ESTADO[e]}`}
+                              >
+                                {etiquetaEstadoStock(e)}
+                              </span>
+                            )
+                          })()}
                         </td>
-                        {esAdmin && (
-                          <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
-                            <Link
-                              href={`/productos/${producto.id}`}
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              Editar
-                            </Link>
-                            <BotonEliminarProducto
+                        <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
+                          {puedeVender && (
+                            <BotonVenderProducto
                               id={producto.id}
                               nombre={producto.nombre}
+                              stockActual={producto.cantidad}
+                              precio={producto.precio}
                             />
-                          </td>
-                        )}
+                          )}
+                          {esAdmin && (
+                            <>
+                              <Link
+                                href={`/productos/${producto.id}`}
+                                className="text-blue-600 hover:text-blue-800"
+                              >
+                                Editar
+                              </Link>
+                              <BotonEliminarProducto
+                                id={producto.id}
+                                nombre={producto.nombre}
+                              />
+                            </>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -131,15 +151,16 @@ export default async function PaginaProductos() {
                           )}
                         </div>
                       </div>
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
-                          producto.cantidad <= producto.stockMinimo
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-green-100 text-green-800'
-                        }`}
-                      >
-                        {producto.cantidad <= producto.stockMinimo ? 'Stock Bajo' : 'Normal'}
-                      </span>
+                      {(() => {
+                        const e = estadoStock(producto)
+                        return (
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${CLASES_ESTADO[e]}`}
+                          >
+                            {etiquetaEstadoStock(e)}
+                          </span>
+                        )
+                      })()}
                     </div>
                     <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
                       <div>
@@ -153,20 +174,28 @@ export default async function PaginaProductos() {
                         <div className="font-medium">{producto.cantidad}</div>
                       </div>
                     </div>
-                    {esAdmin && (
-                      <div className="mt-3 flex gap-4 text-sm">
-                        <Link
-                          href={`/productos/${producto.id}`}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          Editar
-                        </Link>
-                        <BotonEliminarProducto
-                          id={producto.id}
-                          nombre={producto.nombre}
-                        />
-                      </div>
-                    )}
+                    <div className="mt-3 flex gap-4 text-sm">
+                      <BotonVenderProducto
+                        id={producto.id}
+                        nombre={producto.nombre}
+                        stockActual={producto.cantidad}
+                        precio={producto.precio}
+                      />
+                      {esAdmin && (
+                        <>
+                          <Link
+                            href={`/productos/${producto.id}`}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            Editar
+                          </Link>
+                          <BotonEliminarProducto
+                            id={producto.id}
+                            nombre={producto.nombre}
+                          />
+                        </>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

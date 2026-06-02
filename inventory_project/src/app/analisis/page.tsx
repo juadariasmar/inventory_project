@@ -6,17 +6,31 @@ import BotonExportarAnalisis from '@/componentes/BotonExportarAnalisis'
 import { obtenerTodoAnalisis } from '@/lib/analisis'
 import { tienePermiso } from '@/lib/permisos'
 
+export const dynamic = 'force-dynamic'
+
 export default async function PaginaAnalisis() {
   if (!(await tienePermiso('VER_ANALISIS'))) {
     redirect('/')
   }
 
-  const { stockAgotarse, sinMovimientos, altaRotacion, stockCritico, resumen } =
-    await obtenerTodoAnalisis()
+  const {
+    inventarioGeneral,
+    stockAgotarse,
+    sinMovimientos,
+    altaRotacion,
+    stockCritico,
+    resumen,
+  } = await obtenerTodoAnalisis()
   const puedeExportar = await tienePermiso('EXPORTAR_REPORTES')
 
-  const totalAlertas =
-    stockAgotarse.length + sinMovimientos.length + stockCritico.length
+  // Contar productos UNICOS para evitar duplicados: muchos productos en
+  // stock critico tambien aparecen en "por agotarse" porque ahora ambas
+  // listas comparten el criterio de zona critica.
+  const productosUnicosEnAlerta = new Set<number>()
+  for (const a of stockCritico) productosUnicosEnAlerta.add(a.productoId)
+  for (const a of stockAgotarse) productosUnicosEnAlerta.add(a.productoId)
+  for (const a of sinMovimientos) productosUnicosEnAlerta.add(a.productoId)
+  const totalAlertas = productosUnicosEnAlerta.size
 
   return (
     <LayoutProtegido>
@@ -30,6 +44,20 @@ export default async function PaginaAnalisis() {
           </div>
           {puedeExportar && <BotonExportarAnalisis />}
         </div>
+
+        {/* Inventario general */}
+        <section className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-3">
+            Inventario general
+          </h2>
+          {inventarioGeneral.length > 0 ? (
+            <TablaInventarioGeneral datos={inventarioGeneral} />
+          ) : (
+            <p className="text-gray-500 text-sm">
+              Aún no hay productos registrados.
+            </p>
+          )}
+        </section>
 
         {/* Resumen de alertas */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -80,15 +108,21 @@ export default async function PaginaAnalisis() {
           )}
         </section>
 
-        {/* Stock por agotarse */}
+        {/* Productos en riesgo */}
         <section className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">
-            Productos por agotarse en menos de 7 días
+          <h2 className="text-lg font-semibold text-gray-800 mb-1">
+            Productos en riesgo de agotarse
           </h2>
+          <p className="text-sm text-gray-500 mb-3">
+            Productos con stock dentro del umbral crítico o cuyo agotamiento se
+            proyecta en 7 días o menos según el consumo histórico.
+          </p>
           {stockAgotarse.length > 0 ? (
             <TablaStockAgotarse datos={stockAgotarse} />
           ) : (
-            <p className="text-gray-500 text-sm">No hay productos en riesgo de agotarse.</p>
+            <p className="text-gray-500 text-sm">
+              No hay productos en riesgo de agotarse.
+            </p>
           )}
         </section>
 
@@ -196,7 +230,7 @@ function TablaResponsive({
 function TablaStockAgotarse({
   datos,
 }: {
-  datos: { nombre: string; codigo: string; cantidadActual: number; consumoDiarioPromedio: number; diasParaAgotarse: number }[]
+  datos: { nombre: string; codigo: string; cantidadActual: number; consumoDiarioPromedio: number; diasParaAgotarse: number | null }[]
 }) {
   return (
     <TablaResponsive
@@ -206,7 +240,7 @@ function TablaStockAgotarse({
         d.codigo,
         d.cantidadActual,
         d.consumoDiarioPromedio,
-        d.diasParaAgotarse,
+        d.diasParaAgotarse === null ? 'Sin histórico' : d.diasParaAgotarse,
       ])}
     />
   )
@@ -260,6 +294,45 @@ function TablaStockCritico({
         d.cantidadActual,
         d.stockMinimo,
         d.faltanteParaDuplicarMinimo,
+      ])}
+    />
+  )
+}
+
+function TablaInventarioGeneral({
+  datos,
+}: {
+  datos: {
+    codigo: string
+    nombre: string
+    categoria: string
+    cantidad: number
+    valorEnStock: number
+    estado: 'Sin stock' | 'Stock bajo' | 'Normal'
+    diasDesdeUltimaActividad: number | null
+  }[]
+}) {
+  return (
+    <TablaResponsive
+      cabeceras={[
+        'Producto',
+        'Código',
+        'Categoría',
+        'Cantidad',
+        'Valor en stock',
+        'Estado',
+        'Días sin actividad',
+      ]}
+      filas={datos.map((d) => [
+        d.nombre,
+        d.codigo,
+        d.categoria,
+        d.cantidad,
+        `$${d.valorEnStock.toLocaleString('es-MX')}`,
+        d.estado,
+        d.diasDesdeUltimaActividad === null
+          ? 'Sin actividad'
+          : d.diasDesdeUltimaActividad,
       ])}
     />
   )
