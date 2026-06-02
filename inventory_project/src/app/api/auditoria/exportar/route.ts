@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
-import { formatearFechaHora } from '@/lib/fechas'
+import { describirAuditoria } from '@/lib/auditoriaDescripcion'
+import { FORMATO_FECHA_HORA, generarLibroExcel } from '@/lib/excel'
 import type { Prisma } from '@prisma/client'
-
-function escapeCsv(valor: string): string {
-  if (valor.includes('"') || valor.includes(',') || valor.includes('\n')) {
-    return `"${valor.replace(/"/g, '""')}"`
-  }
-  return valor
-}
 
 export async function GET(request: NextRequest) {
   const sesion = await obtenerSesion()
@@ -37,29 +31,69 @@ export async function GET(request: NextRequest) {
     orderBy: { creadoEn: 'desc' },
   })
 
-  const filas: string[] = []
-  filas.push(['Fecha', 'Usuario', 'NombreUsuario', 'Accion', 'Entidad', 'EntidadId', 'IP', 'Datos'].join(','))
-  for (const r of registros) {
-    filas.push([
-      escapeCsv(formatearFechaHora(r.creadoEn)),
-      escapeCsv(r.usuario?.nombre ?? '(eliminado)'),
-      escapeCsv(r.usuario?.nombreUsuario ?? ''),
-      escapeCsv(r.accion),
-      escapeCsv(r.entidad),
-      escapeCsv(r.entidadId?.toString() ?? ''),
-      escapeCsv(r.ip ?? ''),
-      escapeCsv(r.datos ? JSON.stringify(r.datos) : ''),
-    ].join(','))
-  }
+  const ahora = new Date()
+  const stampCo = ahora
+    .toLocaleString('sv-SE', { timeZone: 'America/Bogota', hour12: false })
+    .replace(/[-: ]/g, '')
+    .slice(0, 14)
+  const nombreArchivo = `auditoria_${stampCo.slice(0, 8)}_${stampCo.slice(8)}.xlsx`
+  const fechaCo = ahora.toLocaleString('es-MX', { timeZone: 'America/Bogota' })
 
-  const csv = '﻿' + filas.join('\n')  // BOM para que Excel detecte UTF-8
-  const fecha = new Date().toISOString().slice(0, 10)
+  const filtrosTexto: string[] = []
+  if (sp.get('usuario')) filtrosTexto.push(`usuario #${sp.get('usuario')}`)
+  if (sp.get('entidad')) filtrosTexto.push(`entidad ${sp.get('entidad')}`)
+  if (sp.get('accion')) filtrosTexto.push(`acción ${sp.get('accion')}`)
+  if (sp.get('desde')) filtrosTexto.push(`desde ${sp.get('desde')}`)
+  if (sp.get('hasta')) filtrosTexto.push(`hasta ${sp.get('hasta')}`)
+  const subtituloFiltros =
+    filtrosTexto.length > 0
+      ? `Filtros: ${filtrosTexto.join(', ')}.`
+      : 'Sin filtros aplicados (todos los registros).'
 
-  return new NextResponse(csv, {
-    status: 200,
+  const buffer = await generarLibroExcel({
+    titulo: 'Auditoría del sistema',
+    subtitulo: 'Sistema de Inventario',
+    autor: sesion.user.name ?? 'Sistema de Inventario',
+    hojas: [
+      {
+        nombre: 'Auditoría',
+        titulo: 'Registro de auditoría',
+        subtitulo: `Generado el ${fechaCo} por ${sesion.user.name ?? 'Sistema'}. ${subtituloFiltros}`,
+        columnas: [
+          { encabezado: 'Fecha y hora', key: 'fecha', ancho: 20, formato: FORMATO_FECHA_HORA },
+          { encabezado: 'Usuario', key: 'usuario', ancho: 26 },
+          { encabezado: 'Login', key: 'login', ancho: 16 },
+          { encabezado: 'Acción', key: 'accion', ancho: 16 },
+          { encabezado: 'Entidad', key: 'entidad', ancho: 14 },
+          { encabezado: 'ID', key: 'entidadId', ancho: 8, alineacion: 'right' },
+          { encabezado: 'IP', key: 'ip', ancho: 18 },
+          { encabezado: 'Descripción', key: 'descripcion', ancho: 80 },
+        ],
+        filas: registros.map((r) => ({
+          fecha: r.creadoEn,
+          usuario: r.usuario?.nombre ?? '(eliminado)',
+          login: r.usuario?.nombreUsuario ?? '',
+          accion: r.accion,
+          entidad: r.entidad,
+          entidadId: r.entidadId ?? '',
+          ip: r.ip ?? '',
+          descripcion: describirAuditoria({
+            accion: r.accion,
+            entidad: r.entidad,
+            entidadId: r.entidadId,
+            datos: r.datos,
+          }),
+        })),
+        mensajeVacio: 'No hay registros que coincidan con los filtros.',
+      },
+    ],
+  })
+
+  return new NextResponse(new Uint8Array(buffer), {
     headers: {
-      'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': `attachment; filename="auditoria-${fecha}.csv"`,
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename="${nombreArchivo}"`,
+      'Cache-Control': 'no-store',
     },
   })
 }
