@@ -2,6 +2,9 @@ import { redirect } from 'next/navigation'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import GraficoMovimientos from '@/componentes/GraficoMovimientos'
 import GraficoAltaRotacion from '@/componentes/GraficoAltaRotacion'
+import GraficoVentasDiarias from '@/componentes/GraficoVentasDiarias'
+import GraficoVentasCategoria from '@/componentes/GraficoVentasCategoria'
+import GraficoDistribucionStock from '@/componentes/GraficoDistribucionStock'
 import BotonExportarAnalisis from '@/componentes/BotonExportarAnalisis'
 import { obtenerTodoAnalisis } from '@/lib/analisis'
 import { tienePermiso } from '@/lib/permisos'
@@ -20,6 +23,9 @@ export default async function PaginaAnalisis() {
     altaRotacion,
     stockCritico,
     resumen,
+    ventasPorDia,
+    ventasPorCategoria,
+    distribucionStock,
   } = await obtenerTodoAnalisis()
   const puedeExportar = await tienePermiso('EXPORTAR_REPORTES')
 
@@ -90,6 +96,48 @@ export default async function PaginaAnalisis() {
           </h2>
           <GraficoMovimientos datos={resumen} />
         </section>
+
+        {/* Ventas diarias */}
+        <section className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-1">
+            Ventas diarias (últimos 30 días)
+          </h2>
+          <p className="text-sm text-gray-500 mb-3">
+            Línea verde: total cobrado por día. Línea azul punteada: número de
+            ventas registradas (con su propio eje a la derecha).
+          </p>
+          <GraficoVentasDiarias datos={ventasPorDia} />
+        </section>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          {/* Ventas por categoría */}
+          <section className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-1">
+              Top categorías por ingreso (últimos 30 días)
+            </h2>
+            <p className="text-sm text-gray-500 mb-3">
+              Suma del ingreso por venta agrupado por categoría del producto.
+            </p>
+            {ventasPorCategoria.length > 0 ? (
+              <GraficoVentasCategoria datos={ventasPorCategoria} />
+            ) : (
+              <p className="text-gray-500 text-sm">
+                Aún no hay ventas registradas para mostrar este ranking.
+              </p>
+            )}
+          </section>
+
+          {/* Distribución de stock */}
+          <section className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-1">
+              Distribución del inventario
+            </h2>
+            <p className="text-sm text-gray-500 mb-3">
+              Proporción de productos en cada estado de stock.
+            </p>
+            <GraficoDistribucionStock datos={distribucionStock} />
+          </section>
+        </div>
 
         {/* Top alta rotación */}
         <section className="bg-white rounded-lg shadow-md p-4 sm:p-6">
