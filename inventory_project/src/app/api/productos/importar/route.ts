@@ -171,11 +171,30 @@ export async function POST(request: NextRequest) {
       let categoriaId: number | null = null
       let mensajeCategoria = ''
       if (categoriaNombre) {
-        const id = mapaCategorias.get(categoriaNombre.toLowerCase())
-        if (id) {
-          categoriaId = id
+        const clave = categoriaNombre.toLowerCase()
+        const existenteId = mapaCategorias.get(clave)
+        if (existenteId) {
+          categoriaId = existenteId
         } else {
-          mensajeCategoria = ` Categoría "${categoriaNombre}" no existe; se creó sin categoría.`
+          // Crear automaticamente la categoria nueva.
+          try {
+            const nuevaCategoria = await prisma.categoria.create({
+              data: { nombre: categoriaNombre },
+            })
+            categoriaId = nuevaCategoria.id
+            mapaCategorias.set(clave, nuevaCategoria.id)
+            await registrarAuditoria({
+              accion: 'CREAR',
+              entidad: 'Categoria',
+              entidadId: nuevaCategoria.id,
+              datos: { despues: nuevaCategoria, origen: 'importacion' },
+              ip,
+            })
+            mensajeCategoria = ` Categoría "${categoriaNombre}" creada automáticamente.`
+          } catch (e) {
+            console.error('Error creando categoria en importacion', categoriaNombre, e)
+            mensajeCategoria = ` Categoría "${categoriaNombre}" no se pudo crear; el producto se creó sin categoría.`
+          }
         }
       }
 
@@ -230,6 +249,8 @@ export async function POST(request: NextRequest) {
 
     if (creados > 0) {
       revalidatePath('/productos')
+      revalidatePath('/productos/nuevo')
+      revalidatePath('/categorias')
       revalidatePath('/movimientos')
       revalidatePath('/analisis')
       revalidatePath('/')

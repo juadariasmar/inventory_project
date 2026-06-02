@@ -51,7 +51,7 @@ export default async function PaginaImportarProductos() {
               <li><strong>precio</strong> (requerido, número &ge; 0) — precio, valor, precio venta, pvp. Se ignoran el símbolo $ y los separadores de miles.</li>
               <li><strong>cantidad</strong> (opcional, entero &ge; 0, por defecto 0) — cantidad, stock, existencia, unidades.</li>
               <li><strong>stock mínimo</strong> (opcional, por defecto 1) — stockMinimo, mínimo, alerta, umbral.</li>
-              <li><strong>categoría</strong> (opcional) — categoría, tipo, grupo. Debe coincidir con una categoría existente.</li>
+              <li><strong>categoría</strong> (opcional) — categoría, tipo, grupo. Si la categoría no existe, se crea automáticamente al importar.</li>
             </ul>
           </div>
 

@@ -35,7 +35,26 @@ function parsearLinea(linea: string): string[] {
     }
   }
   campos.push(actual)
-  return campos.map((x) => x.trim())
+  return campos.map((x) => limpiarComillasEnvolventes(x.trim()))
+}
+
+/**
+ * Si el valor llega envuelto en comillas dobles (con o sin espacios al rededor),
+ * devuelve solo el contenido. Mantiene el valor original si las comillas son
+ * desbalanceadas o si forman parte del contenido real.
+ *
+ * Ejemplos:
+ *   "Producto X"   -> Producto X
+ *   "  Producto "  -> Producto
+ *   '"15,000"'     -> 15,000
+ *   sin comillas   -> sin comillas
+ *   "rota          -> "rota  (no se toca)
+ */
+function limpiarComillasEnvolventes(valor: string): string {
+  if (valor.length >= 2 && valor.startsWith('"') && valor.endsWith('"')) {
+    return valor.slice(1, -1).replace(/""/g, '"').trim()
+  }
+  return valor
 }
 
 export function parsearCsv(texto: string): ResultadoCsv {
