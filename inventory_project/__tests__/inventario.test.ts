@@ -5,8 +5,10 @@ import {
   validarProducto,
   formatearPrecio,
   calcularSugerenciaCompra,
+  calcularSugerenciaCompraInteligente,
   ProductoBase,
   MARGEN_ALERTA_STOCK,
+  DIAS_COBERTURA_OBJETIVO,
 } from '../src/lib/inventario'
 
 const productoBase: ProductoBase = {
@@ -171,6 +173,66 @@ describe('calcularSugerenciaCompra', () => {
       const cantidadDespues = cantidad + sug
       expect(cantidadDespues).toBeGreaterThan(stockMinimo + MARGEN_ALERTA_STOCK)
     }
+  })
+})
+
+describe('calcularSugerenciaCompraInteligente', () => {
+  // Recordatorio: objetivo = max(stockMinimo + MARGEN + 1, ceil(consumo * 14) + stockMinimo).
+
+  test('producto de alta rotación sugiere mucho más que la fórmula simple', () => {
+    // stockMinimo=5, cantidad=5, consumo=5/día.
+    // objetivo cobertura = ceil(5*14) + 5 = 75. sugerencia = 75 - 5 = 70.
+    expect(calcularSugerenciaCompraInteligente(5, 5, 5)).toBe(70)
+    expect(calcularSugerenciaCompra(5, 5)).toBe(5) // la simple sigue siendo 5
+  })
+
+  test('producto de rotación media: cubre los días pactados', () => {
+    // stockMinimo=5, cantidad=5, consumo=1/día.
+    // objetivo cobertura = ceil(1*14) + 5 = 19. sugerencia = 19 - 5 = 14.
+    expect(calcularSugerenciaCompraInteligente(5, 5, 1)).toBe(14)
+  })
+
+  test('producto de baja rotación cae al mínimo para salir del umbral', () => {
+    // stockMinimo=5, cantidad=5, consumo=0.07 (≈2 al mes).
+    // objetivo cobertura = ceil(0.07*14) + 5 = 6. umbralSalida=8. max=8.
+    // sugerencia = 8 - 5 = 3.
+    const sug = calcularSugerenciaCompraInteligente(5, 5, 0.07)
+    expect(sug).toBeGreaterThanOrEqual(3)
+    expect(sug).toBeLessThanOrEqual(5)
+  })
+
+  test('sin historial cae a la fórmula simple', () => {
+    expect(calcularSugerenciaCompraInteligente(5, 5, 0)).toBe(
+      calcularSugerenciaCompra(5, 5)
+    )
+  })
+
+  test('consumo negativo (datos corruptos) cae al cálculo simple', () => {
+    expect(calcularSugerenciaCompraInteligente(5, 5, -1)).toBe(
+      calcularSugerenciaCompra(5, 5)
+    )
+  })
+
+  test('al recibir la sugerencia el producto sale del umbral crítico', () => {
+    // Varios casos con consumo distinto. Tras comprar lo sugerido, cantidad
+    // debe quedar por encima del umbral de alerta.
+    const casos: Array<[number, number, number]> = [
+      [1, 2, 0.5],
+      [2, 4, 1],
+      [5, 5, 3],
+      [10, 10, 0.1],
+    ]
+    for (const [stockMinimo, cantidad, consumo] of casos) {
+      const sug = calcularSugerenciaCompraInteligente(stockMinimo, cantidad, consumo)
+      const stockTrasCompra = cantidad + sug
+      expect(stockTrasCompra).toBeGreaterThan(stockMinimo + MARGEN_ALERTA_STOCK)
+    }
+  })
+
+  test('la cobertura objetivo coincide con la constante exportada', () => {
+    // stockMinimo=0, cantidad=0, consumo=1/día.
+    // objetivo cobertura = ceil(1*14) + 0 = 14. sugerencia = 14.
+    expect(calcularSugerenciaCompraInteligente(0, 0, 1)).toBe(DIAS_COBERTURA_OBJETIVO)
   })
 })
 
