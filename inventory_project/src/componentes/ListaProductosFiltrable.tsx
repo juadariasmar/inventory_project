@@ -206,7 +206,7 @@ export default function ListaProductosFiltrable({
         {productosFiltrados.length > 0 ? (
           <>
             {/* Vista escritorio */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden lg:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -305,7 +305,7 @@ export default function ListaProductosFiltrable({
             </div>
 
             {/* Vista móvil */}
-            <div className="md:hidden divide-y divide-gray-200">
+            <div className="lg:hidden divide-y divide-gray-200">
               {productosFiltrados.map((producto) => {
                 const e = estadoStock(producto)
                 return (
