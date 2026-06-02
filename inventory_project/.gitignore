@@ -60,3 +60,8 @@ android/*.iml
 android/app/*.iml
 android/app/release/
 *.apk.idsig
+
+# playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
