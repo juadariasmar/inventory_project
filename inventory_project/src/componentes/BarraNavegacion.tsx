@@ -45,7 +45,7 @@ export default function BarraNavegacion() {
           </Link>
 
           {/* Enlaces escritorio */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden lg:flex items-center space-x-1">
             {enlaces.map((enlace) => (
               <Link
                 key={enlace.href}
@@ -62,7 +62,7 @@ export default function BarraNavegacion() {
           </div>
 
           {/* Lado derecho: usuario y cerrar sesión (escritorio) */}
-          <div className="hidden md:flex items-center space-x-3">
+          <div className="hidden lg:flex items-center space-x-3">
             {sesion?.user && (
               <>
                 <span className="text-sm text-blue-100">
@@ -87,7 +87,7 @@ export default function BarraNavegacion() {
           <button
             type="button"
             onClick={() => setMenuAbierto((v) => !v)}
-            className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-blue-100 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-white"
+            className="lg:hidden inline-flex items-center justify-center p-2 rounded-md text-blue-100 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-white"
             aria-controls="menu-movil"
             aria-expanded={menuAbierto}
             aria-label="Abrir menú"
@@ -107,7 +107,7 @@ export default function BarraNavegacion() {
 
       {/* Menú móvil colapsable */}
       {menuAbierto && (
-        <div id="menu-movil" className="md:hidden border-t border-blue-500">
+        <div id="menu-movil" className="lg:hidden border-t border-blue-500">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {enlaces.map((enlace) => (
               <Link
