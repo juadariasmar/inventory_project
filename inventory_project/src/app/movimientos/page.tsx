@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import Link from 'next/link'
 import { tienePermiso } from '@/lib/permisos'
+import { formatearFechaHora } from '@/lib/fechas'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,10 +61,7 @@ export default async function PaginaMovimientos() {
                     {movimientos.map((movimiento) => (
                       <tr key={movimiento.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(movimiento.creadoEn).toLocaleString('es-MX', {
-                            dateStyle: 'short',
-                            timeStyle: 'short',
-                          })}
+                          {formatearFechaHora(movimiento.creadoEn)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <div>
@@ -136,10 +134,7 @@ export default async function PaginaMovimientos() {
                         {m.cantidad}
                       </span>
                       <span className="text-xs text-gray-500">
-                        {new Date(m.creadoEn).toLocaleString('es-MX', {
-                          dateStyle: 'short',
-                          timeStyle: 'short',
-                        })}
+                        {formatearFechaHora(m.creadoEn)}
                       </span>
                     </div>
                     {m.notas && (

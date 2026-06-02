@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 import { obtenerStockPorAgotarse, obtenerProductosSinMovimientos } from '@/lib/analisis'
 import { estadoStock } from '@/lib/inventario'
+import { formatearFecha } from '@/lib/fechas'
 
 export const dynamic = 'force-dynamic'
 
@@ -224,7 +225,7 @@ export default async function PaginaPrincipal() {
                           {movimiento.cantidad}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(movimiento.creadoEn).toLocaleDateString('es-MX')}
+                          {formatearFecha(movimiento.creadoEn)}
                         </td>
                       </tr>
                     ))}
@@ -241,7 +242,7 @@ export default async function PaginaPrincipal() {
                         {m.producto.nombre}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {new Date(m.creadoEn).toLocaleDateString('es-MX')}
+                        {formatearFecha(m.creadoEn)}
                       </div>
                     </div>
                     <span
