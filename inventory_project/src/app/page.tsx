@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import TarjetaEstadistica from '@/componentes/TarjetaEstadistica'
+import TarjetaEstadisticaDoble from '@/componentes/TarjetaEstadisticaDoble'
 import Link from 'next/link'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 import { obtenerStockPorAgotarse, obtenerProductosSinMovimientos } from '@/lib/analisis'
@@ -95,49 +96,35 @@ export default async function PaginaPrincipal() {
         )}
 
         {/* Tarjetas de estadísticas */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-          <TarjetaEstadistica
-            titulo="Total Productos"
-            valor={estadisticas.totalProductos}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <TarjetaEstadisticaDoble
+            titulo="Inventario"
             colorFondo="bg-blue-100 text-blue-600"
             icono={
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
             }
+            cifras={[
+              { etiqueta: 'Productos', valor: estadisticas.totalProductos },
+              { etiqueta: 'Categorías', valor: estadisticas.totalCategorias },
+            ]}
           />
-          <TarjetaEstadistica
-            titulo="Categorías"
-            valor={estadisticas.totalCategorias}
-            colorFondo="bg-green-100 text-green-600"
-            icono={
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-              </svg>
-            }
-          />
-          <TarjetaEstadistica
-            titulo="Stock Bajo"
-            valor={estadisticas.productosStockBajo}
+          <TarjetaEstadisticaDoble
+            titulo="Alertas de stock"
             colorFondo="bg-red-100 text-red-600"
             icono={
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
             }
+            cifras={[
+              { etiqueta: 'Stock bajo', valor: estadisticas.productosStockBajo },
+              { etiqueta: 'Sin stock', valor: estadisticas.productosSinStock },
+            ]}
           />
           <TarjetaEstadistica
-            titulo="Sin Stock"
-            valor={estadisticas.productosSinStock}
-            colorFondo="bg-gray-200 text-gray-700"
-            icono={
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L5.636 5.636" />
-              </svg>
-            }
-          />
-          <TarjetaEstadistica
-            titulo="Valor Inventario"
+            titulo="Valor inventario"
             valor={`$${estadisticas.valorInventario.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`}
             colorFondo="bg-purple-100 text-purple-600"
             icono={
