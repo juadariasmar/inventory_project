@@ -1,30 +1,18 @@
 import { NextResponse } from 'next/server'
 import { obtenerTodoAnalisis } from '@/lib/analisis'
-import { tienePermiso } from '@/lib/permisos'
-
-function escaparCsv(valor: string | number): string {
-  const str = String(valor)
-  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-    return '"' + str.replace(/"/g, '""') + '"'
-  }
-  return str
-}
-
-function tablaCsv(titulo: string, columnas: string[], filas: (string | number)[][]): string {
-  const lineas = [
-    `# ${titulo}`,
-    columnas.map(escaparCsv).join(','),
-    ...filas.map((f) => f.map(escaparCsv).join(',')),
-    '',
-  ]
-  return lineas.join('\n')
-}
+import { obtenerSesion, tienePermiso } from '@/lib/permisos'
+import {
+  FORMATO_DECIMAL_2,
+  FORMATO_MONEDA,
+  generarLibroExcel,
+} from '@/lib/excel'
 
 export async function GET() {
   if (!(await tienePermiso('EXPORTAR_REPORTES'))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
   try {
+    const sesion = await obtenerSesion()
     const {
       inventarioGeneral,
       stockAgotarse,
@@ -34,109 +22,186 @@ export async function GET() {
       resumen,
     } = await obtenerTodoAnalisis()
 
-    const secciones: string[] = []
+    const fechaIso = new Date().toISOString().slice(0, 10)
+    const fechaCo = new Date().toLocaleString('es-MX', { timeZone: 'America/Bogota' })
 
-    secciones.push(
-      tablaCsv(
-        'Inventario general',
-        [
-          'Producto',
-          'Código',
-          'Categoría',
-          'Cantidad',
-          'Stock mínimo',
-          'Precio unitario',
-          'Valor en stock',
-          'Estado',
-          'Días sin actividad',
-        ],
-        inventarioGeneral.map((p) => [
-          p.nombre,
-          p.codigo,
-          p.categoria,
-          p.cantidad,
-          p.stockMinimo,
-          p.precio,
-          p.valorEnStock,
-          p.estado,
-          p.diasDesdeUltimaActividad === null
-            ? 'Sin actividad'
-            : p.diasDesdeUltimaActividad,
-        ])
-      )
-    )
+    const buffer = await generarLibroExcel({
+      titulo: 'Análisis de inventario',
+      subtitulo: 'Sistema de Inventario',
+      autor: sesion?.user?.name ?? 'Sistema de Inventario',
+      hojas: [
+        // ---------- Resumen ----------
+        {
+          nombre: 'Resumen',
+          titulo: 'Resumen del análisis',
+          subtitulo: `Generado el ${fechaCo} por ${sesion?.user?.name ?? 'Sistema'}`,
+          columnas: [
+            { encabezado: 'Indicador', key: 'indicador', ancho: 48 },
+            { encabezado: 'Valor', key: 'valor', ancho: 22, alineacion: 'right' },
+          ],
+          filas: [
+            { indicador: 'Productos en inventario', valor: inventarioGeneral.length },
+            { indicador: 'En riesgo de agotarse (siguientes 7 días)', valor: stockAgotarse.length },
+            { indicador: 'Sin movimientos recientes', valor: sinMovimientos.length },
+            { indicador: 'En zona crítica (stock por debajo del mínimo)', valor: stockCritico.length },
+            { indicador: 'Productos de alta rotación analizados', valor: altaRotacion.length },
+            {
+              indicador: 'Valor total del inventario (COP)',
+              valor: `$${inventarioGeneral.reduce((s, p) => s + p.valorEnStock, 0).toLocaleString('es-MX')}`,
+            },
+          ],
+        },
 
-    secciones.push(
-      tablaCsv(
-        'Stock por agotarse',
-        ['Producto', 'Código', 'Cantidad actual', 'Consumo diario promedio', 'Días para agotarse'],
-        stockAgotarse.map((a) => [
-          a.nombre,
-          a.codigo,
-          a.cantidadActual,
-          a.consumoDiarioPromedio,
-          a.diasParaAgotarse === null ? 'Sin histórico' : a.diasParaAgotarse,
-        ])
-      )
-    )
+        // ---------- Inventario general ----------
+        {
+          nombre: 'Inventario general',
+          titulo: 'Inventario general',
+          subtitulo: 'Listado completo del catálogo con estado y valor en stock.',
+          columnas: [
+            { encabezado: 'Código', key: 'codigo', ancho: 12 },
+            { encabezado: 'Producto', key: 'nombre', ancho: 30 },
+            { encabezado: 'Categoría', key: 'categoria', ancho: 18 },
+            { encabezado: 'Cantidad', key: 'cantidad', ancho: 12, alineacion: 'right' },
+            { encabezado: 'Stock mínimo', key: 'stockMinimo', ancho: 14, alineacion: 'right' },
+            { encabezado: 'Precio unitario', key: 'precio', ancho: 16, formato: FORMATO_MONEDA, alineacion: 'right' },
+            { encabezado: 'Valor en stock', key: 'valorEnStock', ancho: 18, formato: FORMATO_MONEDA, alineacion: 'right' },
+            { encabezado: 'Estado', key: 'estado', ancho: 14 },
+            { encabezado: 'Días sin actividad', key: 'diasDesdeUltimaActividad', ancho: 18, alineacion: 'right' },
+          ],
+          filas: inventarioGeneral.map((p) => ({
+            codigo: p.codigo,
+            nombre: p.nombre,
+            categoria: p.categoria,
+            cantidad: p.cantidad,
+            stockMinimo: p.stockMinimo,
+            precio: p.precio,
+            valorEnStock: p.valorEnStock,
+            estado: p.estado,
+            diasDesdeUltimaActividad:
+              p.diasDesdeUltimaActividad === null ? 'Sin actividad' : p.diasDesdeUltimaActividad,
+          })),
+          mensajeVacio: 'No hay productos registrados.',
+        },
 
-    secciones.push(
-      tablaCsv(
-        'Productos sin movimientos',
-        ['Producto', 'Código', 'Cantidad actual', 'Días sin movimiento', 'Valor inmovilizado'],
-        sinMovimientos.map((a) => [
-          a.nombre,
-          a.codigo,
-          a.cantidadActual,
-          a.diasSinMovimiento,
-          a.valorInmovilizado,
-        ])
-      )
-    )
+        // ---------- Stock por agotarse ----------
+        {
+          nombre: 'Por agotarse',
+          titulo: 'Productos en riesgo de agotarse',
+          subtitulo: 'Proyección basada en el consumo de los últimos 30 días.',
+          columnas: [
+            { encabezado: 'Código', key: 'codigo', ancho: 12 },
+            { encabezado: 'Producto', key: 'nombre', ancho: 30 },
+            { encabezado: 'Cantidad actual', key: 'cantidadActual', ancho: 16, alineacion: 'right' },
+            { encabezado: 'Consumo/día', key: 'consumoDiarioPromedio', ancho: 14, formato: FORMATO_DECIMAL_2, alineacion: 'right' },
+            { encabezado: 'Días para agotarse', key: 'diasParaAgotarse', ancho: 18, alineacion: 'right' },
+          ],
+          filas: stockAgotarse.map((a) => ({
+            codigo: a.codigo,
+            nombre: a.nombre,
+            cantidadActual: a.cantidadActual,
+            consumoDiarioPromedio: a.consumoDiarioPromedio,
+            diasParaAgotarse: a.diasParaAgotarse === null ? 'Sin histórico' : a.diasParaAgotarse,
+          })),
+          mensajeVacio: 'No hay productos en riesgo de agotarse.',
+        },
 
-    secciones.push(
-      tablaCsv(
-        'Productos con alta rotación (últimos 30 días)',
-        ['Producto', 'Código', 'Salidas registradas', 'Unidades vendidas'],
-        altaRotacion.map((a) => [a.nombre, a.codigo, a.totalSalidas, a.cantidadVendida])
-      )
-    )
+        // ---------- Productos sin movimientos ----------
+        {
+          nombre: 'Sin movimientos',
+          titulo: 'Productos sin movimientos recientes',
+          subtitulo: 'Productos con más de 30 días sin entradas ni salidas.',
+          columnas: [
+            { encabezado: 'Código', key: 'codigo', ancho: 12 },
+            { encabezado: 'Producto', key: 'nombre', ancho: 30 },
+            { encabezado: 'Cantidad', key: 'cantidadActual', ancho: 12, alineacion: 'right' },
+            { encabezado: 'Días sin movimiento', key: 'diasSinMovimiento', ancho: 20, alineacion: 'right' },
+            { encabezado: 'Valor inmovilizado', key: 'valorInmovilizado', ancho: 18, formato: FORMATO_MONEDA, alineacion: 'right' },
+          ],
+          filas: sinMovimientos.map((p) => ({
+            codigo: p.codigo,
+            nombre: p.nombre,
+            cantidadActual: p.cantidadActual,
+            diasSinMovimiento: p.diasSinMovimiento,
+            valorInmovilizado: p.valorInmovilizado,
+          })),
+          mensajeVacio: 'Todos los productos han tenido movimientos recientes.',
+        },
 
-    secciones.push(
-      tablaCsv(
-        'Stock crítico',
-        ['Producto', 'Código', 'Cantidad actual', 'Stock mínimo', 'Consumo/día', 'Sugerencia compra'],
-        stockCritico.map((a) => [
-          a.nombre,
-          a.codigo,
-          a.cantidadActual,
-          a.stockMinimo,
-          a.consumoDiarioPromedio,
-          a.sugerenciaCompra,
-        ])
-      )
-    )
+        // ---------- Alta rotación ----------
+        {
+          nombre: 'Alta rotación',
+          titulo: 'Top productos de alta rotación',
+          subtitulo: 'Productos con más salidas en los últimos 30 días.',
+          columnas: [
+            { encabezado: 'Código', key: 'codigo', ancho: 12 },
+            { encabezado: 'Producto', key: 'nombre', ancho: 30 },
+            { encabezado: 'Salidas registradas', key: 'totalSalidas', ancho: 20, alineacion: 'right' },
+            { encabezado: 'Unidades vendidas', key: 'cantidadVendida', ancho: 20, alineacion: 'right' },
+          ],
+          filas: altaRotacion.map((p) => ({
+            codigo: p.codigo,
+            nombre: p.nombre,
+            totalSalidas: p.totalSalidas,
+            cantidadVendida: p.cantidadVendida,
+          })),
+          mensajeVacio: 'Aún no hay movimientos suficientes para calcular la rotación.',
+        },
 
-    secciones.push(
-      tablaCsv(
-        'Movimientos diarios (últimos 30 días)',
-        ['Fecha', 'Entradas', 'Salidas'],
-        resumen.map((r) => [r.fecha, r.entradas, r.salidas])
-      )
-    )
+        // ---------- Stock crítico ----------
+        {
+          nombre: 'Stock crítico',
+          titulo: 'Stock por debajo del mínimo',
+          subtitulo: 'Sugerencia de compra para cubrir 14 días de ventas según el consumo histórico.',
+          columnas: [
+            { encabezado: 'Código', key: 'codigo', ancho: 12 },
+            { encabezado: 'Producto', key: 'nombre', ancho: 30 },
+            { encabezado: 'Cantidad actual', key: 'cantidadActual', ancho: 16, alineacion: 'right' },
+            { encabezado: 'Stock mínimo', key: 'stockMinimo', ancho: 14, alineacion: 'right' },
+            { encabezado: 'Consumo/día', key: 'consumoDiarioPromedio', ancho: 14, formato: FORMATO_DECIMAL_2, alineacion: 'right' },
+            { encabezado: 'Sugerencia compra', key: 'sugerenciaCompra', ancho: 18, alineacion: 'right' },
+          ],
+          filas: stockCritico.map((a) => ({
+            codigo: a.codigo,
+            nombre: a.nombre,
+            cantidadActual: a.cantidadActual,
+            stockMinimo: a.stockMinimo,
+            consumoDiarioPromedio: a.consumoDiarioPromedio,
+            sugerenciaCompra: a.sugerenciaCompra,
+          })),
+          mensajeVacio: 'No hay productos en zona crítica.',
+        },
 
-    const csv = '﻿' + secciones.join('\n')
-    const fecha = new Date().toISOString().slice(0, 10)
+        // ---------- Movimientos diarios ----------
+        {
+          nombre: 'Movimientos diarios',
+          titulo: 'Movimientos diarios (últimos 30 días)',
+          subtitulo: 'Conteo de entradas y salidas registradas por día.',
+          columnas: [
+            { encabezado: 'Fecha', key: 'fecha', ancho: 14 },
+            { encabezado: 'Entradas', key: 'entradas', ancho: 12, alineacion: 'right' },
+            { encabezado: 'Salidas', key: 'salidas', ancho: 12, alineacion: 'right' },
+          ],
+          filas: resumen.map((r) => ({
+            fecha: r.fecha,
+            entradas: r.entradas,
+            salidas: r.salidas,
+          })),
+          mensajeVacio: 'No hay movimientos registrados en el período.',
+        },
+      ],
+    })
 
-    return new NextResponse(csv, {
-      status: 200,
+    return new NextResponse(new Uint8Array(buffer), {
       headers: {
-        'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': `attachment; filename="analisis_inventario_${fecha}.csv"`,
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': `attachment; filename="analisis_inventario_${fechaIso}.xlsx"`,
       },
     })
-  } catch (error) {
-    console.error('Error al exportar análisis:', error)
-    return NextResponse.json({ error: 'Error al exportar análisis' }, { status: 500 })
+  } catch (e) {
+    console.error('Error al exportar análisis:', e)
+    return NextResponse.json(
+      { error: 'Error al generar el archivo' },
+      { status: 500 }
+    )
   }
 }
