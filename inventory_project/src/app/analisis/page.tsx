@@ -142,9 +142,15 @@ export default async function PaginaAnalisis() {
 
         {/* Stock crítico */}
         <section className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">
+          <h2 className="text-lg font-semibold text-gray-800 mb-1">
             Stock por debajo del mínimo
           </h2>
+          <p className="text-sm text-gray-500 mb-3">
+            La sugerencia de compra cubre 14 días de ventas según el consumo de
+            los últimos 30 días, más el stock mínimo como colchón. Si el producto
+            no tiene historial reciente, se sugiere el mínimo para salir del
+            umbral crítico.
+          </p>
           {stockCritico.length > 0 ? (
             <TablaStockCritico datos={stockCritico} />
           ) : (
@@ -283,16 +289,17 @@ function TablaAltaRotacion({
 function TablaStockCritico({
   datos,
 }: {
-  datos: { nombre: string; codigo: string; cantidadActual: number; stockMinimo: number; sugerenciaCompra: number }[]
+  datos: { nombre: string; codigo: string; cantidadActual: number; stockMinimo: number; consumoDiarioPromedio: number; sugerenciaCompra: number }[]
 }) {
   return (
     <TablaResponsive
-      cabeceras={['Producto', 'Código', 'Cantidad', 'Mínimo', 'Sugerencia compra']}
+      cabeceras={['Producto', 'Código', 'Cantidad', 'Mínimo', 'Consumo/día', 'Sugerencia compra']}
       filas={datos.map((d) => [
         d.nombre,
         d.codigo,
         d.cantidadActual,
         d.stockMinimo,
+        d.consumoDiarioPromedio,
         d.sugerenciaCompra,
       ])}
     />
