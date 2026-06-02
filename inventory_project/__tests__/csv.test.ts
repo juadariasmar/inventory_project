@@ -89,4 +89,23 @@ describe('parsearCsv', () => {
     const r = parsearCsv(csv)
     expect(r.filas[0].nombre).toContain('rota')
   })
+
+  test('desempaqueta filas envueltas en comillas con "" como escape', () => {
+    // Formato que generan algunos exportadores: cada fila entera entre
+    // comillas y los campos internos escapados con "". Antes este formato
+    // producia que toda la fila quedara en el primer campo.
+    const csv =
+      'codigo,nombre,categoria,precio,unidad,cantidad,descripcion\n' +
+      '"WH001,""Gasas Esteriles 10x10cm"",Gasas y Vendajes,15000,PAQ,50,""Gasas esteriles para limpieza"""'
+    const r = parsearCsv(csv)
+    expect(r.filas[0]).toEqual({
+      codigo: 'WH001',
+      nombre: 'Gasas Esteriles 10x10cm',
+      categoria: 'Gasas y Vendajes',
+      precio: '15000',
+      unidad: 'PAQ',
+      cantidad: '50',
+      descripcion: 'Gasas esteriles para limpieza',
+    })
+  })
 })

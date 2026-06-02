@@ -57,6 +57,33 @@ function limpiarComillasEnvolventes(valor: string): string {
   return valor
 }
 
+/**
+ * Algunos exportadores (Excel con ciertas configuraciones, sistemas legacy)
+ * envuelven la fila ENTERA en comillas dobles y luego escapan cada comilla
+ * interna como "". Ejemplo:
+ *
+ *   codigo,nombre,categoria
+ *   "WH001,""Gasas 10x10"",Vendajes"
+ *
+ * Sin desempaquetar, el parser ve la primera comilla y se traga toda la
+ * fila como un solo campo. Aqui detectamos y desempaquetamos antes.
+ *
+ * Heuristica: la linea empieza y termina con `"`, y contiene `""` (escape
+ * de comilla doble dentro). Eso descarta casos legitimos como una sola
+ * columna con un solo valor entrecomillado.
+ */
+function desempaquetarFilaSiEnvuelta(linea: string): string {
+  if (
+    linea.length >= 4 &&
+    linea.startsWith('"') &&
+    linea.endsWith('"') &&
+    linea.includes('""')
+  ) {
+    return linea.slice(1, -1).replace(/""/g, '"')
+  }
+  return linea
+}
+
 export function parsearCsv(texto: string): ResultadoCsv {
   // Quitar BOM si lo hay y normalizar saltos de linea
   const sin_bom = texto.replace(/^﻿/, '')
@@ -65,7 +92,8 @@ export function parsearCsv(texto: string): ResultadoCsv {
   const encabezados = parsearLinea(lineas[0]).map((h) => h.toLowerCase())
   const filas: Record<string, string>[] = []
   for (let i = 1; i < lineas.length; i++) {
-    const campos = parsearLinea(lineas[i])
+    const linea = desempaquetarFilaSiEnvuelta(lineas[i])
+    const campos = parsearLinea(linea)
     const fila: Record<string, string> = {}
     encabezados.forEach((h, j) => {
       fila[h] = campos[j] ?? ''
