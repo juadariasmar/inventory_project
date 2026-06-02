@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/db'
 import { esAdmin } from '@/lib/permisos'
+import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
 
 // GET - Listar usuarios (solo ADMIN)
 export async function GET() {
@@ -74,6 +75,14 @@ export async function POST(request: NextRequest) {
         permisos: true,
         creadoEn: true,
       },
+    })
+
+    await registrarAuditoria({
+      accion: 'CREAR',
+      entidad: 'Usuario',
+      entidadId: usuario.id,
+      datos: { despues: usuario },
+      ip: extraerIp(request),
     })
 
     return NextResponse.json(usuario, { status: 201 })

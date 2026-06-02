@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
+import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
 
 // GET - Obtener todos los movimientos (cualquier usuario autenticado)
 export async function GET() {
@@ -90,6 +91,17 @@ export async function POST(request: NextRequest) {
         data: { cantidad: nuevaCantidad },
       }),
     ])
+
+    await registrarAuditoria({
+      accion: 'CREAR',
+      entidad: 'Movimiento',
+      entidadId: movimiento.id,
+      datos: {
+        despues: movimiento,
+        productoNuevaCantidad: nuevaCantidad,
+      },
+      ip: extraerIp(request),
+    })
 
     revalidatePath('/movimientos')
     revalidatePath('/movimientos/nuevo')

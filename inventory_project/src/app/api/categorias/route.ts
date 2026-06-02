@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { esAdmin, obtenerSesion } from '@/lib/permisos'
+import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
 
 // GET - Obtener todas las categorías
 export async function GET() {
@@ -38,6 +39,14 @@ export async function POST(request: NextRequest) {
       data: {
         nombre: datos.nombre,
       },
+    })
+
+    await registrarAuditoria({
+      accion: 'CREAR',
+      entidad: 'Categoria',
+      entidadId: categoria.id,
+      datos: { despues: categoria },
+      ip: extraerIp(request),
     })
 
     return NextResponse.json(categoria, { status: 201 })
