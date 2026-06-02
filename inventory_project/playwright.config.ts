@@ -35,5 +35,13 @@ export default defineConfig({
         url: BASE_URL,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
+        // NextAuth construye URLs de redireccion absolutas a partir de
+        // NEXTAUTH_URL. Si el .env apunta a localhost:3000 (o a la URL de
+        // produccion), signOut() y otros redirects iran a esa URL y no a
+        // la del dev server de Playwright. Lo sobreescribimos al BASE_URL
+        // del test para que el redirect tras 'Cerrar sesión' caiga aqui.
+        env: {
+          NEXTAUTH_URL: BASE_URL,
+        },
       },
 })
