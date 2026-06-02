@@ -155,7 +155,7 @@ export default function ListaUsuariosFiltrable({
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         {filtrados.length > 0 ? (
           <>
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden lg:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -230,7 +230,7 @@ export default function ListaUsuariosFiltrable({
               </table>
             </div>
 
-            <div className="md:hidden divide-y divide-gray-200">
+            <div className="lg:hidden divide-y divide-gray-200">
               {filtrados.map((u) => (
                 <div key={u.id} className="p-4">
                   <div className="flex justify-between items-start gap-2">
