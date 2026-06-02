@@ -59,6 +59,9 @@ export default async function PaginaPrincipal() {
   const esAdmin = sesion?.user?.rol === 'ADMIN'
 
   const puedeVerAnalisis = await tienePermiso('VER_ANALISIS')
+  const puedeRegistrarMovimientos = esAdmin || (await tienePermiso('REGISTRAR_MOVIMIENTOS'))
+  const puedeVender = esAdmin || (await tienePermiso('REALIZAR_VENTAS'))
+  const hayAccionesRapidas = esAdmin || puedeRegistrarMovimientos || puedeVender
   const [stockAgotarse, sinMovimientos] = puedeVerAnalisis
     ? await Promise.all([obtenerStockPorAgotarse(), obtenerProductosSinMovimientos()])
     : [[], []]
@@ -136,33 +139,45 @@ export default async function PaginaPrincipal() {
         </div>
 
         {/* Acciones rápidas */}
-        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Acciones Rápidas</h2>
-          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
-            {esAdmin && (
-              <Link
-                href="/productos/nuevo"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-center"
-              >
-                + Nuevo Producto
-              </Link>
-            )}
-            <Link
-              href="/movimientos/nuevo"
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-center"
-            >
-              + Registrar Movimiento
-            </Link>
-            {esAdmin && (
-              <Link
-                href="/categorias/nueva"
-                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-center"
-              >
-                + Nueva Categoría
-              </Link>
-            )}
+        {hayAccionesRapidas && (
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Acciones Rápidas</h2>
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
+              {esAdmin && (
+                <Link
+                  href="/productos/nuevo"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-center"
+                >
+                  + Nuevo Producto
+                </Link>
+              )}
+              {puedeRegistrarMovimientos && (
+                <Link
+                  href="/movimientos/nuevo"
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-center"
+                >
+                  + Registrar Movimiento
+                </Link>
+              )}
+              {puedeVender && (
+                <Link
+                  href="/venta-rapida"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors text-center"
+                >
+                  Vender
+                </Link>
+              )}
+              {esAdmin && (
+                <Link
+                  href="/categorias/nueva"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-center"
+                >
+                  + Nueva Categoría
+                </Link>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Movimientos recientes */}
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">

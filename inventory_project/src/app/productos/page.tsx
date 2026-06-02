@@ -3,7 +3,7 @@ import LayoutProtegido from '@/componentes/LayoutProtegido'
 import Link from 'next/link'
 import BotonEliminarProducto from '@/componentes/BotonEliminarProducto'
 import BotonVenderProducto from '@/componentes/BotonVenderProducto'
-import { obtenerSesion } from '@/lib/permisos'
+import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 import { estadoStock, etiquetaEstadoStock } from '@/lib/inventario'
 
 const CLASES_ESTADO = {
@@ -25,6 +25,9 @@ export default async function PaginaProductos() {
   const productos = await obtenerProductos()
   const sesion = await obtenerSesion()
   const esAdmin = sesion?.user?.rol === 'ADMIN'
+  const puedeVender =
+    (await tienePermiso('REALIZAR_VENTAS')) ||
+    (await tienePermiso('REGISTRAR_MOVIMIENTOS'))
 
   return (
     <LayoutProtegido>
@@ -103,12 +106,14 @@ export default async function PaginaProductos() {
                           })()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
-                          <BotonVenderProducto
-                            id={producto.id}
-                            nombre={producto.nombre}
-                            stockActual={producto.cantidad}
-                            precio={producto.precio}
-                          />
+                          {puedeVender && (
+                            <BotonVenderProducto
+                              id={producto.id}
+                              nombre={producto.nombre}
+                              stockActual={producto.cantidad}
+                              precio={producto.precio}
+                            />
+                          )}
                           {esAdmin && (
                             <>
                               <Link

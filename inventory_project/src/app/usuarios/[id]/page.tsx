@@ -25,6 +25,22 @@ export default async function PaginaEditarUsuario({
     notFound()
   }
 
+  // En las ramas de evaluacion de permisos la BD puede tener valores que
+  // esta rama no reconoce (porque vienen de otras ramas). Los filtramos para
+  // que la pagina y el formulario no caigan al intentar hidratarlos.
+  const PERMISOS_RECONOCIDOS = new Set<string>([
+    'VER_ANALISIS',
+    'EXPORTAR_REPORTES',
+    'REGISTRAR_MOVIMIENTOS',
+    'REALIZAR_VENTAS',
+  ])
+  const usuarioSeguro = {
+    ...usuario,
+    permisos: (usuario.permisos as unknown as string[]).filter((p) =>
+      PERMISOS_RECONOCIDOS.has(p)
+    ),
+  }
+
   return (
     <LayoutProtegido>
       <div className="space-y-6">
@@ -39,7 +55,8 @@ export default async function PaginaEditarUsuario({
         <h1 className="text-2xl font-bold text-gray-800">Editar Usuario</h1>
 
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 max-w-2xl">
-          <FormularioUsuario usuario={usuario} />
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <FormularioUsuario usuario={usuarioSeguro as any} />
         </div>
       </div>
     </LayoutProtegido>
