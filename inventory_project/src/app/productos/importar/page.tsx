@@ -26,48 +26,48 @@ export default async function PaginaImportarProductos() {
             Importar productos desde CSV
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Carga masiva de productos desde un archivo .csv. Útil para cargar
-            el catálogo inicial o agregar muchos productos a la vez.
+            Carga masiva de productos desde un archivo .csv o .xlsx (Excel).
+            Útil para cargar el catálogo inicial o agregar muchos productos a la vez.
           </p>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-800">Antes de empezar</h2>
-          <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
-            <li>
-              <strong>Descarga la plantilla</strong> y úsala como base. Tiene los
-              encabezados correctos y filas de ejemplo.
-            </li>
-            <li>
-              Abre la plantilla en Excel o un editor de texto, agrega tus
-              productos respetando las columnas.
-            </li>
-            <li>
-              Guarda como <strong>.csv (delimitado por comas)</strong>.
-            </li>
-            <li>
-              Sube el archivo aquí y revisa el reporte.
-            </li>
-          </ol>
+          <h2 className="text-lg font-semibold text-gray-800">Cómo funciona</h2>
+          <p className="text-sm text-gray-700">
+            Sube cualquier archivo <strong>.csv</strong> o <strong>.xlsx</strong>{' '}
+            que contenga los productos a importar. El sistema busca por sí mismo
+            las columnas necesarias en cualquier orden, ignora las que no
+            reconozca y maneja variaciones comunes en los nombres (con o sin
+            tildes, mayúsculas, espacios o sinónimos como <em>SKU</em>,{' '}
+            <em>artículo</em>, <em>existencias</em>, etc.).
+          </p>
 
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm space-y-2">
-            <p className="font-semibold text-blue-900">Columnas del CSV:</p>
+            <p className="font-semibold text-blue-900">Campos que se buscarán:</p>
             <ul className="list-disc list-inside text-blue-900 space-y-1">
-              <li><strong>codigo</strong> (requerido, único)</li>
-              <li><strong>nombre</strong> (requerido)</li>
-              <li><strong>descripcion</strong> (opcional)</li>
-              <li><strong>precio</strong> (requerido, número &ge; 0)</li>
-              <li><strong>cantidad</strong> (opcional, entero &ge; 0, por defecto 0)</li>
-              <li><strong>stockMinimo</strong> (opcional, entero &ge; 0, por defecto 1)</li>
-              <li><strong>categoria</strong> (opcional, nombre exacto de una categoría existente)</li>
+              <li><strong>código</strong> (requerido, único) — acepta: codigo, sku, referencia, cod.</li>
+              <li><strong>nombre</strong> (requerido) — acepta: nombre, producto, artículo, item.</li>
+              <li><strong>descripción</strong> (opcional) — descripcion, observación, detalle.</li>
+              <li><strong>precio</strong> (requerido, número &ge; 0) — precio, valor, precio venta, pvp. Se ignoran el símbolo $ y los separadores de miles.</li>
+              <li><strong>cantidad</strong> (opcional, entero &ge; 0, por defecto 0) — cantidad, stock, existencia, unidades.</li>
+              <li><strong>stock mínimo</strong> (opcional, por defecto 1) — stockMinimo, mínimo, alerta, umbral.</li>
+              <li><strong>categoría</strong> (opcional) — categoría, tipo, grupo. Debe coincidir con una categoría existente.</li>
             </ul>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-sm">
+            <p className="text-amber-900">
+              <strong>Recomendación:</strong> los códigos deben ser únicos. Si un
+              código ya existe en el sistema, esa fila se rechaza y el resto se
+              importa normalmente.
+            </p>
           </div>
 
           <a
             href="/api/productos/plantilla"
             className="inline-block px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm"
           >
-            ⬇ Descargar plantilla CSV
+            ⬇ Descargar plantilla CSV (opcional)
           </a>
         </div>
 
