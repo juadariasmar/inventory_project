@@ -49,6 +49,23 @@ export interface ResumenMovimientos {
   salidas: number
 }
 
+export interface VentaDiaria {
+  fecha: string
+  numeroVentas: number
+  totalIngreso: number
+}
+
+export interface CategoriaVentas {
+  categoria: string
+  unidadesVendidas: number
+  ingresoTotal: number
+}
+
+export interface DistribucionStock {
+  estado: 'Sin stock' | 'Stock bajo' | 'Normal'
+  cantidad: number
+}
+
 export interface FilaInventarioGeneral {
   productoId: number
   codigo: string
@@ -334,6 +351,93 @@ export async function obtenerInventarioGeneral(): Promise<FilaInventarioGeneral[
   })
 }
 
+/**
+ * Ventas por día (últimos N días): numero de ventas (Venta.id distintos) y
+ * total ingresado (suma de Venta.total). Util para grafico de linea.
+ */
+export async function obtenerVentasPorDia(dias = 30): Promise<VentaDiaria[]> {
+  const desde = new Date()
+  desde.setDate(desde.getDate() - dias)
+  desde.setHours(0, 0, 0, 0)
+
+  const ventas = await prisma.venta.findMany({
+    where: { creadoEn: { gte: desde } },
+    select: { total: true, creadoEn: true },
+    orderBy: { creadoEn: 'asc' },
+  })
+
+  const mapa = new Map<string, { numeroVentas: number; totalIngreso: number }>()
+  for (let i = 0; i <= dias; i++) {
+    const d = new Date(desde)
+    d.setDate(d.getDate() + i)
+    mapa.set(d.toISOString().slice(0, 10), { numeroVentas: 0, totalIngreso: 0 })
+  }
+  for (const v of ventas) {
+    const k = v.creadoEn.toISOString().slice(0, 10)
+    const acc = mapa.get(k)
+    if (!acc) continue
+    acc.numeroVentas += 1
+    acc.totalIngreso += v.total
+  }
+  return Array.from(mapa.entries()).map(([fecha, { numeroVentas, totalIngreso }]) => ({
+    fecha,
+    numeroVentas,
+    totalIngreso: Math.round(totalIngreso),
+  }))
+}
+
+/**
+ * Categorías con más ventas (top N) por unidades vendidas y por ingreso total.
+ */
+export async function obtenerVentasPorCategoria(dias = 30, top = 8): Promise<CategoriaVentas[]> {
+  const desde = new Date()
+  desde.setDate(desde.getDate() - dias)
+  desde.setHours(0, 0, 0, 0)
+
+  const items = await prisma.itemVenta.findMany({
+    where: { venta: { creadoEn: { gte: desde } } },
+    include: { producto: { include: { categoria: true } } },
+  })
+
+  const agrupado = new Map<string, { unidadesVendidas: number; ingresoTotal: number }>()
+  for (const it of items) {
+    const cat = it.producto.categoria?.nombre ?? 'Sin categoría'
+    const acc = agrupado.get(cat) ?? { unidadesVendidas: 0, ingresoTotal: 0 }
+    acc.unidadesVendidas += it.cantidad
+    acc.ingresoTotal += it.subtotal
+    agrupado.set(cat, acc)
+  }
+  return Array.from(agrupado.entries())
+    .map(([categoria, datos]) => ({
+      categoria,
+      unidadesVendidas: datos.unidadesVendidas,
+      ingresoTotal: Math.round(datos.ingresoTotal),
+    }))
+    .sort((a, b) => b.ingresoTotal - a.ingresoTotal)
+    .slice(0, top)
+}
+
+/**
+ * Distribucion del inventario por estado (sin stock / stock bajo / normal).
+ */
+export async function obtenerDistribucionStock(): Promise<DistribucionStock[]> {
+  const productos = await prisma.producto.findMany({
+    select: { cantidad: true, stockMinimo: true },
+  })
+  let sinStock = 0, stockBajo = 0, normal = 0
+  for (const p of productos) {
+    if (p.cantidad <= 0) sinStock++
+    else if (p.cantidad <= p.stockMinimo + MARGEN_ALERTA_STOCK) stockBajo++
+    else normal++
+  }
+  return [
+    { estado: 'Sin stock', cantidad: sinStock },
+    { estado: 'Stock bajo', cantidad: stockBajo },
+    { estado: 'Normal', cantidad: normal },
+  ]
+}
+
+
 export async function obtenerTodoAnalisis() {
   const [
     inventarioGeneral,
@@ -342,6 +446,9 @@ export async function obtenerTodoAnalisis() {
     altaRotacion,
     stockCritico,
     resumen,
+    ventasPorDia,
+    ventasPorCategoria,
+    distribucionStock,
   ] = await Promise.all([
     obtenerInventarioGeneral(),
     obtenerStockPorAgotarse(),
@@ -349,6 +456,9 @@ export async function obtenerTodoAnalisis() {
     obtenerAltaRotacion(),
     obtenerStockCritico(),
     obtenerResumenMovimientos(30),
+    obtenerVentasPorDia(30),
+    obtenerVentasPorCategoria(30, 8),
+    obtenerDistribucionStock(),
   ])
   return {
     inventarioGeneral,
@@ -357,5 +467,8 @@ export async function obtenerTodoAnalisis() {
     altaRotacion,
     stockCritico,
     resumen,
+    ventasPorDia,
+    ventasPorCategoria,
+    distribucionStock,
   }
 }
