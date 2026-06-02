@@ -51,7 +51,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     if (Array.isArray(datos.permisos)) {
-      const permisosValidos = ['VER_ANALISIS', 'EXPORTAR_REPORTES'] as const
+      const permisosValidos = ['VER_ANALISIS', 'EXPORTAR_REPORTES', 'REGISTRAR_MOVIMIENTOS', 'REALIZAR_VENTAS'] as const
       datosActualizar.permisos = datos.permisos.filter((p: string) =>
         permisosValidos.includes(p as typeof permisosValidos[number])
       )

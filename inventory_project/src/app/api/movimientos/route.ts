@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
-import { obtenerSesion } from '@/lib/permisos'
+import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 
 // GET - Obtener todos los movimientos (cualquier usuario autenticado)
 export async function GET() {
@@ -22,7 +23,10 @@ export async function GET() {
   }
 }
 
-// POST - Crear un nuevo movimiento (cualquier usuario autenticado)
+// POST - Crear un nuevo movimiento
+//   - REGISTRAR_MOVIMIENTOS habilita cualquier tipo (entrada y salida)
+//   - REALIZAR_VENTAS habilita solo movimientos de salida (via boton Vender o
+//     pantalla Venta rapida)
 export async function POST(request: NextRequest) {
   if (!(await obtenerSesion())?.user) {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
@@ -33,6 +37,16 @@ export async function POST(request: NextRequest) {
     const productoId = parseInt(datos.productoId)
     const cantidad = parseInt(datos.cantidad)
     const tipo = datos.tipo // 'entrada' o 'salida'
+
+    const puedeRegistrar = await tienePermiso('REGISTRAR_MOVIMIENTOS')
+    const puedeVender = await tienePermiso('REALIZAR_VENTAS')
+    const autorizado = puedeRegistrar || (puedeVender && tipo === 'salida')
+    if (!autorizado) {
+      return NextResponse.json(
+        { error: 'No tienes permiso para realizar este movimiento' },
+        { status: 403 }
+      )
+    }
 
     // Obtener el producto actual
     const producto = await prisma.producto.findUnique({
@@ -76,6 +90,12 @@ export async function POST(request: NextRequest) {
         data: { cantidad: nuevaCantidad },
       }),
     ])
+
+    revalidatePath('/movimientos')
+    revalidatePath('/movimientos/nuevo')
+    revalidatePath('/productos')
+    revalidatePath('/analisis')
+    revalidatePath('/')
 
     return NextResponse.json(movimiento, { status: 201 })
   } catch (error) {
