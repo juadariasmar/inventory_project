@@ -475,19 +475,29 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
               {recientes.map((v) => (
                 <li
                   key={v.ventaId}
-                  className="flex justify-between items-start border-b border-gray-100 pb-2 last:border-b-0"
+                  className="border-b border-gray-100 pb-2 last:border-b-0"
                 >
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-gray-900">
-                      Venta #{v.ventaId}
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-gray-900">
+                        Venta #{v.ventaId}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {v.totalItems} producto(s) · {v.totalUnidades} ud · {v.hora}
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-500">
-                      {v.totalItems} producto(s) · {v.totalUnidades} ud · {v.hora}
+                    <div className="text-sm font-semibold text-emerald-700 ml-2 whitespace-nowrap">
+                      ${v.total.toLocaleString('es-MX')}
                     </div>
                   </div>
-                  <div className="text-sm font-semibold text-emerald-700 ml-2 whitespace-nowrap">
-                    ${v.total.toLocaleString('es-MX')}
-                  </div>
+                  <a
+                    href={`/ventas/${v.ventaId}/recibo`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+                  >
+                    Ver recibo →
+                  </a>
                 </li>
               ))}
             </ul>
