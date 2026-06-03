@@ -27,7 +27,7 @@ export async function GET() {
 // POST - Crear un nuevo movimiento
 //   - REGISTRAR_MOVIMIENTOS habilita cualquier tipo (entrada y salida)
 //   - REALIZAR_VENTAS habilita solo movimientos de salida (via boton Vender o
-//     pantalla Venta rapida)
+//     pantalla Ventas)
 export async function POST(request: NextRequest) {
   if (!(await obtenerSesion())?.user) {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
