@@ -36,7 +36,8 @@ model Usuario {
   permisos      Permiso[]   @default([])
   creadoEn      DateTime    @default(now())
   auditorias    Auditoria[]
-  ventas        Venta[]
+  ventas        Venta[]     @relation("VentaVendedor")
+  cancelaciones Venta[]     @relation("VentaCanceladaPor")
 }
 
 model Categoria {
@@ -81,17 +82,22 @@ model Movimiento {
 }
 
 model Venta {
-  id          Int          @id @default(autoincrement())
-  vendedorId  Int?
-  vendedor    Usuario?     @relation(fields: [vendedorId], references: [id], onDelete: SetNull)
-  total       Float
-  notas       String?
-  items       ItemVenta[]
-  movimientos Movimiento[]
-  creadoEn    DateTime     @default(now())
+  id                 Int          @id @default(autoincrement())
+  vendedorId         Int?
+  vendedor           Usuario?     @relation("VentaVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
+  total              Float
+  notas              String?
+  items              ItemVenta[]
+  movimientos        Movimiento[]
+  creadoEn           DateTime     @default(now())
+  canceladaEn        DateTime?
+  canceladaPorId     Int?
+  canceladaPor       Usuario?     @relation("VentaCanceladaPor", fields: [canceladaPorId], references: [id], onDelete: SetNull)
+  motivoCancelacion  String?
 
   @@index([creadoEn(sort: Desc)])
   @@index([vendedorId])
+  @@index([canceladaEn])
 }
 
 model ItemVenta {

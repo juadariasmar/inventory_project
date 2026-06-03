@@ -30,13 +30,17 @@ export default async function PaginaVentaRapida() {
       select: { id: true, codigo: true, nombre: true, precio: true, cantidad: true },
     }),
     prisma.venta.findMany({
-      where: { vendedorId },
+      where: { vendedorId, canceladaEn: null },
       include: { _count: { select: { items: true } } },
       orderBy: { creadoEn: 'desc' },
       take: 5,
     }),
     prisma.venta.aggregate({
-      where: { vendedorId, creadoEn: { gte: hoyDesde, lte: hoyHasta } },
+      where: {
+        vendedorId,
+        creadoEn: { gte: hoyDesde, lte: hoyHasta },
+        canceladaEn: null,
+      },
       _sum: { total: true },
       _count: { _all: true },
     }),
