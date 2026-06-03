@@ -206,41 +206,44 @@ export default function ListaProductosFiltrable({
         {productosFiltrados.length > 0 ? (
           <>
             {/* Vista escritorio */}
-            <div className="hidden lg:block overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+            <div className="hidden lg:block">
+              <table className="w-full divide-y divide-gray-200 table-fixed">
                 <thead className="bg-gray-50">
                   <tr>
                     <th
                       onClick={() => ordenarPor('codigo')}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100"
+                      className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 w-[9%]"
                     >
                       Código{flechaOrden('codigo')}
                     </th>
                     <th
                       onClick={() => ordenarPor('nombre')}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100"
+                      className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 w-[19%]"
                     >
                       Nombre{flechaOrden('nombre')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[12%]">
                       Categoría
                     </th>
                     <th
                       onClick={() => ordenarPor('precio')}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100"
+                      className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 w-[9%]"
                     >
                       Precio{flechaOrden('precio')}
                     </th>
                     <th
                       onClick={() => ordenarPor('stock')}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100"
+                      className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 w-[7%]"
                     >
-                      Cantidad{flechaOrden('stock')}
+                      Cant.{flechaOrden('stock')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">
+                      Valor stock
+                    </th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">
                       Estado
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[24%]">
                       Acciones
                     </th>
                   </tr>
@@ -250,34 +253,37 @@ export default function ListaProductosFiltrable({
                     const e = estadoStock(producto)
                     return (
                       <tr key={producto.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900 truncate">
                           {producto.codigo}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-3 py-3 text-sm text-gray-900 break-words">
                           {producto.nombre}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-3 py-3 text-sm text-gray-500 break-words">
                           {producto.categoria?.nombre || 'Sin categoría'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-3 py-3 whitespace-nowrap text-right text-sm text-gray-900">
                           ${producto.precio.toLocaleString('es-MX')}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-3 py-3 whitespace-nowrap text-right text-sm text-gray-900">
                           {producto.cantidad}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-3 py-3 whitespace-nowrap text-right text-sm font-medium text-gray-900">
+                          ${(producto.precio * producto.cantidad).toLocaleString('es-MX')}
+                        </td>
+                        <td className="px-3 py-3 whitespace-nowrap">
                           <span
                             className={`px-2 py-1 text-xs font-medium rounded-full ${CLASES_ESTADO[e]}`}
                           >
                             {etiquetaEstadoStock(e)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
+                        <td className="px-3 py-3 text-sm space-x-2 whitespace-nowrap">
                           <Link
                             href={`/productos/${producto.id}/detalle`}
                             className="text-gray-600 hover:text-gray-900"
                           >
-                            Ver
+                            Histórico
                           </Link>
                           {puedeVender && (
                             <BotonVenderProducto
@@ -334,7 +340,7 @@ export default function ListaProductosFiltrable({
                         {etiquetaEstadoStock(e)}
                       </span>
                     </div>
-                    <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
                       <div>
                         <div className="text-xs text-gray-500">Precio</div>
                         <div className="font-medium">
@@ -345,13 +351,19 @@ export default function ListaProductosFiltrable({
                         <div className="text-xs text-gray-500">Cantidad</div>
                         <div className="font-medium">{producto.cantidad}</div>
                       </div>
+                      <div>
+                        <div className="text-xs text-gray-500">Valor en stock</div>
+                        <div className="font-medium">
+                          ${(producto.precio * producto.cantidad).toLocaleString('es-MX')}
+                        </div>
+                      </div>
                     </div>
                     <div className="mt-3 flex gap-4 text-sm">
                       <Link
                         href={`/productos/${producto.id}/detalle`}
                         className="text-gray-600 hover:text-gray-900"
                       >
-                        Ver
+                        Histórico
                       </Link>
                       {puedeVender && (
                         <BotonVenderProducto
