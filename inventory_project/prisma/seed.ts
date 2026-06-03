@@ -36,20 +36,20 @@ async function main() {
 
   console.log('Usuario creado:', usuarioRegular.nombreUsuario, '(', usuarioRegular.rol, ')')
 
-  // Crear algunas categorías de ejemplo
-  const categorias = [
-    'Electrónicos',
-    'Ropa',
-    'Alimentos',
-    'Herramientas',
-    'Oficina',
+  // Crear algunas categorías de ejemplo con su prefijo (las 3 primeras letras).
+  const categorias: Array<{ nombre: string; prefijo: string }> = [
+    { nombre: 'Electrónicos', prefijo: 'ELE' },
+    { nombre: 'Ropa', prefijo: 'ROP' },
+    { nombre: 'Alimentos', prefijo: 'ALI' },
+    { nombre: 'Herramientas', prefijo: 'HER' },
+    { nombre: 'Oficina', prefijo: 'OFI' },
   ]
 
-  for (const nombre of categorias) {
+  for (const { nombre, prefijo } of categorias) {
     await prisma.categoria.upsert({
       where: { nombre },
       update: {},
-      create: { nombre },
+      create: { nombre, prefijo },
     })
   }
 

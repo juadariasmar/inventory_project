@@ -20,6 +20,7 @@ async function obtenerProducto(id: number) {
 async function obtenerCategorias() {
   return await prisma.categoria.findMany({
     orderBy: { nombre: 'asc' },
+    select: { id: true, nombre: true, prefijo: true },
   })
 }
 
