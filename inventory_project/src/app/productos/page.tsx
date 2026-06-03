@@ -29,6 +29,12 @@ export default async function PaginaProductos() {
           {esAdmin && (
             <div className="flex flex-wrap gap-2">
               <Link
+                href="/productos/categorias"
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-center text-sm"
+              >
+                Gestionar categorías
+              </Link>
+              <Link
                 href="/productos/importar"
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-center text-sm"
               >
