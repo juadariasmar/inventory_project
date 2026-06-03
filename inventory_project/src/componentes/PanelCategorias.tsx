@@ -1,17 +1,36 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+
+interface ProductoEnCategoria {
+  id: number
+  codigo: string
+  nombre: string
+  cantidad: number
+  stockMinimo: number
+  precio: number
+}
 
 interface CategoriaConteo {
   id: number
   nombre: string
   prefijo: string
   productosCount: number
+  productos?: ProductoEnCategoria[]
 }
 
 interface Propiedades {
   categoriasIniciales: CategoriaConteo[]
+}
+
+function normalizarParaBusqueda(s: string): string {
+  return (s ?? '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim()
 }
 
 function normalizarParaPrefijo(s: string): string {
@@ -42,6 +61,8 @@ function prefijoSugeridoLocal(nombre: string, prefijosEnUso: Set<string>): strin
 export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
   const router = useRouter()
   const [categorias, setCategorias] = useState<CategoriaConteo[]>(categoriasIniciales)
+  const [busqueda, setBusqueda] = useState('')
+  const [expandidaId, setExpandidaId] = useState<number | null>(null)
   const [nuevoNombre, setNuevoNombre] = useState('')
   const [nuevoPrefijo, setNuevoPrefijo] = useState('')
   const [prefijoEditadoManual, setPrefijoEditadoManual] = useState(false)
@@ -71,12 +92,19 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
       const r = await fetch('/api/categorias')
       if (r.ok) {
         const data = await r.json()
+        // Preservar los productos que ya tenemos en memoria; el endpoint
+        // /api/categorias solo trae el _count. El listado completo viene
+        // por router.refresh() en el server component.
+        const productosPorId = new Map(
+          categorias.map((c) => [c.id, c.productos])
+        )
         setCategorias(
           data.map((c: { id: number; nombre: string; prefijo: string; _count: { productos: number } }) => ({
             id: c.id,
             nombre: c.nombre,
             prefijo: c.prefijo,
             productosCount: c._count.productos,
+            productos: productosPorId.get(c.id),
           }))
         )
       }
@@ -193,6 +221,24 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
 
   const totalProductos = categorias.reduce((s, c) => s + c.productosCount, 0)
 
+  const categoriasFiltradas = useMemo(() => {
+    const q = normalizarParaBusqueda(busqueda)
+    if (!q) return categorias
+    return categorias.filter((c) => {
+      if (normalizarParaBusqueda(c.nombre).includes(q)) return true
+      if (c.prefijo.toLowerCase().includes(q)) return true
+      // Tambien matchea si el termino aparece en algun producto de la
+      // categoria (nombre o codigo). Util para encontrar "donde esta este
+      // producto" sin saber su categoria.
+      if (c.productos?.some(
+        (p) =>
+          normalizarParaBusqueda(p.nombre).includes(q) ||
+          p.codigo.toLowerCase().includes(q)
+      )) return true
+      return false
+    })
+  }, [categorias, busqueda])
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Columna principal: lista */}
@@ -203,9 +249,31 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
               Categorías existentes
             </h2>
             <span className="text-sm text-gray-500">
-              {categorias.length} categoría{categorias.length !== 1 ? 's' : ''} ·{' '}
-              {totalProductos} producto{totalProductos !== 1 ? 's' : ''}
+              {categoriasFiltradas.length === categorias.length
+                ? `${categorias.length} categoría${categorias.length !== 1 ? 's' : ''} · ${totalProductos} producto${totalProductos !== 1 ? 's' : ''}`
+                : `${categoriasFiltradas.length} de ${categorias.length} categorías`}
             </span>
+          </div>
+
+          {/* Buscador */}
+          <div className="relative">
+            <input
+              type="text"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Buscar por categoría, prefijo o producto…"
+              className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {busqueda && (
+              <button
+                type="button"
+                onClick={() => setBusqueda('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm"
+                title="Limpiar"
+              >
+                ✕
+              </button>
+            )}
           </div>
 
           {error && (
@@ -223,9 +291,13 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
             <p className="text-sm text-gray-500 py-6 text-center">
               No hay categorías. Crea la primera en el panel de la derecha.
             </p>
+          ) : categoriasFiltradas.length === 0 ? (
+            <p className="text-sm text-gray-500 py-6 text-center">
+              Sin resultados para &quot;{busqueda}&quot;.
+            </p>
           ) : (
             <ul className="divide-y divide-gray-200 border border-gray-200 rounded-md overflow-hidden">
-              {categorias.map((c) => (
+              {categoriasFiltradas.map((c) => (
                 <li
                   key={c.id}
                   className="px-4 py-3 hover:bg-gray-50"
@@ -274,39 +346,102 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-gray-800">
-                            {c.nombre}
-                          </span>
-                          <span className="text-xs font-mono px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
-                            {c.prefijo}
-                          </span>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-0.5">
-                          {c.productosCount} producto{c.productosCount !== 1 ? 's' : ''}
-                        </div>
-                      </div>
-                      <div className="flex gap-3">
+                    <>
+                      <div className="flex justify-between items-center">
                         <button
                           type="button"
-                          onClick={() => empezarEdicion(c)}
-                          className="text-sm text-blue-600 hover:text-blue-800"
+                          onClick={() =>
+                            setExpandidaId(expandidaId === c.id ? null : c.id)
+                          }
+                          disabled={c.productosCount === 0}
+                          className="flex items-center gap-2 text-left flex-1 min-w-0 disabled:cursor-default"
+                          title={c.productosCount === 0 ? 'Sin productos' : 'Ver productos'}
                         >
-                          Editar
+                          <span
+                            className={`text-xs text-gray-400 transition-transform ${
+                              expandidaId === c.id ? 'rotate-90' : ''
+                            } ${c.productosCount === 0 ? 'invisible' : ''}`}
+                          >
+                            ▸
+                          </span>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-800">
+                                {c.nombre}
+                              </span>
+                              <span className="text-xs font-mono px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
+                                {c.prefijo}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-0.5">
+                              {c.productosCount} producto{c.productosCount !== 1 ? 's' : ''}
+                            </div>
+                          </div>
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => eliminar(c.id, c.nombre, c.productosCount)}
-                          disabled={eliminandoId === c.id || c.productosCount > 0}
-                          className="text-sm text-red-600 hover:text-red-800 disabled:opacity-30 disabled:cursor-not-allowed"
-                          title={c.productosCount > 0 ? 'Tiene productos asociados' : 'Eliminar'}
-                        >
-                          {eliminandoId === c.id ? 'Eliminando…' : 'Eliminar'}
-                        </button>
+                        <div className="flex gap-3 ml-2">
+                          <button
+                            type="button"
+                            onClick={() => empezarEdicion(c)}
+                            className="text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => eliminar(c.id, c.nombre, c.productosCount)}
+                            disabled={eliminandoId === c.id || c.productosCount > 0}
+                            className="text-sm text-red-600 hover:text-red-800 disabled:opacity-30 disabled:cursor-not-allowed"
+                            title={c.productosCount > 0 ? 'Tiene productos asociados' : 'Eliminar'}
+                          >
+                            {eliminandoId === c.id ? 'Eliminando…' : 'Eliminar'}
+                          </button>
+                        </div>
                       </div>
-                    </div>
+
+                      {/* Acordeon: productos de la categoria */}
+                      {expandidaId === c.id && c.productos && c.productos.length > 0 && (
+                        <div className="mt-3 ml-5 border-l-2 border-blue-100 pl-3">
+                          <ul className="divide-y divide-gray-100 text-sm">
+                            {c.productos.map((p) => {
+                              const sinStock = p.cantidad <= 0
+                              const stockBajo = !sinStock && p.cantidad <= p.stockMinimo + 2
+                              return (
+                                <li
+                                  key={p.id}
+                                  className="py-2 grid grid-cols-[1fr_auto_auto] items-center gap-3"
+                                >
+                                  <Link
+                                    href={`/productos/${p.id}/detalle`}
+                                    className="min-w-0 hover:text-blue-700"
+                                  >
+                                    <div className="font-medium text-gray-800 truncate">
+                                      {p.nombre}
+                                    </div>
+                                    <div className="text-xs text-gray-500 font-mono">
+                                      {p.codigo}
+                                    </div>
+                                  </Link>
+                                  <span
+                                    className={`text-xs px-2 py-0.5 rounded ${
+                                      sinStock
+                                        ? 'bg-red-100 text-red-700'
+                                        : stockBajo
+                                        ? 'bg-amber-100 text-amber-700'
+                                        : 'bg-emerald-50 text-emerald-700'
+                                    }`}
+                                  >
+                                    {p.cantidad} en stock
+                                  </span>
+                                  <span className="text-sm text-gray-700 whitespace-nowrap">
+                                    ${p.precio.toLocaleString('es-MX')}
+                                  </span>
+                                </li>
+                              )
+                            })}
+                          </ul>
+                        </div>
+                      )}
+                    </>
                   )}
                 </li>
               ))}

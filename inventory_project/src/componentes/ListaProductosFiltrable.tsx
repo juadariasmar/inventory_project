@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react'
 import BotonEliminarProducto from '@/componentes/BotonEliminarProducto'
 import BotonVenderProducto from '@/componentes/BotonVenderProducto'
 import { estadoStock, etiquetaEstadoStock, type EstadoStock } from '@/lib/inventario'
+import { diasDesde, formatearAntiguedad, formatearFecha } from '@/lib/fechas'
 
 interface ProductoFilaProps {
   id: number
@@ -15,6 +16,8 @@ interface ProductoFilaProps {
   cantidad: number
   stockMinimo: number
   categoria: { id: number; nombre: string } | null
+  // Fecha de creacion serializada desde el server (Date no cruza el boundary).
+  creadoEn: Date | string
 }
 
 interface CategoriaLite {
@@ -36,11 +39,19 @@ const CLASES_ESTADO: Record<EstadoStock, string> = {
 }
 
 type Estado = 'todos' | EstadoStock
-type CampoOrden = 'nombre' | 'codigo' | 'precio' | 'stock'
+type CampoOrden = 'nombre' | 'codigo' | 'precio' | 'stock' | 'antiguedad'
 type Dir = 'asc' | 'desc'
+type RangoAntiguedad = 'todos' | 'd7' | 'd30' | 'd90' | 'viejos'
 
 const CATEGORIA_TODAS = 'todas'
 const CATEGORIA_SIN = 'sin'
+
+const LIMITES_ANTIGUEDAD: Record<Exclude<RangoAntiguedad, 'todos'>, number> = {
+  d7: 7,
+  d30: 30,
+  d90: 90,
+  viejos: 90, // se trata especial: dias > 90
+}
 
 export default function ListaProductosFiltrable({
   productos,
@@ -56,6 +67,9 @@ export default function ListaProductosFiltrable({
   const [estado, setEstado] = useState<Estado>(
     (searchParams.get('estado') as Estado) ?? 'todos'
   )
+  const [rangoAntiguedad, setRangoAntiguedad] = useState<RangoAntiguedad>(
+    (searchParams.get('antig') as RangoAntiguedad) ?? 'todos'
+  )
   const [campoOrden, setCampoOrden] = useState<CampoOrden>(
     (searchParams.get('orden')?.split('-')[0] as CampoOrden) ?? 'nombre'
   )
@@ -69,13 +83,15 @@ export default function ListaProductosFiltrable({
     if (q.trim()) params.set('q', q.trim())
     if (cat !== CATEGORIA_TODAS) params.set('cat', cat)
     if (estado !== 'todos') params.set('estado', estado)
+    if (rangoAntiguedad !== 'todos') params.set('antig', rangoAntiguedad)
     if (campoOrden !== 'nombre' || dir !== 'asc') params.set('orden', `${campoOrden}-${dir}`)
     const qs = params.toString()
     router.replace(qs ? `/productos?${qs}` : '/productos', { scroll: false })
-  }, [q, cat, estado, campoOrden, dir, router])
+  }, [q, cat, estado, rangoAntiguedad, campoOrden, dir, router])
 
   const productosFiltrados = useMemo(() => {
     const busq = q.trim().toLowerCase()
+    const ahora = new Date()
     let lista = productos.filter((p) => {
       if (busq) {
         const enNombre = p.nombre.toLowerCase().includes(busq)
@@ -91,6 +107,14 @@ export default function ListaProductosFiltrable({
         const e = estadoStock(p)
         if (e !== estado) return false
       }
+      if (rangoAntiguedad !== 'todos') {
+        const dias = diasDesde(p.creadoEn, ahora)
+        if (rangoAntiguedad === 'viejos') {
+          if (dias <= LIMITES_ANTIGUEDAD.viejos) return false
+        } else {
+          if (dias > LIMITES_ANTIGUEDAD[rangoAntiguedad]) return false
+        }
+      }
       return true
     })
     const factor = dir === 'asc' ? 1 : -1
@@ -104,6 +128,11 @@ export default function ListaProductosFiltrable({
           av = a.precio; bv = b.precio; break
         case 'stock':
           av = a.cantidad; bv = b.cantidad; break
+        case 'antiguedad':
+          // asc = mas viejos primero (creadoEn ascendente)
+          av = new Date(a.creadoEn).getTime()
+          bv = new Date(b.creadoEn).getTime()
+          break
         default:
           av = a.nombre.toLowerCase(); bv = b.nombre.toLowerCase()
       }
@@ -112,15 +141,19 @@ export default function ListaProductosFiltrable({
       return 0
     })
     return lista
-  }, [productos, q, cat, estado, campoOrden, dir])
+  }, [productos, q, cat, estado, rangoAntiguedad, campoOrden, dir])
 
   const hayFiltrosActivos =
-    q.trim() !== '' || cat !== CATEGORIA_TODAS || estado !== 'todos'
+    q.trim() !== '' ||
+    cat !== CATEGORIA_TODAS ||
+    estado !== 'todos' ||
+    rangoAntiguedad !== 'todos'
 
   const limpiarFiltros = () => {
     setQ('')
     setCat(CATEGORIA_TODAS)
     setEstado('todos')
+    setRangoAntiguedad('todos')
   }
 
   const ordenarPor = (campo: CampoOrden) => {
@@ -139,8 +172,8 @@ export default function ListaProductosFiltrable({
     <div className="space-y-4">
       {/* Barra de filtros */}
       <div className="bg-white rounded-lg shadow-md p-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <div className="md:col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className="lg:col-span-2">
             <label className="block text-xs font-medium text-gray-600 mb-1">
               Buscar
             </label>
@@ -183,6 +216,22 @@ export default function ListaProductosFiltrable({
               <option value="normal">Normal</option>
             </select>
           </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Antigüedad
+            </label>
+            <select
+              value={rangoAntiguedad}
+              onChange={(e) => setRangoAntiguedad(e.target.value as RangoAntiguedad)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="todos">Todas</option>
+              <option value="d7">Últimos 7 días</option>
+              <option value="d30">Últimos 30 días</option>
+              <option value="d90">Últimos 90 días</option>
+              <option value="viejos">Más de 90 días</option>
+            </select>
+          </div>
         </div>
         <div className="mt-3 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-sm">
           <span className="text-gray-600">
@@ -212,38 +261,45 @@ export default function ListaProductosFiltrable({
                   <tr>
                     <th
                       onClick={() => ordenarPor('codigo')}
-                      className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 w-[9%]"
+                      className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 w-[8%]"
                     >
                       Código{flechaOrden('codigo')}
                     </th>
                     <th
                       onClick={() => ordenarPor('nombre')}
-                      className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 w-[19%]"
+                      className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 w-[16%]"
                     >
                       Nombre{flechaOrden('nombre')}
                     </th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[12%]">
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">
                       Categoría
                     </th>
                     <th
                       onClick={() => ordenarPor('precio')}
-                      className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 w-[9%]"
+                      className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 w-[8%]"
                     >
                       Precio{flechaOrden('precio')}
                     </th>
                     <th
                       onClick={() => ordenarPor('stock')}
-                      className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 w-[7%]"
+                      className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 w-[6%]"
                     >
                       Cant.{flechaOrden('stock')}
                     </th>
-                    <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">
+                    <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[9%]">
                       Valor stock
                     </th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[8%]">
                       Estado
                     </th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[24%]">
+                    <th
+                      onClick={() => ordenarPor('antiguedad')}
+                      className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 w-[12%]"
+                      title="Ordenar por fecha de creación"
+                    >
+                      Antigüedad{flechaOrden('antiguedad')}
+                    </th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[23%]">
                       Acciones
                     </th>
                   </tr>
@@ -277,6 +333,15 @@ export default function ListaProductosFiltrable({
                           >
                             {etiquetaEstadoStock(e)}
                           </span>
+                        </td>
+                        <td
+                          className="px-3 py-3 whitespace-nowrap text-sm text-gray-700"
+                          title={formatearFecha(producto.creadoEn)}
+                        >
+                          <div>{formatearAntiguedad(producto.creadoEn)}</div>
+                          <div className="text-xs text-gray-400">
+                            {formatearFecha(producto.creadoEn)}
+                          </div>
                         </td>
                         <td className="px-3 py-3 text-sm space-x-2 whitespace-nowrap">
                           <Link
@@ -340,7 +405,7 @@ export default function ListaProductosFiltrable({
                         {etiquetaEstadoStock(e)}
                       </span>
                     </div>
-                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
                       <div>
                         <div className="text-xs text-gray-500">Precio</div>
                         <div className="font-medium">
@@ -355,6 +420,12 @@ export default function ListaProductosFiltrable({
                         <div className="text-xs text-gray-500">Valor en stock</div>
                         <div className="font-medium">
                           ${(producto.precio * producto.cantidad).toLocaleString('es-MX')}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500">Antigüedad</div>
+                        <div className="font-medium" title={formatearFecha(producto.creadoEn)}>
+                          {formatearAntiguedad(producto.creadoEn)}
                         </div>
                       </div>
                     </div>
