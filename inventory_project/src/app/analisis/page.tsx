@@ -6,6 +6,7 @@ import GraficoVentasDiarias from '@/componentes/GraficoVentasDiarias'
 import GraficoVentasCategoria from '@/componentes/GraficoVentasCategoria'
 import GraficoDistribucionStock from '@/componentes/GraficoDistribucionStock'
 import BotonExportarAnalisis from '@/componentes/BotonExportarAnalisis'
+import InventarioGeneralAgrupado from '@/componentes/InventarioGeneralAgrupado'
 import { obtenerTodoAnalisis } from '@/lib/analisis'
 import { tienePermiso } from '@/lib/permisos'
 
@@ -57,7 +58,7 @@ export default async function PaginaAnalisis() {
             Inventario general
           </h2>
           {inventarioGeneral.length > 0 ? (
-            <TablaInventarioGeneral datos={inventarioGeneral} />
+            <InventarioGeneralAgrupado datos={inventarioGeneral} />
           ) : (
             <p className="text-gray-500 text-sm">
               Aún no hay productos registrados.
@@ -354,41 +355,3 @@ function TablaStockCritico({
   )
 }
 
-function TablaInventarioGeneral({
-  datos,
-}: {
-  datos: {
-    codigo: string
-    nombre: string
-    categoria: string
-    cantidad: number
-    valorEnStock: number
-    estado: 'Sin stock' | 'Stock bajo' | 'Normal'
-    diasDesdeUltimaActividad: number | null
-  }[]
-}) {
-  return (
-    <TablaResponsive
-      cabeceras={[
-        'Producto',
-        'Código',
-        'Categoría',
-        'Cantidad',
-        'Valor en stock',
-        'Estado',
-        'Días sin actividad',
-      ]}
-      filas={datos.map((d) => [
-        d.nombre,
-        d.codigo,
-        d.categoria,
-        d.cantidad,
-        `$${d.valorEnStock.toLocaleString('es-MX')}`,
-        d.estado,
-        d.diasDesdeUltimaActividad === null
-          ? 'Sin actividad'
-          : d.diasDesdeUltimaActividad,
-      ])}
-    />
-  )
-}
