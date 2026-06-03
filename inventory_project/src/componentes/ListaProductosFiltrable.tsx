@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
+import BarraSeleccionMultiple from '@/componentes/BarraSeleccionMultiple'
 import BotonEliminarProducto from '@/componentes/BotonEliminarProducto'
 import BotonVenderProducto from '@/componentes/BotonVenderProducto'
 import { estadoStock, etiquetaEstadoStock, type EstadoStock } from '@/lib/inventario'
@@ -76,6 +77,8 @@ export default function ListaProductosFiltrable({
   const [dir, setDir] = useState<Dir>(
     (searchParams.get('orden')?.split('-')[1] as Dir) ?? 'asc'
   )
+  const [seleccionados, setSeleccionados] = useState<Set<number>>(new Set())
+  const [eliminandoBulk, setEliminandoBulk] = useState(false)
 
   // Persistir filtros en URL (sin recargar)
   useEffect(() => {
@@ -168,6 +171,70 @@ export default function ListaProductosFiltrable({
   const flechaOrden = (campo: CampoOrden) =>
     campoOrden === campo ? (dir === 'asc' ? ' ↑' : ' ↓') : ''
 
+  // --- Seleccion multiple ---
+  const idsEnVista = productosFiltrados.map((p) => p.id)
+  const seleccionadosEnVista = idsEnVista.filter((id) => seleccionados.has(id))
+  const todosSeleccionados =
+    idsEnVista.length > 0 && seleccionadosEnVista.length === idsEnVista.length
+  const algunosSeleccionados =
+    seleccionadosEnVista.length > 0 && !todosSeleccionados
+
+  const togglearProducto = (id: number) => {
+    setSeleccionados((prev) => {
+      const nuevo = new Set(prev)
+      if (nuevo.has(id)) nuevo.delete(id)
+      else nuevo.add(id)
+      return nuevo
+    })
+  }
+  const togglearTodos = () => {
+    if (todosSeleccionados) {
+      setSeleccionados((prev) => {
+        const nuevo = new Set(prev)
+        idsEnVista.forEach((id) => nuevo.delete(id))
+        return nuevo
+      })
+    } else {
+      setSeleccionados((prev) => {
+        const nuevo = new Set(prev)
+        idsEnVista.forEach((id) => nuevo.add(id))
+        return nuevo
+      })
+    }
+  }
+  const limpiarSeleccion = () => setSeleccionados(new Set())
+
+  const eliminarSeleccionados = async () => {
+    const ids = Array.from(seleccionados)
+    if (ids.length === 0) return
+    if (
+      !confirm(
+        `¿Eliminar ${ids.length} producto(s)?\n\nSe borrarán también todos sus movimientos. Si alguno tiene ventas o cotizaciones asociadas, no se borrará ninguno.`
+      )
+    ) {
+      return
+    }
+    setEliminandoBulk(true)
+    try {
+      const r = await fetch('/api/productos/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      })
+      if (r.ok) {
+        limpiarSeleccion()
+        router.refresh()
+      } else {
+        const e = await r.json().catch(() => ({}))
+        alert(e.error || 'No se pudo eliminar.')
+      }
+    } catch {
+      alert('Error al eliminar.')
+    } finally {
+      setEliminandoBulk(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
       {/* Barra de filtros */}
@@ -259,6 +326,20 @@ export default function ListaProductosFiltrable({
               <table className="w-full divide-y divide-gray-200 table-fixed">
                 <thead className="bg-gray-50">
                   <tr>
+                    {esAdmin && (
+                      <th className="px-3 py-3 w-[3%]">
+                        <input
+                          type="checkbox"
+                          checked={todosSeleccionados}
+                          ref={(el) => {
+                            if (el) el.indeterminate = algunosSeleccionados
+                          }}
+                          onChange={togglearTodos}
+                          title={todosSeleccionados ? 'Quitar selección' : 'Seleccionar todos los visibles'}
+                          className="cursor-pointer"
+                        />
+                      </th>
+                    )}
                     <th
                       onClick={() => ordenarPor('codigo')}
                       className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 w-[8%]"
@@ -307,8 +388,22 @@ export default function ListaProductosFiltrable({
                 <tbody className="bg-white divide-y divide-gray-200">
                   {productosFiltrados.map((producto) => {
                     const e = estadoStock(producto)
+                    const sel = seleccionados.has(producto.id)
                     return (
-                      <tr key={producto.id} className="hover:bg-gray-50">
+                      <tr
+                        key={producto.id}
+                        className={`hover:bg-gray-50 ${sel ? 'bg-blue-50' : ''}`}
+                      >
+                        {esAdmin && (
+                          <td className="px-3 py-3">
+                            <input
+                              type="checkbox"
+                              checked={sel}
+                              onChange={() => togglearProducto(producto.id)}
+                              className="cursor-pointer"
+                            />
+                          </td>
+                        )}
                         <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900 truncate">
                           {producto.codigo}
                         </td>
@@ -385,9 +480,18 @@ export default function ListaProductosFiltrable({
             <div className="lg:hidden divide-y divide-gray-200">
               {productosFiltrados.map((producto) => {
                 const e = estadoStock(producto)
+                const sel = seleccionados.has(producto.id)
                 return (
-                  <div key={producto.id} className="p-4">
+                  <div key={producto.id} className={`p-4 ${sel ? 'bg-blue-50' : ''}`}>
                     <div className="flex justify-between items-start gap-2">
+                      {esAdmin && (
+                        <input
+                          type="checkbox"
+                          checked={sel}
+                          onChange={() => togglearProducto(producto.id)}
+                          className="mt-1 cursor-pointer"
+                        />
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold text-gray-900 truncate">
                           {producto.nombre}
@@ -494,6 +598,16 @@ export default function ListaProductosFiltrable({
           </div>
         )}
       </div>
+
+      {esAdmin && (
+        <BarraSeleccionMultiple
+          cantidad={seleccionados.size}
+          etiquetaItem="producto"
+          onEliminar={eliminarSeleccionados}
+          onLimpiar={limpiarSeleccion}
+          trabajando={eliminandoBulk}
+        />
+      )}
     </div>
   )
 }
