@@ -40,7 +40,7 @@ const PERMISOS_DISPONIBLES: { valor: PermisoTipo; etiqueta: string; descripcion:
   {
     valor: 'REALIZAR_VENTAS',
     etiqueta: 'Realizar ventas',
-    descripcion: 'Permite usar el botón Vender y la pantalla de Venta rápida. Internamente crea movimientos de salida.',
+    descripcion: 'Permite usar el botón Vender y la pantalla de Ventas. Internamente crea movimientos de salida.',
   },
 ]
 
