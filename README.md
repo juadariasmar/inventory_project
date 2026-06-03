@@ -45,7 +45,7 @@ Está pensado para que un negocio pequeño o mediano pueda llevar control digita
 ### Movimientos
 - Registro de entradas (compras, devoluciones) y salidas (ventas, daños).
 - Validación automática: no se permiten salidas con cantidad mayor al stock disponible.
-- El stock del producto se actualiza de forma atómica usando transacciones.
+- El stock del producto se actualiza de forma automática usando transacciones.
 - Historial cronológico completo con notas opcionales.
 
 ### Panel principal
