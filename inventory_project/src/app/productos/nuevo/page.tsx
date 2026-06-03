@@ -2,15 +2,14 @@ import { prisma } from '@/lib/db'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import FormularioProducto from '@/componentes/FormularioProducto'
 import Link from 'next/link'
-import { siguienteCodigoConsecutivo } from '@/lib/codigos'
 
 export const dynamic = 'force-dynamic'
 
 export default async function PaginaNuevoProducto() {
-  const [categorias, codigoSugerido] = await Promise.all([
-    prisma.categoria.findMany({ orderBy: { nombre: 'asc' } }),
-    siguienteCodigoConsecutivo(),
-  ])
+  const categorias = await prisma.categoria.findMany({
+    orderBy: { nombre: 'asc' },
+    select: { id: true, nombre: true, prefijo: true },
+  })
 
   return (
     <LayoutProtegido>
@@ -26,7 +25,21 @@ export default async function PaginaNuevoProducto() {
         <h1 className="text-2xl font-bold text-gray-800">Nuevo Producto</h1>
 
         <div className="bg-white rounded-lg shadow-md p-6">
-          <FormularioProducto categorias={categorias} codigoSugerido={codigoSugerido} />
+          {categorias.length === 0 ? (
+            <div className="text-center space-y-3">
+              <p className="text-gray-700">
+                Para crear productos primero necesitas al menos una categoría.
+              </p>
+              <Link
+                href="/productos/categorias"
+                className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+              >
+                Crear categoría
+              </Link>
+            </div>
+          ) : (
+            <FormularioProducto categorias={categorias} />
+          )}
         </div>
       </div>
     </LayoutProtegido>
