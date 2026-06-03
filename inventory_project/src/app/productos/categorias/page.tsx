@@ -14,7 +14,20 @@ export default async function PaginaGestionarCategorias() {
   }
 
   const categorias = await prisma.categoria.findMany({
-    include: { _count: { select: { productos: true } } },
+    include: {
+      _count: { select: { productos: true } },
+      productos: {
+        select: {
+          id: true,
+          codigo: true,
+          nombre: true,
+          cantidad: true,
+          stockMinimo: true,
+          precio: true,
+        },
+        orderBy: { nombre: 'asc' },
+      },
+    },
     orderBy: { nombre: 'asc' },
   })
 
@@ -23,6 +36,7 @@ export default async function PaginaGestionarCategorias() {
     nombre: c.nombre,
     prefijo: c.prefijo,
     productosCount: c._count.productos,
+    productos: c.productos,
   }))
 
   return (
