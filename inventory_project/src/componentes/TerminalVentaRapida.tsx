@@ -1,8 +1,9 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { formatearHora } from '@/lib/fechas'
+import { formatearFechaHora } from '@/lib/fechas'
 import {
   agregarAlCarrito,
   actualizarCantidad,
@@ -23,21 +24,26 @@ interface ProductoLite {
   cantidad: number
 }
 
+interface VentaReciente {
+  id: number
+  total: number
+  totalItems: number
+  creadoEn: string
+}
+
 interface Propiedades {
   productos: ProductoLite[]
+  recientes: VentaReciente[]
+  totalHoy: number
+  ventasHoy: number
 }
 
-interface VentaReciente {
-  ventaId: number
-  totalItems: number
-  totalUnidades: number
-  total: number
-  hora: string
-}
-
-const STORAGE_KEY_RECIENTES = 'venta-rapida:ventas-recientes'
-
-export default function TerminalVentaRapida({ productos }: Propiedades) {
+export default function TerminalVentaRapida({
+  productos,
+  recientes,
+  totalHoy,
+  ventasHoy,
+}: Propiedades) {
   const router = useRouter()
   const [busqueda, setBusqueda] = useState('')
   const [seleccionado, setSeleccionado] = useState<ProductoLite | null>(null)
@@ -46,23 +52,9 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
   const [error, setError] = useState('')
   const [exito, setExito] = useState('')
   const [guardando, setGuardando] = useState(false)
-  const [recientes, setRecientes] = useState<VentaReciente[]>([])
   const [abierto, setAbierto] = useState(false)
   const [carrito, setCarrito] = useState<ItemCarrito[]>([])
   const contenedorRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem(STORAGE_KEY_RECIENTES)
-      if (raw) setRecientes(JSON.parse(raw))
-    } catch {}
-  }, [])
-
-  useEffect(() => {
-    try {
-      sessionStorage.setItem(STORAGE_KEY_RECIENTES, JSON.stringify(recientes))
-    } catch {}
-  }, [recientes])
 
   // Sincronizar carrito desde sessionStorage al montar y cuando cambie.
   useEffect(() => {
@@ -184,20 +176,14 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
         const venta = await resp.json()
         const total = totalCarrito(carrito)
         const totalUnidades = cantidadTotalCarrito(carrito)
-        const totalItems = carrito.length
-        const hora = formatearHora(new Date())
-        setRecientes((prev) =>
-          [
-            { ventaId: venta.id, total, totalItems, totalUnidades, hora },
-            ...prev,
-          ].slice(0, 5)
-        )
         setExito(
           `Venta #${venta.id} registrada: ${totalUnidades} unidades por $${total.toLocaleString('es-MX')}.`
         )
         limpiarCarrito()
         setNotas('')
         limpiarBuscador()
+        // router.refresh() recarga las ventas recientes y el total del dia
+        // desde la BD (que es la fuente de verdad).
         router.refresh()
       } else {
         const err = await resp.json().catch(() => ({}))
@@ -425,10 +411,8 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
             </>
           )}
         </div>
-      </div>
 
-      {/* Sidebar: resumen + cobrar + recientes */}
-      <div className="space-y-4">
+        {/* Resumen de venta (movido a columna principal, debajo del carrito) */}
         <div className="bg-white rounded-lg shadow-md p-6 space-y-3">
           <h2 className="text-lg font-bold text-gray-800">Resumen de venta</h2>
           <div className="bg-emerald-50 border border-emerald-200 rounded-md p-4">
@@ -463,43 +447,63 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
             {guardando ? 'Vendiendo…' : 'Vender'}
           </button>
         </div>
+      </div>
 
+      {/* Sidebar: vendido hoy + recientes */}
+      <div className="space-y-4">
+        {/* Total del dia */}
+        <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 text-white rounded-lg shadow-md p-5">
+          <div className="text-xs uppercase tracking-wide opacity-90">
+            Vendido hoy
+          </div>
+          <div className="text-3xl font-bold mt-1">
+            ${totalHoy.toLocaleString('es-MX')}
+          </div>
+          <div className="text-xs opacity-90 mt-1">
+            {ventasHoy} venta{ventasHoy !== 1 ? 's' : ''} registrada{ventasHoy !== 1 ? 's' : ''}
+          </div>
+        </div>
+
+        {/* Mis ventas recientes */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-3">
-            Ventas recientes en esta sesión
-          </h2>
+          <div className="flex justify-between items-baseline mb-3">
+            <h2 className="text-lg font-bold text-gray-800">Mis ventas recientes</h2>
+            <Link href="/ventas" className="text-xs text-blue-600 hover:underline">
+              Ver historial →
+            </Link>
+          </div>
           {recientes.length === 0 ? (
-            <p className="text-sm text-gray-500">
-              No has registrado ventas en esta sesión.
+            <p className="text-sm text-gray-500 py-4 text-center">
+              Aún no has registrado ventas.
             </p>
           ) : (
             <ul className="space-y-3">
               {recientes.map((v) => (
                 <li
-                  key={v.ventaId}
-                  className="border-b border-gray-100 pb-2 last:border-b-0"
+                  key={v.id}
+                  className="rounded-md border border-gray-200 p-3 hover:border-emerald-300 hover:shadow-sm transition-all"
                 >
-                  <div className="flex justify-between items-start">
+                  <div className="flex justify-between items-start gap-2">
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-gray-900">
-                        Venta #{v.ventaId}
+                      <div className="text-base font-bold text-emerald-700">
+                        ${v.total.toLocaleString('es-MX')}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-0.5">
+                        Venta #{v.id} · {v.totalItems} producto(s)
                       </div>
                       <div className="text-xs text-gray-500">
-                        {v.totalItems} producto(s) · {v.totalUnidades} ud · {v.hora}
+                        {formatearFechaHora(v.creadoEn)}
                       </div>
                     </div>
-                    <div className="text-sm font-semibold text-emerald-700 ml-2 whitespace-nowrap">
-                      ${v.total.toLocaleString('es-MX')}
-                    </div>
+                    <a
+                      href={`/ventas/${v.id}/recibo`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline whitespace-nowrap"
+                    >
+                      Recibo →
+                    </a>
                   </div>
-                  <a
-                    href={`/ventas/${v.ventaId}/recibo`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-blue-600 hover:underline mt-1 inline-block"
-                  >
-                    Ver recibo →
-                  </a>
                 </li>
               ))}
             </ul>
