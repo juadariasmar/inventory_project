@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
+import { obtenerReservasPorProducto } from '@/lib/reservas'
 
 interface ItemEntrada {
   productoId: number
@@ -53,12 +54,15 @@ export async function POST(request: NextRequest) {
     }
 
     const productosIds = Array.from(consolidados.keys())
-    const productos = await prisma.producto.findMany({
-      where: { id: { in: productosIds } },
-    })
+    const [productos, reservas] = await Promise.all([
+      prisma.producto.findMany({
+        where: { id: { in: productosIds } },
+      }),
+      obtenerReservasPorProducto(productosIds),
+    ])
     const mapaProductos = new Map(productos.map((p) => [p.id, p]))
 
-    // Validar stock e integridad antes de iniciar la transaccion.
+    // Validar stock DISPONIBLE (fisico - reservado en cotizaciones vigentes).
     const itemsValidados: { productoId: number; cantidad: number; precio: number; nombre: string; codigo: string }[] = []
     for (const [productoId, cantidad] of consolidados.entries()) {
       const p = mapaProductos.get(productoId)
@@ -68,10 +72,15 @@ export async function POST(request: NextRequest) {
           { status: 404 }
         )
       }
-      if (cantidad > p.cantidad) {
+      const reservado = reservas.get(productoId) ?? 0
+      const disponible = Math.max(0, p.cantidad - reservado)
+      if (cantidad > disponible) {
+        const detalle = reservado > 0
+          ? ` (físico ${p.cantidad} − reservado ${reservado} en cotizaciones)`
+          : ''
         return NextResponse.json(
           {
-            error: `Stock insuficiente para "${p.nombre}". Solicitas ${cantidad}, hay ${p.cantidad}.`,
+            error: `Stock insuficiente para "${p.nombre}". Solicitas ${cantidad}, disponible ${disponible}${detalle}.`,
           },
           { status: 400 }
         )

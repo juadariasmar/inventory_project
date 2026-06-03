@@ -54,6 +54,7 @@ export default function BarraNavegacion() {
       items: [
         { href: '/venta-rapida', etiqueta: 'Nueva venta', visible: true },
         { href: '/ventas', etiqueta: 'Historial', visible: true },
+        { href: '/cotizaciones', etiqueta: 'Cotizaciones', visible: true },
       ],
     },
     {
