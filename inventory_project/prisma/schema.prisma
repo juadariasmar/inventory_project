@@ -28,16 +28,18 @@ enum Permiso {
 }
 
 model Usuario {
-  id            Int         @id @default(autoincrement())
-  nombreUsuario String      @unique
-  contrasena    String
-  nombre        String
-  rol           Rol         @default(USUARIO)
-  permisos      Permiso[]   @default([])
-  creadoEn      DateTime    @default(now())
-  auditorias    Auditoria[]
-  ventas        Venta[]     @relation("VentaVendedor")
-  cancelaciones Venta[]     @relation("VentaCanceladaPor")
+  id                     Int          @id @default(autoincrement())
+  nombreUsuario          String       @unique
+  contrasena             String
+  nombre                 String
+  rol                    Rol          @default(USUARIO)
+  permisos               Permiso[]    @default([])
+  creadoEn               DateTime     @default(now())
+  auditorias             Auditoria[]
+  ventas                 Venta[]      @relation("VentaVendedor")
+  cancelaciones          Venta[]      @relation("VentaCanceladaPor")
+  cotizaciones           Cotizacion[] @relation("CotizacionVendedor")
+  cotizacionesCanceladas Cotizacion[] @relation("CotizacionCanceladaPor")
 }
 
 model Categoria {
@@ -51,20 +53,21 @@ model Categoria {
 }
 
 model Producto {
-  id          Int          @id @default(autoincrement())
-  nombre      String
-  descripcion String?
-  codigo      String       @unique
-  precio      Float
-  cantidad    Int          @default(0)
-  stockMinimo Int          @default(1)
+  id              Int              @id @default(autoincrement())
+  nombre          String
+  descripcion     String?
+  codigo          String           @unique
+  precio          Float
+  cantidad        Int              @default(0)
+  stockMinimo     Int              @default(1)
   // Categoria obligatoria. Los productos sin categoria previa se reasignan
   // a la categoria "Sin clasificar" en la migracion.
-  categoriaId Int
-  categoria   Categoria    @relation(fields: [categoriaId], references: [id])
-  movimientos Movimiento[]
-  itemsVenta  ItemVenta[]
-  creadoEn    DateTime     @default(now())
+  categoriaId     Int
+  categoria       Categoria        @relation(fields: [categoriaId], references: [id])
+  movimientos     Movimiento[]
+  itemsVenta      ItemVenta[]
+  itemsCotizacion ItemCotizacion[]
+  creadoEn        DateTime         @default(now())
 }
 
 model Movimiento {
@@ -94,6 +97,8 @@ model Venta {
   canceladaPorId     Int?
   canceladaPor       Usuario?     @relation("VentaCanceladaPor", fields: [canceladaPorId], references: [id], onDelete: SetNull)
   motivoCancelacion  String?
+  // Si esta venta nacio de convertir una cotizacion, la cotizacion la apunta.
+  cotizacionOrigen   Cotizacion?  @relation("CotizacionConvertida")
 
   @@index([creadoEn(sort: Desc)])
   @@index([vendedorId])
@@ -111,6 +116,53 @@ model ItemVenta {
   subtotal       Float
 
   @@index([ventaId])
+  @@index([productoId])
+}
+
+enum EstadoCotizacion {
+  PENDIENTE  // activa: reserva stock mientras validaHasta > now
+  CONVERTIDA // convertida a Venta (ventaId apunta a la venta resultante)
+  CANCELADA  // cancelada manualmente, libera stock
+}
+
+model Cotizacion {
+  id                Int              @id @default(autoincrement())
+  vendedorId        Int?
+  vendedor          Usuario?         @relation("CotizacionVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
+  cliente           String?
+  total             Float
+  notas             String?
+  items             ItemCotizacion[]
+  estado            EstadoCotizacion @default(PENDIENTE)
+  validaHasta       DateTime
+  creadoEn          DateTime         @default(now())
+  // Cuando se convierte: estado = CONVERTIDA y ventaId apunta a la Venta creada.
+  ventaId           Int?             @unique
+  venta             Venta?           @relation("CotizacionConvertida", fields: [ventaId], references: [id], onDelete: SetNull)
+  convertidaEn      DateTime?
+  // Cuando se cancela.
+  canceladaEn       DateTime?
+  canceladaPorId    Int?
+  canceladaPor      Usuario?         @relation("CotizacionCanceladaPor", fields: [canceladaPorId], references: [id], onDelete: SetNull)
+  motivoCancelacion String?
+
+  @@index([estado])
+  @@index([validaHasta])
+  @@index([creadoEn(sort: Desc)])
+  @@index([vendedorId])
+}
+
+model ItemCotizacion {
+  id             Int        @id @default(autoincrement())
+  cotizacionId   Int
+  cotizacion     Cotizacion @relation(fields: [cotizacionId], references: [id], onDelete: Cascade)
+  productoId     Int
+  producto       Producto   @relation(fields: [productoId], references: [id])
+  cantidad       Int
+  precioUnitario Float
+  subtotal       Float
+
+  @@index([cotizacionId])
   @@index([productoId])
 }
 
