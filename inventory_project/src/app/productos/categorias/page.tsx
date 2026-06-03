@@ -21,6 +21,7 @@ export default async function PaginaGestionarCategorias() {
   const categoriasIniciales = categorias.map((c) => ({
     id: c.id,
     nombre: c.nombre,
+    prefijo: c.prefijo,
     productosCount: c._count.productos,
   }))
 

@@ -42,6 +42,10 @@ model Usuario {
 model Categoria {
   id        Int        @id @default(autoincrement())
   nombre    String     @unique
+  // Prefijo usado para los codigos de los productos de esta categoria
+  // (ej. "BEB", "ALI"). Se rellena en migracion para todas las categorias
+  // existentes y es obligatorio para nuevas.
+  prefijo   String     @unique
   productos Producto[]
 }
 
@@ -53,8 +57,10 @@ model Producto {
   precio      Float
   cantidad    Int          @default(0)
   stockMinimo Int          @default(1)
-  categoriaId Int?
-  categoria   Categoria?   @relation(fields: [categoriaId], references: [id])
+  // Categoria obligatoria. Los productos sin categoria previa se reasignan
+  // a la categoria "Sin clasificar" en la migracion.
+  categoriaId Int
+  categoria   Categoria    @relation(fields: [categoriaId], references: [id])
   movimientos Movimiento[]
   itemsVenta  ItemVenta[]
   creadoEn    DateTime     @default(now())
