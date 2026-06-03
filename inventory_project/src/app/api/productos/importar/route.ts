@@ -25,40 +25,99 @@ interface ResultadoFila {
 const CAMPOS_REQUERIDOS = ['nombre', 'precio']
 
 
+// Palabras que indican "esta fila es un encabezado de productos". Se
+// usan para detectar la fila de encabezados cuando el archivo tiene un
+// titulo, logo o filas vacias al inicio (caso comun en tablas formateadas).
+const SENALES_ENCABEZADO = [
+  'codigo', 'código', 'cod', 'sku', 'referencia',
+  'nombre', 'producto', 'articulo', 'artículo', 'descripcion', 'descripción',
+  'precio', 'valor', 'pvp',
+  'cantidad', 'stock', 'existencia',
+  'categoria', 'categoría', 'grupo',
+]
+
+function celdaATexto(v: unknown): string {
+  if (v === null || v === undefined) return ''
+  if (typeof v === 'object' && v !== null && 'text' in v) {
+    return String((v as { text: unknown }).text)
+  }
+  if (typeof v === 'object' && v !== null && 'result' in v) {
+    // Formulas: usamos el resultado calculado.
+    return String((v as { result: unknown }).result ?? '')
+  }
+  if (v instanceof Date) return v.toISOString()
+  return String(v)
+}
+
+function filaParaceEncabezado(valores: string[]): boolean {
+  const llenas = valores.filter((v) => v.trim() !== '').length
+  if (llenas < 2) return false
+  return valores.some((v) => {
+    const limpio = v
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .toLowerCase()
+      .trim()
+    return SENALES_ENCABEZADO.includes(limpio) ||
+      SENALES_ENCABEZADO.some((s) => limpio === s)
+  })
+}
+
+function extraerValoresDeFila(row: ExcelJS.Row): string[] {
+  const valores: string[] = []
+  const arr = Array.isArray(row.values) ? row.values : []
+  // ExcelJS deja arr[0] vacio porque indexa desde 1.
+  for (let i = 1; i < arr.length; i++) {
+    valores.push(celdaATexto(arr[i]))
+  }
+  return valores
+}
+
 async function leerXlsx(buffer: Buffer): Promise<{ encabezados: string[]; filas: Record<string, string>[] }> {
   const workbook = new ExcelJS.Workbook()
   await workbook.xlsx.load(buffer as unknown as ArrayBuffer)
   const hoja = workbook.worksheets[0]
   if (!hoja) return { encabezados: [], filas: [] }
 
-  const filas: Record<string, string>[] = []
-  let encabezados: string[] = []
-  hoja.eachRow((row, rowNumber) => {
-    const valores: string[] = []
-    const arr = Array.isArray(row.values) ? row.values : []
-    for (let i = 1; i < arr.length; i++) {
-      const v = arr[i]
-      if (v === null || v === undefined) {
-        valores.push('')
-      } else if (typeof v === 'object' && v !== null && 'text' in v) {
-        valores.push(String((v as { text: unknown }).text))
-      } else if (v instanceof Date) {
-        valores.push(v.toISOString())
-      } else {
-        valores.push(String(v))
-      }
-    }
-    if (rowNumber === 1) {
-      encabezados = valores.map((v) => v.trim())
-    } else {
-      const fila: Record<string, string> = {}
-      encabezados.forEach((h, j) => {
-        fila[h] = (valores[j] ?? '').toString().trim()
-      })
-      const tieneAlgo = Object.values(fila).some((v) => v !== '')
-      if (tieneAlgo) filas.push(fila)
-    }
+  // Recolectar todas las filas con sus numeros para analizarlas.
+  const todasLasFilas: { numero: number; valores: string[] }[] = []
+  hoja.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+    todasLasFilas.push({ numero: rowNumber, valores: extraerValoresDeFila(row) })
   })
+  if (todasLasFilas.length === 0) return { encabezados: [], filas: [] }
+
+  // 1) Intentar detectar la primera fila que parezca encabezado de productos
+  //    (acepta titulos/logos previos). Si ninguna fila parece encabezado, se
+  //    usa la primera como antes (compatibilidad hacia atras).
+  let idxEncabezado = todasLasFilas.findIndex((f) => filaParaceEncabezado(f.valores))
+  if (idxEncabezado === -1) idxEncabezado = 0
+
+  const encabezados = todasLasFilas[idxEncabezado].valores.map((v) => v.trim())
+  // Indices de columnas con nombre (no nos quedamos con columnas vacias para
+  // no inflar las filas con keys "" duplicadas).
+  const columnasUtiles = encabezados
+    .map((h, i) => (h ? i : -1))
+    .filter((i) => i >= 0)
+
+  const filas: Record<string, string>[] = []
+  let huecosConsecutivos = 0
+  for (let i = idxEncabezado + 1; i < todasLasFilas.length; i++) {
+    const fila = todasLasFilas[i]
+    const obj: Record<string, string> = {}
+    for (const idx of columnasUtiles) {
+      obj[encabezados[idx]] = (fila.valores[idx] ?? '').toString().trim()
+    }
+    const tieneAlgo = Object.values(obj).some((v) => v !== '')
+    if (!tieneAlgo) {
+      huecosConsecutivos++
+      // Cortamos si encontramos 3 filas vacias seguidas: probablemente
+      // estamos en un area en blanco entre tablas o al final de los datos.
+      if (huecosConsecutivos >= 3) break
+      continue
+    }
+    huecosConsecutivos = 0
+    filas.push(obj)
+  }
   return { encabezados, filas }
 }
 
