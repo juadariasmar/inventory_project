@@ -2,10 +2,19 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import FiltrosVentas from '@/componentes/FiltrosVentas'
+import BotonCancelarVenta from '@/componentes/BotonCancelarVenta'
 import { prisma } from '@/lib/db'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 import { formatearFechaHora } from '@/lib/fechas'
 import type { Prisma } from '@prisma/client'
+
+function esHoy(fecha: Date, hoy: Date) {
+  return (
+    fecha.getFullYear() === hoy.getFullYear() &&
+    fecha.getMonth() === hoy.getMonth() &&
+    fecha.getDate() === hoy.getDate()
+  )
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -70,6 +79,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
   // Las canceladas no suman al ingreso de la pagina.
   const totalIngreso = ventas.reduce((s, v) => s + (v.canceladaEn ? 0 : v.total), 0)
   const canceladasEnPagina = ventas.filter((v) => v.canceladaEn).length
+  const hoy = new Date()
 
   const urlPagina = (p: number) => {
     const qp = new URLSearchParams()
@@ -173,15 +183,20 @@ export default async function PaginaVentas({ searchParams }: Props) {
                         <td className={`px-3 py-3 whitespace-nowrap text-right text-sm font-semibold ${v.canceladaEn ? 'text-gray-400 line-through' : 'text-emerald-700'}`}>
                           ${v.total.toLocaleString('es-MX')}
                         </td>
-                        <td className="px-3 py-3 whitespace-nowrap text-sm space-x-3">
-                          <Link
-                            href={`/ventas/${v.id}/recibo`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800"
-                          >
-                            Recibo
-                          </Link>
+                        <td className="px-3 py-3 whitespace-nowrap text-sm">
+                          <div className="flex items-center gap-3">
+                            <Link
+                              href={`/ventas/${v.id}/recibo`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              Recibo
+                            </Link>
+                            {esAdmin && !v.canceladaEn && esHoy(v.creadoEn, hoy) && (
+                              <BotonCancelarVenta ventaId={v.id} variante="compact" />
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -222,7 +237,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
                         <span className="italic text-gray-400">(eliminado)</span>
                       )}
                     </div>
-                    <div className="mt-2">
+                    <div className="mt-2 flex items-center gap-4">
                       <Link
                         href={`/ventas/${v.id}/recibo`}
                         target="_blank"
@@ -231,6 +246,9 @@ export default async function PaginaVentas({ searchParams }: Props) {
                       >
                         Ver recibo →
                       </Link>
+                      {esAdmin && !v.canceladaEn && esHoy(v.creadoEn, hoy) && (
+                        <BotonCancelarVenta ventaId={v.id} variante="compact" />
+                      )}
                     </div>
                   </div>
                 ))}
