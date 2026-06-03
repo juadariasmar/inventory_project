@@ -238,6 +238,9 @@ export default function ListaProductosFiltrable({
                       Cantidad{flechaOrden('stock')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Valor en stock
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Estado
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -265,6 +268,9 @@ export default function ListaProductosFiltrable({
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {producto.cantidad}
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          ${(producto.precio * producto.cantidad).toLocaleString('es-MX')}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`px-2 py-1 text-xs font-medium rounded-full ${CLASES_ESTADO[e]}`}
@@ -277,7 +283,7 @@ export default function ListaProductosFiltrable({
                             href={`/productos/${producto.id}/detalle`}
                             className="text-gray-600 hover:text-gray-900"
                           >
-                            Ver
+                            Histórico
                           </Link>
                           {puedeVender && (
                             <BotonVenderProducto
@@ -334,7 +340,7 @@ export default function ListaProductosFiltrable({
                         {etiquetaEstadoStock(e)}
                       </span>
                     </div>
-                    <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
                       <div>
                         <div className="text-xs text-gray-500">Precio</div>
                         <div className="font-medium">
@@ -345,13 +351,19 @@ export default function ListaProductosFiltrable({
                         <div className="text-xs text-gray-500">Cantidad</div>
                         <div className="font-medium">{producto.cantidad}</div>
                       </div>
+                      <div>
+                        <div className="text-xs text-gray-500">Valor en stock</div>
+                        <div className="font-medium">
+                          ${(producto.precio * producto.cantidad).toLocaleString('es-MX')}
+                        </div>
+                      </div>
                     </div>
                     <div className="mt-3 flex gap-4 text-sm">
                       <Link
                         href={`/productos/${producto.id}/detalle`}
                         className="text-gray-600 hover:text-gray-900"
                       >
-                        Ver
+                        Histórico
                       </Link>
                       {puedeVender && (
                         <BotonVenderProducto
