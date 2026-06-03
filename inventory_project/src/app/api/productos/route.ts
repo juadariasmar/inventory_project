@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { esAdmin, obtenerSesion } from '@/lib/permisos'
 import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
+import { siguienteCodigoConsecutivoPorCategoria } from '@/lib/codigos'
 
 // GET - Obtener todos los productos
 export async function GET() {
@@ -35,16 +36,55 @@ export async function POST(request: NextRequest) {
     const datos = await request.json()
     const cantidadInicial = parseInt(datos.cantidad) || 0
 
+    const nombre = typeof datos.nombre === 'string' ? datos.nombre.trim() : ''
+    if (!nombre) {
+      return NextResponse.json(
+        { error: 'El nombre es obligatorio.' },
+        { status: 400 }
+      )
+    }
+
+    const categoriaId = parseInt(datos.categoriaId, 10)
+    if (!categoriaId || Number.isNaN(categoriaId)) {
+      return NextResponse.json(
+        { error: 'La categoría es obligatoria.' },
+        { status: 400 }
+      )
+    }
+    const categoriaExiste = await prisma.categoria.findUnique({
+      where: { id: categoriaId },
+      select: { id: true },
+    })
+    if (!categoriaExiste) {
+      return NextResponse.json(
+        { error: 'La categoría seleccionada no existe.' },
+        { status: 400 }
+      )
+    }
+
+    let codigo = typeof datos.codigo === 'string' ? datos.codigo.trim() : ''
+    if (!codigo) {
+      codigo = await siguienteCodigoConsecutivoPorCategoria(categoriaId)
+    }
+
+    const precio = parseFloat(datos.precio)
+    if (!Number.isFinite(precio) || precio < 0) {
+      return NextResponse.json(
+        { error: 'El precio debe ser un número válido.' },
+        { status: 400 }
+      )
+    }
+
     const producto = await prisma.$transaction(async (tx) => {
       const nuevo = await tx.producto.create({
         data: {
-          nombre: datos.nombre,
+          nombre,
           descripcion: datos.descripcion || null,
-          codigo: datos.codigo,
-          precio: parseFloat(datos.precio),
+          codigo,
+          precio,
           cantidad: cantidadInicial,
           stockMinimo: parseInt(datos.stockMinimo) || 1,
-          categoriaId: datos.categoriaId ? parseInt(datos.categoriaId) : null,
+          categoriaId,
         },
       })
 
@@ -79,6 +119,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(producto, { status: 201 })
   } catch (error) {
     console.error('Error al crear producto:', error)
+    if (
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      (error as { code?: string }).code === 'P2002'
+    ) {
+      return NextResponse.json(
+        { error: 'Ya existe un producto con ese código.' },
+        { status: 409 }
+      )
+    }
     return NextResponse.json(
       { error: 'Error al crear producto' },
       { status: 500 }

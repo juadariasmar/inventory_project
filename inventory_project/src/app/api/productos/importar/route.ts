@@ -6,6 +6,10 @@ import { esAdmin } from '@/lib/permisos'
 import { parsearCsv } from '@/lib/csv'
 import { aplicarMapeo, mapearColumnas } from '@/lib/mapeoColumnas'
 import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
+import {
+  generarPrefijoSugerido,
+  siguienteCodigoConsecutivoPorCategoria,
+} from '@/lib/codigos'
 
 interface ResultadoFila {
   linea: number
@@ -16,7 +20,9 @@ interface ResultadoFila {
   productoId?: number
 }
 
-const CAMPOS_REQUERIDOS = ['codigo', 'nombre', 'precio']
+// Codigo deja de ser requerido: si no viene, se autogenera con el prefijo de
+// la categoria (o de "Sin clasificar" si la fila tampoco trae categoria).
+const CAMPOS_REQUERIDOS = ['nombre', 'precio']
 
 
 async function leerXlsx(buffer: Buffer): Promise<{ encabezados: string[]; filas: Record<string, string>[] }> {
@@ -106,7 +112,6 @@ export async function POST(request: NextRequest) {
     const { mapeo, ignoradas, faltantes } = mapearColumnas(encabezados, CAMPOS_REQUERIDOS)
     if (faltantes.length > 0) {
       const ejemplos: Record<string, string> = {
-        codigo: 'codigo, sku, referencia, cod',
         nombre: 'nombre, producto, articulo',
         precio: 'precio, valor, precio venta',
       }
@@ -126,8 +131,22 @@ export async function POST(request: NextRequest) {
 
     const categorias = await prisma.categoria.findMany()
     const mapaCategorias = new Map(
-      categorias.map((c) => [c.nombre.toLowerCase().trim(), c.id])
+      categorias.map((c) => [c.nombre.toLowerCase().trim(), { id: c.id, prefijo: c.prefijo }])
     )
+    let prefijosEnUso = new Set(categorias.map((c) => c.prefijo))
+
+    // Garantizar que exista la categoria "Sin clasificar" para filas sin
+    // categoria (Producto.categoriaId es NOT NULL desde la migracion).
+    let sinClasificarId = mapaCategorias.get('sin clasificar')?.id
+    if (!sinClasificarId) {
+      const prefijoSC = generarPrefijoSugerido('Sin clasificar', prefijosEnUso)
+      const sc = await prisma.categoria.create({
+        data: { nombre: 'Sin clasificar', prefijo: prefijoSC },
+      })
+      sinClasificarId = sc.id
+      mapaCategorias.set('sin clasificar', { id: sc.id, prefijo: sc.prefijo })
+      prefijosEnUso = new Set([...prefijosEnUso, sc.prefijo])
+    }
 
     const resultados: ResultadoFila[] = []
     const ip = extraerIp(request)
@@ -135,7 +154,7 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < filas.length; i++) {
       const filaCanonica = aplicarMapeo(filas[i], mapeo)
       const numLinea = i + 2
-      const codigo = (filaCanonica.codigo ?? '').trim()
+      let codigo = (filaCanonica.codigo ?? '').trim()
       const nombre = (filaCanonica.nombre ?? '').trim()
       const descripcion = (filaCanonica.descripcion ?? '').trim() || null
       // Aceptar precios con simbolo de moneda y separadores de miles ($1,250 -> 1250)
@@ -144,10 +163,6 @@ export async function POST(request: NextRequest) {
       const stockMinimoStr = (filaCanonica.stockMinimo ?? '').trim()
       const categoriaNombre = (filaCanonica.categoria ?? '').trim()
 
-      if (!codigo) {
-        resultados.push({ linea: numLinea, codigo: '', nombre, estado: 'error', mensaje: 'Falta el código.' })
-        continue
-      }
       if (!nombre) {
         resultados.push({ linea: numLinea, codigo, nombre: '', estado: 'error', mensaje: 'Falta el nombre.' })
         continue
@@ -168,21 +183,23 @@ export async function POST(request: NextRequest) {
         continue
       }
 
-      let categoriaId: number | null = null
+      let categoriaId: number = sinClasificarId
       let mensajeCategoria = ''
       if (categoriaNombre) {
         const clave = categoriaNombre.toLowerCase()
-        const existenteId = mapaCategorias.get(clave)
-        if (existenteId) {
-          categoriaId = existenteId
+        const existente = mapaCategorias.get(clave)
+        if (existente) {
+          categoriaId = existente.id
         } else {
-          // Crear automaticamente la categoria nueva.
+          // Crear automaticamente la categoria nueva con prefijo autogenerado.
           try {
+            const prefijo = generarPrefijoSugerido(categoriaNombre, prefijosEnUso)
             const nuevaCategoria = await prisma.categoria.create({
-              data: { nombre: categoriaNombre },
+              data: { nombre: categoriaNombre, prefijo },
             })
             categoriaId = nuevaCategoria.id
-            mapaCategorias.set(clave, nuevaCategoria.id)
+            mapaCategorias.set(clave, { id: nuevaCategoria.id, prefijo: nuevaCategoria.prefijo })
+            prefijosEnUso = new Set([...prefijosEnUso, nuevaCategoria.prefijo])
             await registrarAuditoria({
               accion: 'CREAR',
               entidad: 'Categoria',
@@ -190,16 +207,28 @@ export async function POST(request: NextRequest) {
               datos: { despues: nuevaCategoria, origen: 'importacion' },
               ip,
             })
-            mensajeCategoria = ` Categoría "${categoriaNombre}" creada automáticamente.`
+            mensajeCategoria = ` Categoría "${categoriaNombre}" creada con prefijo ${nuevaCategoria.prefijo}.`
           } catch (e) {
             console.error('Error creando categoria en importacion', categoriaNombre, e)
-            mensajeCategoria = ` Categoría "${categoriaNombre}" no se pudo crear; el producto se creó sin categoría.`
+            mensajeCategoria = ` Categoría "${categoriaNombre}" no se pudo crear; se asignó "Sin clasificar".`
           }
         }
       }
 
-      const existente = await prisma.producto.findUnique({ where: { codigo } })
-      if (existente) {
+      // Si la fila no trae codigo, lo autogeneramos con el prefijo de la
+      // categoria resuelta. Si trae codigo, se respeta y se intenta usar.
+      if (!codigo) {
+        try {
+          codigo = await siguienteCodigoConsecutivoPorCategoria(categoriaId)
+        } catch (e) {
+          console.error('Error generando codigo en importacion', e)
+          resultados.push({ linea: numLinea, codigo: '', nombre, estado: 'error', mensaje: 'No se pudo generar el código automáticamente.' })
+          continue
+        }
+      }
+
+      const existenteProd = await prisma.producto.findUnique({ where: { codigo } })
+      if (existenteProd) {
         resultados.push({ linea: numLinea, codigo, nombre, estado: 'error', mensaje: `Ya existe un producto con código "${codigo}".` })
         continue
       }
