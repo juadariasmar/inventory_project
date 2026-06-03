@@ -411,10 +411,8 @@ export default function TerminalVentaRapida({
             </>
           )}
         </div>
-      </div>
 
-      {/* Sidebar: resumen + cobrar + recientes */}
-      <div className="space-y-4">
+        {/* Resumen de venta (movido a columna principal, debajo del carrito) */}
         <div className="bg-white rounded-lg shadow-md p-6 space-y-3">
           <h2 className="text-lg font-bold text-gray-800">Resumen de venta</h2>
           <div className="bg-emerald-50 border border-emerald-200 rounded-md p-4">
@@ -449,7 +447,10 @@ export default function TerminalVentaRapida({
             {guardando ? 'Vendiendo…' : 'Vender'}
           </button>
         </div>
+      </div>
 
+      {/* Sidebar: vendido hoy + recientes */}
+      <div className="space-y-4">
         {/* Total del dia */}
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 text-white rounded-lg shadow-md p-5">
           <div className="text-xs uppercase tracking-wide opacity-90">
