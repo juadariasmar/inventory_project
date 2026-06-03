@@ -1,11 +1,12 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface Categoria {
   id: number
   nombre: string
+  prefijo: string
 }
 
 interface DatosProducto {
@@ -16,40 +17,67 @@ interface DatosProducto {
   precio: number
   cantidad: number
   stockMinimo: number
-  categoriaId: number | null
+  categoriaId: number
 }
 
 interface PropiedadesFormulario {
   producto?: DatosProducto
   categorias: Categoria[]
-  codigoSugerido?: string
 }
 
 export default function FormularioProducto({
   producto,
   categorias,
-  codigoSugerido,
 }: PropiedadesFormulario) {
   const router = useRouter()
   const esEdicion = !!producto?.id
 
+  const categoriaInicial = producto?.categoriaId?.toString() || (categorias[0]?.id?.toString() ?? '')
+
   const [datos, setDatos] = useState({
     nombre: producto?.nombre || '',
     descripcion: producto?.descripcion || '',
-    codigo: producto?.codigo || codigoSugerido || '',
+    codigo: producto?.codigo || '',
     precio: producto?.precio?.toString() || '',
     cantidad: producto?.cantidad?.toString() || '0',
     stockMinimo: producto?.stockMinimo?.toString() || '1',
-    categoriaId: producto?.categoriaId?.toString() || '',
+    categoriaId: categoriaInicial,
   })
+  const [codigoAutoSugerido, setCodigoAutoSugerido] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
+
+  // Al crear (no editar), sugerir codigo basado en la categoria seleccionada.
+  useEffect(() => {
+    if (esEdicion) return
+    const categoriaId = datos.categoriaId
+    if (!categoriaId) return
+    // Solo regenerar si el codigo esta vacio o fue auto-rellenado (no si el
+    // usuario lo escribio manualmente).
+    if (datos.codigo && !codigoAutoSugerido) return
+    let cancelado = false
+    fetch(`/api/productos/sugerir-codigo?categoria=${categoriaId}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelado && d?.codigo) {
+          setDatos((prev) => ({ ...prev, codigo: d.codigo }))
+          setCodigoAutoSugerido(true)
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelado = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [datos.categoriaId, esEdicion])
 
   const manejarCambio = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target
     setDatos((prev) => ({ ...prev, [name]: value }))
+    // Si el usuario edita el codigo manualmente, dejar de auto-regenerarlo.
+    if (name === 'codigo') setCodigoAutoSugerido(false)
   }
 
   const manejarEnvio = async (e: React.FormEvent) => {
@@ -107,9 +135,10 @@ export default function FormularioProducto({
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
-          {!esEdicion && codigoSugerido && (
+          {!esEdicion && codigoAutoSugerido && (
             <p className="text-xs text-gray-500 mt-1">
-              Sugerido automáticamente. Puedes editarlo si prefieres otro.
+              Sugerido automáticamente según la categoría. Puedes editarlo si
+              prefieres otro.
             </p>
           )}
         </div>
@@ -154,19 +183,19 @@ export default function FormularioProducto({
             htmlFor="categoriaId"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Categoría
+            Categoría *
           </label>
           <select
             id="categoriaId"
             name="categoriaId"
             value={datos.categoriaId}
             onChange={manejarCambio}
+            required
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">Sin categoría</option>
             {categorias.map((cat) => (
               <option key={cat.id} value={cat.id}>
-                {cat.nombre}
+                {cat.nombre} ({cat.prefijo})
               </option>
             ))}
           </select>

@@ -76,6 +76,26 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
       )
     }
 
+    const categoriaId = parseInt(datos.categoriaId, 10)
+    if (!categoriaId || Number.isNaN(categoriaId)) {
+      return NextResponse.json(
+        { error: 'La categoría es obligatoria.' },
+        { status: 400 }
+      )
+    }
+    if (categoriaId !== actual.categoriaId) {
+      const existe = await prisma.categoria.findUnique({
+        where: { id: categoriaId },
+        select: { id: true },
+      })
+      if (!existe) {
+        return NextResponse.json(
+          { error: 'La categoría seleccionada no existe.' },
+          { status: 400 }
+        )
+      }
+    }
+
     const delta = nuevaCantidad - actual.cantidad
 
     const producto = await prisma.$transaction(async (tx) => {
@@ -88,7 +108,7 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
           precio: parseFloat(datos.precio),
           cantidad: nuevaCantidad,
           stockMinimo: parseInt(datos.stockMinimo),
-          categoriaId: datos.categoriaId ? parseInt(datos.categoriaId) : null,
+          categoriaId,
         },
       })
 
@@ -123,6 +143,17 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
     return NextResponse.json(producto)
   } catch (error) {
     console.error('Error al actualizar producto:', error)
+    if (
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      (error as { code?: string }).code === 'P2002'
+    ) {
+      return NextResponse.json(
+        { error: 'Ya existe un producto con ese código.' },
+        { status: 409 }
+      )
+    }
     return NextResponse.json(
       { error: 'Error al actualizar producto' },
       { status: 500 }
