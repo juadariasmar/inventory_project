@@ -167,7 +167,7 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
     setError('')
     setExito('')
     if (carrito.length === 0) {
-      setError('El carrito está vacío.')
+      setError('No hay productos agregados.')
       return
     }
     setGuardando(true)
@@ -348,10 +348,10 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
           </div>
         </div>
 
-        {/* Carrito */}
+        {/* Productos */}
         <div className="bg-white rounded-lg shadow-md p-6 space-y-3">
           <div className="flex justify-between items-baseline">
-            <h2 className="text-lg font-bold text-gray-800">Carrito</h2>
+            <h2 className="text-lg font-bold text-gray-800">Productos</h2>
             <div className="text-sm text-gray-500">
               {carrito.length} producto(s) · {unidadesGeneral} unidad(es)
             </div>
@@ -359,7 +359,7 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
 
           {carrito.length === 0 ? (
             <p className="text-sm text-gray-500 py-6 text-center">
-              Tu carrito está vacío. Busca un producto arriba o usa el botón{' '}
+              Aún no has agregado productos. Busca uno arriba o usa el botón{' '}
               <span className="font-semibold">Vender</span> en la lista de productos.
             </p>
           ) : (
@@ -419,7 +419,7 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
                   onClick={limpiarCarrito}
                   className="text-sm text-gray-500 hover:text-red-600 underline"
                 >
-                  Vaciar carrito
+                  Vaciar
                 </button>
               </div>
             </>
