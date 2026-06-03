@@ -239,11 +239,13 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
                 type="text"
                 value={busqueda}
                 onChange={(e) => {
-                  setBusqueda(e.target.value)
+                  const v = e.target.value
+                  setBusqueda(v)
                   setSeleccionado(null)
-                  setAbierto(true)
+                  // Solo abrir el dropdown cuando hay texto escrito (busqueda activa).
+                  // Asi no se despliega solo al enfocar la pantalla.
+                  setAbierto(v.trim().length > 0)
                 }}
-                onFocus={() => setAbierto(true)}
                 onKeyDown={manejarTeclaBusqueda}
                 autoFocus
                 placeholder="Escribe para buscar o haz clic en ▾ para ver todos"
@@ -340,7 +342,7 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
                 disabled={!seleccionado || guardando}
                 className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-base font-semibold"
               >
-                + Agregar al carrito
+                + Agregar producto
               </button>
             </div>
           </div>
@@ -430,7 +432,7 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
         <div className="bg-white rounded-lg shadow-md p-6 space-y-3">
           <h2 className="text-lg font-bold text-gray-800">Resumen de venta</h2>
           <div className="bg-emerald-50 border border-emerald-200 rounded-md p-4">
-            <div className="text-xs text-gray-600">Total a cobrar</div>
+            <div className="text-xs text-gray-600">Valor total</div>
             <div className="text-3xl font-bold text-emerald-700">
               ${totalGeneral.toLocaleString('es-MX')}
             </div>
@@ -458,7 +460,7 @@ export default function TerminalVentaRapida({ productos }: Propiedades) {
             disabled={guardando || carrito.length === 0}
             className="w-full px-4 py-3 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-50 text-lg font-semibold"
           >
-            {guardando ? 'Cobrando…' : 'Cobrar'}
+            {guardando ? 'Vendiendo…' : 'Vender'}
           </button>
         </div>
 

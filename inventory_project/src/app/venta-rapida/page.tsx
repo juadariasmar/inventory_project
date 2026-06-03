@@ -32,7 +32,7 @@ export default async function PaginaVentaRapida() {
     <LayoutProtegido>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Venta rápida</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Ventas</h1>
           <p className="text-sm text-gray-600">
             Terminal de ventas. Cada venta registrada se guarda como un
             movimiento de salida en el inventario.
