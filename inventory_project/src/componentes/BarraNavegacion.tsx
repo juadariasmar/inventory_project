@@ -76,6 +76,7 @@ export default function BarraNavegacion() {
       items: [
         { href: '/usuarios', etiqueta: 'Usuarios', visible: true },
         { href: '/auditoria', etiqueta: 'Auditoría', visible: true },
+        { href: '/admin/configuracion', etiqueta: 'Configuración', visible: true },
       ],
     },
   ].filter((it) => it.visible) as Item[]
