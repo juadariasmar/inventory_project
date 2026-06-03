@@ -64,7 +64,6 @@ export default function BarraNavegacion() {
       items: [
         { href: '/productos', etiqueta: 'Productos', visible: true },
         { href: '/movimientos', etiqueta: 'Movimientos', visible: true },
-        { href: '/categorias', etiqueta: 'Categorías', visible: true },
       ],
     },
     { tipo: 'enlace', href: '/analisis', etiqueta: 'Análisis', visible: puedeVerAnalisis },
