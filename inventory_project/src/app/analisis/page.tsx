@@ -157,7 +157,7 @@ export default async function PaginaAnalisis() {
         </section>
 
         {/* Productos en riesgo */}
-        <section className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+        <section id="por-agotarse" className="bg-white rounded-lg shadow-md p-4 sm:p-6 scroll-mt-20">
           <h2 className="text-lg font-semibold text-gray-800 mb-1">
             Productos en riesgo de agotarse
           </h2>
@@ -175,7 +175,7 @@ export default async function PaginaAnalisis() {
         </section>
 
         {/* Sin movimientos */}
-        <section className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+        <section id="sin-movimientos" className="bg-white rounded-lg shadow-md p-4 sm:p-6 scroll-mt-20">
           <h2 className="text-lg font-semibold text-gray-800 mb-3">
             Productos sin movimientos (más de 30 días)
           </h2>
@@ -189,7 +189,7 @@ export default async function PaginaAnalisis() {
         </section>
 
         {/* Stock crítico */}
-        <section className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+        <section id="stock-critico" className="bg-white rounded-lg shadow-md p-4 sm:p-6 scroll-mt-20">
           <h2 className="text-lg font-semibold text-gray-800 mb-1">
             Stock por debajo del mínimo
           </h2>

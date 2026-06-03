@@ -74,29 +74,44 @@ export default async function PaginaPrincipal() {
         <h1 className="text-2xl font-bold text-gray-800">Panel Principal</h1>
 
         {puedeVerAnalisis && alertasTotales > 0 && (
-          <Link
-            href="/analisis"
-            className="block bg-amber-50 border border-amber-300 text-amber-900 rounded-lg p-4 hover:bg-amber-100 transition-colors"
-          >
-            <div className="flex items-start gap-3">
-              <span className="text-2xl" aria-hidden>⚠️</span>
-              <div className="flex-1">
-                <div className="font-semibold">
-                  Tienes {alertasTotales} alerta{alertasTotales !== 1 ? 's' : ''} en el inventario
+          <div className="space-y-2">
+            {stockAgotarse.length > 0 && (
+              <Link
+                href="/analisis#por-agotarse"
+                className="block bg-amber-50 border border-amber-300 text-amber-900 rounded-lg p-4 hover:bg-amber-100 transition-colors"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl" aria-hidden>⚠️</span>
+                  <div className="flex-1">
+                    <div className="font-semibold">
+                      {stockAgotarse.length} producto{stockAgotarse.length !== 1 ? 's' : ''} en riesgo de agotarse
+                    </div>
+                    <div className="text-sm mt-1">
+                      Stock dentro del umbral crítico o consumo proyectado &le; 7 días. Ver detalle →
+                    </div>
+                  </div>
                 </div>
-                <div className="text-sm mt-1">
-                  {stockAgotarse.length > 0 && (
-                    <span>{stockAgotarse.length} por agotarse</span>
-                  )}
-                  {stockAgotarse.length > 0 && sinMovimientos.length > 0 && <span> · </span>}
-                  {sinMovimientos.length > 0 && (
-                    <span>{sinMovimientos.length} sin movimientos</span>
-                  )}
-                  . Ver análisis completo →
+              </Link>
+            )}
+            {sinMovimientos.length > 0 && (
+              <Link
+                href="/analisis#sin-movimientos"
+                className="block bg-blue-50 border border-blue-300 text-blue-900 rounded-lg p-4 hover:bg-blue-100 transition-colors"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl" aria-hidden>📦</span>
+                  <div className="flex-1">
+                    <div className="font-semibold">
+                      {sinMovimientos.length} producto{sinMovimientos.length !== 1 ? 's' : ''} sin movimientos recientes
+                    </div>
+                    <div className="text-sm mt-1">
+                      Sin entradas ni salidas en más de 30 días. Ver detalle →
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </Link>
+              </Link>
+            )}
+          </div>
         )}
 
         {/* Tarjetas de estadísticas */}
