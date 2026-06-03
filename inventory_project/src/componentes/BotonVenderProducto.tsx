@@ -30,7 +30,7 @@ export default function BotonVenderProducto({
     })
     if (resultado.ok) {
       setMensaje({
-        texto: `${nombre} agregado al carrito (${resultado.cantidadEnCarrito} ud).`,
+        texto: `${nombre} agregado a la venta (${resultado.cantidadEnCarrito} ud).`,
         tipo: 'ok',
       })
     } else {
@@ -49,7 +49,7 @@ export default function BotonVenderProducto({
         onClick={agregar}
         disabled={stockActual <= 0}
         className="text-emerald-600 hover:text-emerald-800 disabled:text-gray-400 disabled:cursor-not-allowed"
-        title={stockActual <= 0 ? 'Sin stock' : 'Agregar al carrito de venta rápida'}
+        title={stockActual <= 0 ? 'Sin stock' : 'Agregar a la venta actual'}
       >
         Vender
       </button>
