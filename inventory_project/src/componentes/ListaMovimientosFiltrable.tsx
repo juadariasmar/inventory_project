@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
+import BarraSeleccionMultiple from '@/componentes/BarraSeleccionMultiple'
 import { formatearFechaHora } from '@/lib/fechas'
 
 interface MovimientoFilaProps {
@@ -11,20 +12,27 @@ interface MovimientoFilaProps {
   cantidad: number
   notas: string | null
   creadoEn: string | Date
+  ventaId: number | null
   producto: { id: number; nombre: string; codigo: string }
 }
 
 interface Propiedades {
   movimientos: MovimientoFilaProps[]
+  esAdmin?: boolean
 }
 
 type TipoFiltro = 'todos' | 'entrada' | 'salida'
 type CampoOrden = 'fecha' | 'producto' | 'cantidad'
 type Dir = 'asc' | 'desc'
 
-export default function ListaMovimientosFiltrable({ movimientos }: Propiedades) {
+export default function ListaMovimientosFiltrable({
+  movimientos,
+  esAdmin,
+}: Propiedades) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [seleccionados, setSeleccionados] = useState<Set<number>>(new Set())
+  const [eliminandoBulk, setEliminandoBulk] = useState(false)
 
   const [q, setQ] = useState(searchParams.get('q') ?? '')
   const [tipo, setTipo] = useState<TipoFiltro>(
@@ -107,6 +115,67 @@ export default function ListaMovimientosFiltrable({ movimientos }: Propiedades) 
   const flecha = (campo: CampoOrden) =>
     campoOrden === campo ? (dir === 'asc' ? ' ↑' : ' ↓') : ''
 
+  // Seleccion multiple: solo movimientos manuales (sin venta)
+  const idsManualesEnVista = filtrados.filter((m) => m.ventaId === null).map((m) => m.id)
+  const todosManualesSeleccionados =
+    idsManualesEnVista.length > 0 &&
+    idsManualesEnVista.every((id) => seleccionados.has(id))
+
+  const togglearMov = (id: number) => {
+    setSeleccionados((prev) => {
+      const nuevo = new Set(prev)
+      if (nuevo.has(id)) nuevo.delete(id)
+      else nuevo.add(id)
+      return nuevo
+    })
+  }
+  const togglearTodosManuales = () => {
+    if (todosManualesSeleccionados) {
+      setSeleccionados((prev) => {
+        const nuevo = new Set(prev)
+        idsManualesEnVista.forEach((id) => nuevo.delete(id))
+        return nuevo
+      })
+    } else {
+      setSeleccionados((prev) => {
+        const nuevo = new Set(prev)
+        idsManualesEnVista.forEach((id) => nuevo.add(id))
+        return nuevo
+      })
+    }
+  }
+  const limpiarSeleccion = () => setSeleccionados(new Set())
+
+  const eliminarSeleccionados = async () => {
+    const ids = Array.from(seleccionados)
+    if (ids.length === 0) return
+    if (
+      !confirm(
+        `¿Eliminar ${ids.length} movimiento(s)?\n\nSolo se borrarán los manuales. Esto NO ajusta el stock de los productos.`
+      )
+    )
+      return
+    setEliminandoBulk(true)
+    try {
+      const r = await fetch('/api/movimientos/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      })
+      if (r.ok) {
+        limpiarSeleccion()
+        router.refresh()
+      } else {
+        const e = await r.json().catch(() => ({}))
+        alert(e.error || 'No se pudo eliminar.')
+      }
+    } catch {
+      alert('Error al eliminar.')
+    } finally {
+      setEliminandoBulk(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
       {/* Filtros */}
@@ -187,6 +256,22 @@ export default function ListaMovimientosFiltrable({ movimientos }: Propiedades) 
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
+                    {esAdmin && (
+                      <th className="px-3 py-3 w-8">
+                        <input
+                          type="checkbox"
+                          checked={todosManualesSeleccionados}
+                          onChange={togglearTodosManuales}
+                          disabled={idsManualesEnVista.length === 0}
+                          title={
+                            idsManualesEnVista.length === 0
+                              ? 'No hay movimientos manuales en la vista'
+                              : 'Seleccionar todos los manuales visibles'
+                          }
+                          className="cursor-pointer"
+                        />
+                      </th>
+                    )}
                     <th
                       onClick={() => ordenarPor('fecha')}
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100"
@@ -214,8 +299,30 @@ export default function ListaMovimientosFiltrable({ movimientos }: Propiedades) 
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filtrados.map((m) => (
-                    <tr key={m.id} className="hover:bg-gray-50">
+                  {filtrados.map((m) => {
+                    const sel = seleccionados.has(m.id)
+                    const esManual = m.ventaId === null
+                    return (
+                    <tr key={m.id} className={`hover:bg-gray-50 ${sel ? 'bg-blue-50' : ''}`}>
+                      {esAdmin && (
+                        <td className="px-3 py-4">
+                          {esManual ? (
+                            <input
+                              type="checkbox"
+                              checked={sel}
+                              onChange={() => togglearMov(m.id)}
+                              className="cursor-pointer"
+                            />
+                          ) : (
+                            <span
+                              className="text-gray-300 text-xs"
+                              title="Movimiento de venta — no borrable"
+                            >
+                              🔒
+                            </span>
+                          )}
+                        </td>
+                      )}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatearFechaHora(m.creadoEn)}
                       </td>
@@ -248,16 +355,28 @@ export default function ListaMovimientosFiltrable({ movimientos }: Propiedades) 
                         {m.notas || '-'}
                       </td>
                     </tr>
-                  ))}
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
 
             {/* Vista móvil */}
             <div className="lg:hidden divide-y divide-gray-200">
-              {filtrados.map((m) => (
-                <div key={m.id} className="p-4">
+              {filtrados.map((m) => {
+                const sel = seleccionados.has(m.id)
+                const esManual = m.ventaId === null
+                return (
+                <div key={m.id} className={`p-4 ${sel ? 'bg-blue-50' : ''}`}>
                   <div className="flex justify-between items-start gap-2">
+                    {esAdmin && esManual && (
+                      <input
+                        type="checkbox"
+                        checked={sel}
+                        onChange={() => togglearMov(m.id)}
+                        className="mt-1 cursor-pointer"
+                      />
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-gray-900 truncate">
                         {m.producto.nombre}
@@ -291,7 +410,8 @@ export default function ListaMovimientosFiltrable({ movimientos }: Propiedades) 
                     <div className="mt-2 text-xs text-gray-600">{m.notas}</div>
                   )}
                 </div>
-              ))}
+                )
+              })}
             </div>
           </>
         ) : (
@@ -318,6 +438,16 @@ export default function ListaMovimientosFiltrable({ movimientos }: Propiedades) 
           </div>
         )}
       </div>
+
+      {esAdmin && (
+        <BarraSeleccionMultiple
+          cantidad={seleccionados.size}
+          etiquetaItem="movimiento"
+          onEliminar={eliminarSeleccionados}
+          onLimpiar={limpiarSeleccion}
+          trabajando={eliminandoBulk}
+        />
+      )}
     </div>
   )
 }
