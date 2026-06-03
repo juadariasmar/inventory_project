@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
+import BarraSeleccionMultiple from '@/componentes/BarraSeleccionMultiple'
 
 interface ProductoEnCategoria {
   id: number
@@ -68,6 +69,8 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
   const [prefijoEditadoManual, setPrefijoEditadoManual] = useState(false)
   const [creando, setCreando] = useState(false)
   const [eliminandoId, setEliminandoId] = useState<number | null>(null)
+  const [seleccionadas, setSeleccionadas] = useState<Set<number>>(new Set())
+  const [eliminandoBulk, setEliminandoBulk] = useState(false)
   const [editandoId, setEditandoId] = useState<number | null>(null)
   const [editNombre, setEditNombre] = useState('')
   const [editPrefijo, setEditPrefijo] = useState('')
@@ -239,6 +242,66 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
     })
   }, [categorias, busqueda])
 
+  // --- Seleccion multiple (solo categorias sin productos) ---
+  const idsVaciasEnVista = categoriasFiltradas
+    .filter((c) => c.productosCount === 0)
+    .map((c) => c.id)
+  const seleccionadasEnVista = idsVaciasEnVista.filter((id) => seleccionadas.has(id))
+  const todasSeleccionadas =
+    idsVaciasEnVista.length > 0 && seleccionadasEnVista.length === idsVaciasEnVista.length
+
+  const togglearCategoria = (id: number) => {
+    setSeleccionadas((prev) => {
+      const nuevo = new Set(prev)
+      if (nuevo.has(id)) nuevo.delete(id)
+      else nuevo.add(id)
+      return nuevo
+    })
+  }
+  const togglearTodasVacias = () => {
+    if (todasSeleccionadas) {
+      setSeleccionadas((prev) => {
+        const nuevo = new Set(prev)
+        idsVaciasEnVista.forEach((id) => nuevo.delete(id))
+        return nuevo
+      })
+    } else {
+      setSeleccionadas((prev) => {
+        const nuevo = new Set(prev)
+        idsVaciasEnVista.forEach((id) => nuevo.add(id))
+        return nuevo
+      })
+    }
+  }
+  const limpiarSeleccionCats = () => setSeleccionadas(new Set())
+
+  const eliminarSeleccionadas = async () => {
+    const ids = Array.from(seleccionadas)
+    if (ids.length === 0) return
+    if (!confirm(`¿Eliminar ${ids.length} categoría(s)?`)) return
+    setEliminandoBulk(true)
+    try {
+      const r = await fetch('/api/categorias/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      })
+      if (r.ok) {
+        setExito(`Se eliminaron ${ids.length} categoría(s).`)
+        limpiarSeleccionCats()
+        await recargar()
+        router.refresh()
+      } else {
+        const e = await r.json().catch(() => ({}))
+        setError(e.error || 'No se pudo eliminar.')
+      }
+    } catch {
+      setError('Error al eliminar.')
+    } finally {
+      setEliminandoBulk(false)
+    }
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Columna principal: lista */}
@@ -255,24 +318,37 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
             </span>
           </div>
 
-          {/* Buscador */}
-          <div className="relative">
-            <input
-              type="text"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar por categoría, prefijo o producto…"
-              className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {busqueda && (
-              <button
-                type="button"
-                onClick={() => setBusqueda('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm"
-                title="Limpiar"
-              >
-                ✕
-              </button>
+          {/* Buscador + select all */}
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                placeholder="Buscar por categoría, prefijo o producto…"
+                className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {busqueda && (
+                <button
+                  type="button"
+                  onClick={() => setBusqueda('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm"
+                  title="Limpiar"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            {idsVaciasEnVista.length > 0 && (
+              <label className="flex items-center gap-2 text-xs text-gray-600 whitespace-nowrap">
+                <input
+                  type="checkbox"
+                  checked={todasSeleccionadas}
+                  onChange={togglearTodasVacias}
+                  className="cursor-pointer"
+                />
+                Seleccionar las {idsVaciasEnVista.length} vacías
+              </label>
             )}
           </div>
 
@@ -348,6 +424,17 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
                   ) : (
                     <>
                       <div className="flex justify-between items-center">
+                        {c.productosCount === 0 ? (
+                          <input
+                            type="checkbox"
+                            checked={seleccionadas.has(c.id)}
+                            onChange={() => togglearCategoria(c.id)}
+                            className="mr-2 cursor-pointer"
+                            title="Seleccionar para borrado masivo"
+                          />
+                        ) : (
+                          <span className="w-4 mr-2" />
+                        )}
                         <button
                           type="button"
                           onClick={() =>
@@ -501,6 +588,14 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
           </p>
         </div>
       </div>
+
+      <BarraSeleccionMultiple
+        cantidad={seleccionadas.size}
+        etiquetaItem="categoría"
+        onEliminar={eliminarSeleccionadas}
+        onLimpiar={limpiarSeleccionCats}
+        trabajando={eliminandoBulk}
+      />
     </div>
   )
 }
