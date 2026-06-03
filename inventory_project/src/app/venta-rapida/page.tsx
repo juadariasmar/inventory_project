@@ -2,31 +2,52 @@ import { prisma } from '@/lib/db'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import TerminalVentaRapida from '@/componentes/TerminalVentaRapida'
 import { redirect } from 'next/navigation'
-import { tienePermiso } from '@/lib/permisos'
+import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 
 export const dynamic = 'force-dynamic'
 
-async function obtenerProductos() {
-  return await prisma.producto.findMany({
-    orderBy: { nombre: 'asc' },
-    select: {
-      id: true,
-      codigo: true,
-      nombre: true,
-      precio: true,
-      cantidad: true,
-    },
-  })
-}
-
 export default async function PaginaVentaRapida() {
+  const sesion = await obtenerSesion()
+  if (!sesion?.user) redirect('/login')
+
   const puedeVender =
     (await tienePermiso('REALIZAR_VENTAS')) ||
     (await tienePermiso('REGISTRAR_MOVIMIENTOS'))
   if (!puedeVender) {
     redirect('/')
   }
-  const productos = await obtenerProductos()
+
+  const vendedorId = parseInt(sesion.user.id, 10)
+  // Rango de "hoy" en hora local Colombia: desde 00:00 hasta 23:59:59.
+  const hoyDesde = new Date()
+  hoyDesde.setHours(0, 0, 0, 0)
+  const hoyHasta = new Date()
+  hoyHasta.setHours(23, 59, 59, 999)
+
+  const [productos, ventasRecientes, ventasDeHoy] = await Promise.all([
+    prisma.producto.findMany({
+      orderBy: { nombre: 'asc' },
+      select: { id: true, codigo: true, nombre: true, precio: true, cantidad: true },
+    }),
+    prisma.venta.findMany({
+      where: { vendedorId },
+      include: { _count: { select: { items: true } } },
+      orderBy: { creadoEn: 'desc' },
+      take: 5,
+    }),
+    prisma.venta.aggregate({
+      where: { vendedorId, creadoEn: { gte: hoyDesde, lte: hoyHasta } },
+      _sum: { total: true },
+      _count: { _all: true },
+    }),
+  ])
+
+  const recientesSerializadas = ventasRecientes.map((v) => ({
+    id: v.id,
+    total: v.total,
+    totalItems: v._count.items,
+    creadoEn: v.creadoEn.toISOString(),
+  }))
 
   return (
     <LayoutProtegido>
@@ -40,7 +61,12 @@ export default async function PaginaVentaRapida() {
         </div>
 
         {productos.length > 0 ? (
-          <TerminalVentaRapida productos={productos} />
+          <TerminalVentaRapida
+            productos={productos}
+            recientes={recientesSerializadas}
+            totalHoy={ventasDeHoy._sum.total ?? 0}
+            ventasHoy={ventasDeHoy._count._all}
+          />
         ) : (
           <div className="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
             No hay productos registrados. Primero crea al menos un producto en
