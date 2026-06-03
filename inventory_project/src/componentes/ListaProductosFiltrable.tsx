@@ -218,11 +218,11 @@ export default function ListaProductosFiltrable({
                     </th>
                     <th
                       onClick={() => ordenarPor('nombre')}
-                      className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 w-[16%]"
+                      className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 w-[19%]"
                     >
                       Nombre{flechaOrden('nombre')}
                     </th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[12%]">
                       Categoría
                     </th>
                     <th
@@ -243,7 +243,7 @@ export default function ListaProductosFiltrable({
                     <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">
                       Estado
                     </th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[29%]">
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[24%]">
                       Acciones
                     </th>
                   </tr>
