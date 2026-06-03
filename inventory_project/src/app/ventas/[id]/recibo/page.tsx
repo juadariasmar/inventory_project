@@ -42,7 +42,7 @@ export default async function PaginaReciboVenta({ params }: Props) {
       {/* Barra superior con acciones (oculta al imprimir) */}
       <div className="max-w-2xl mx-auto mb-4 flex justify-between items-center print:hidden">
         <Link href="/venta-rapida" className="text-blue-600 hover:underline text-sm">
-          ← Volver a Venta rápida
+          ← Volver a Ventas
         </Link>
         <BotonImprimir />
       </div>
