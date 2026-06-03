@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db'
 import { obtenerSesion } from '@/lib/permisos'
 import { formatearFechaHora } from '@/lib/fechas'
 import BotonImprimir from '@/componentes/BotonImprimir'
+import BotonCancelarVenta from '@/componentes/BotonCancelarVenta'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,6 +24,7 @@ export default async function PaginaReciboVenta({ params }: Props) {
     where: { id: ventaId },
     include: {
       vendedor: { select: { id: true, nombre: true, nombreUsuario: true } },
+      canceladaPor: { select: { id: true, nombre: true, nombreUsuario: true } },
       items: {
         include: { producto: { select: { nombre: true, codigo: true } } },
       },
@@ -37,6 +39,14 @@ export default async function PaginaReciboVenta({ params }: Props) {
 
   const cantidadTotalItems = venta.items.reduce((s, it) => s + it.cantidad, 0)
 
+  // Ventana de cancelacion: solo ADMIN y solo el mismo dia calendario.
+  const hoy = new Date()
+  const esMismoDia =
+    venta.creadoEn.getFullYear() === hoy.getFullYear() &&
+    venta.creadoEn.getMonth() === hoy.getMonth() &&
+    venta.creadoEn.getDate() === hoy.getDate()
+  const puedeCancelar = esAdmin && esMismoDia && !venta.canceladaEn
+
   return (
     <div className="min-h-screen bg-gray-100 print:bg-white py-6 px-4">
       {/* Barra superior con acciones (oculta al imprimir) */}
@@ -44,11 +54,36 @@ export default async function PaginaReciboVenta({ params }: Props) {
         <Link href="/venta-rapida" className="text-blue-600 hover:underline text-sm">
           ← Volver a Ventas
         </Link>
-        <BotonImprimir />
+        <div className="flex items-center gap-2">
+          {puedeCancelar && <BotonCancelarVenta ventaId={venta.id} />}
+          <BotonImprimir />
+        </div>
       </div>
 
       {/* Recibo (estilo ticket sobre papel A4 simulado) */}
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-8 print:shadow-none print:rounded-none print:max-w-full print:p-4">
+        {venta.canceladaEn && (
+          <div className="mb-4 p-4 border-2 border-red-300 bg-red-50 rounded text-center">
+            <div className="text-lg font-bold text-red-700 tracking-wider">
+              VENTA CANCELADA
+            </div>
+            <div className="text-xs text-red-700 mt-1">
+              Cancelada el {formatearFechaHora(venta.canceladaEn)}
+              {venta.canceladaPor
+                ? ` por ${venta.canceladaPor.nombre} (@${venta.canceladaPor.nombreUsuario})`
+                : ''}
+            </div>
+            {venta.motivoCancelacion && (
+              <div className="text-sm text-red-800 mt-2">
+                Motivo: {venta.motivoCancelacion}
+              </div>
+            )}
+            <div className="text-xs text-red-700 mt-2">
+              El stock fue devuelto al inventario.
+            </div>
+          </div>
+        )}
+
         {/* Encabezado */}
         <div className="text-center pb-4 border-b border-gray-300">
           <h1 className="text-xl font-bold text-gray-800">Sistema de Inventario</h1>
