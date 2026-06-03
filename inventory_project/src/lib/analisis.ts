@@ -92,9 +92,15 @@ async function consumoPorProducto(diasVentana: number) {
   const desde = new Date()
   desde.setDate(desde.getDate() - diasVentana)
 
+  // Excluir salidas cuya venta haya sido cancelada (ya fueron revertidas
+  // por la entrada de devolucion, contarlas inflaria el consumo aparente).
   const salidas = await prisma.movimiento.groupBy({
     by: ['productoId'],
-    where: { tipo: 'salida', creadoEn: { gte: desde } },
+    where: {
+      tipo: 'salida',
+      creadoEn: { gte: desde },
+      OR: [{ ventaId: null }, { venta: { canceladaEn: null } }],
+    },
     _sum: { cantidad: true },
     _count: { _all: true },
   })
@@ -209,7 +215,11 @@ export async function obtenerAltaRotacion(): Promise<ProductoAltaRotacion[]> {
 
   const salidas = await prisma.movimiento.groupBy({
     by: ['productoId'],
-    where: { tipo: 'salida', creadoEn: { gte: desde } },
+    where: {
+      tipo: 'salida',
+      creadoEn: { gte: desde },
+      OR: [{ ventaId: null }, { venta: { canceladaEn: null } }],
+    },
     _sum: { cantidad: true },
     _count: { _all: true },
     orderBy: { _sum: { cantidad: 'desc' } },
@@ -361,7 +371,7 @@ export async function obtenerVentasPorDia(dias = 30): Promise<VentaDiaria[]> {
   desde.setHours(0, 0, 0, 0)
 
   const ventas = await prisma.venta.findMany({
-    where: { creadoEn: { gte: desde } },
+    where: { creadoEn: { gte: desde }, canceladaEn: null },
     select: { total: true, creadoEn: true },
     orderBy: { creadoEn: 'asc' },
   })
@@ -395,7 +405,7 @@ export async function obtenerVentasPorCategoria(dias = 30, top = 8): Promise<Cat
   desde.setHours(0, 0, 0, 0)
 
   const items = await prisma.itemVenta.findMany({
-    where: { venta: { creadoEn: { gte: desde } } },
+    where: { venta: { creadoEn: { gte: desde }, canceladaEn: null } },
     include: { producto: { include: { categoria: true } } },
   })
 

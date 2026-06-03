@@ -2,10 +2,19 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import FiltrosVentas from '@/componentes/FiltrosVentas'
+import BotonCancelarVenta from '@/componentes/BotonCancelarVenta'
 import { prisma } from '@/lib/db'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 import { formatearFechaHora } from '@/lib/fechas'
 import type { Prisma } from '@prisma/client'
+
+function esHoy(fecha: Date, hoy: Date) {
+  return (
+    fecha.getFullYear() === hoy.getFullYear() &&
+    fecha.getMonth() === hoy.getMonth() &&
+    fecha.getDate() === hoy.getDate()
+  )
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -67,7 +76,10 @@ export default async function PaginaVentas({ searchParams }: Props) {
   ])
 
   const totalPaginas = Math.max(1, Math.ceil(total / POR_PAGINA))
-  const totalIngreso = ventas.reduce((s, v) => s + v.total, 0)
+  // Las canceladas no suman al ingreso de la pagina.
+  const totalIngreso = ventas.reduce((s, v) => s + (v.canceladaEn ? 0 : v.total), 0)
+  const canceladasEnPagina = ventas.filter((v) => v.canceladaEn).length
+  const hoy = new Date()
 
   const urlPagina = (p: number) => {
     const qp = new URLSearchParams()
@@ -111,6 +123,11 @@ export default async function PaginaVentas({ searchParams }: Props) {
                 <>
                   {' '}· Ingresos en esta página:{' '}
                   <strong>${totalIngreso.toLocaleString('es-MX')}</strong>
+                  {canceladasEnPagina > 0 && (
+                    <span className="text-gray-500">
+                      {' '}({canceladasEnPagina} cancelada{canceladasEnPagina !== 1 ? 's' : ''} no suma{canceladasEnPagina === 1 ? '' : 'n'})
+                    </span>
+                  )}
                 </>
               )}
             </div>
@@ -136,9 +153,16 @@ export default async function PaginaVentas({ searchParams }: Props) {
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {ventas.map((v) => (
-                      <tr key={v.id} className="hover:bg-gray-50">
+                      <tr key={v.id} className={`hover:bg-gray-50 ${v.canceladaEn ? 'bg-red-50/40' : ''}`}>
                         <td className="px-3 py-3 whitespace-nowrap text-sm font-mono font-semibold text-gray-900">
-                          #{v.id}
+                          <div className="flex items-center gap-2">
+                            <span>#{v.id}</span>
+                            {v.canceladaEn && (
+                              <span className="text-[10px] font-sans font-semibold px-1.5 py-0.5 bg-red-100 text-red-700 rounded">
+                                CANCELADA
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-700">
                           {formatearFechaHora(v.creadoEn)}
@@ -156,18 +180,23 @@ export default async function PaginaVentas({ searchParams }: Props) {
                         <td className="px-3 py-3 whitespace-nowrap text-right text-sm text-gray-700">
                           {v._count.items}
                         </td>
-                        <td className="px-3 py-3 whitespace-nowrap text-right text-sm font-semibold text-emerald-700">
+                        <td className={`px-3 py-3 whitespace-nowrap text-right text-sm font-semibold ${v.canceladaEn ? 'text-gray-400 line-through' : 'text-emerald-700'}`}>
                           ${v.total.toLocaleString('es-MX')}
                         </td>
-                        <td className="px-3 py-3 whitespace-nowrap text-sm space-x-3">
-                          <Link
-                            href={`/ventas/${v.id}/recibo`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800"
-                          >
-                            Recibo
-                          </Link>
+                        <td className="px-3 py-3 whitespace-nowrap text-sm">
+                          <div className="flex items-center gap-3">
+                            <Link
+                              href={`/ventas/${v.id}/recibo`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              Recibo
+                            </Link>
+                            {esAdmin && !v.canceladaEn && esHoy(v.creadoEn, hoy) && (
+                              <BotonCancelarVenta ventaId={v.id} variante="compact" />
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -178,14 +207,21 @@ export default async function PaginaVentas({ searchParams }: Props) {
               {/* Vista móvil */}
               <div className="lg:hidden divide-y divide-gray-200">
                 {ventas.map((v) => (
-                  <div key={v.id} className="p-4">
+                  <div key={v.id} className={`p-4 ${v.canceladaEn ? 'bg-red-50/40' : ''}`}>
                     <div className="flex justify-between items-start gap-2">
                       <div className="flex-1 min-w-0">
-                        <div className="font-mono font-bold text-gray-900">Venta #{v.id}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="font-mono font-bold text-gray-900">Venta #{v.id}</div>
+                          {v.canceladaEn && (
+                            <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-red-100 text-red-700 rounded">
+                              CANCELADA
+                            </span>
+                          )}
+                        </div>
                         <div className="text-xs text-gray-500">{formatearFechaHora(v.creadoEn)}</div>
                       </div>
                       <div className="text-right whitespace-nowrap">
-                        <div className="font-semibold text-emerald-700">
+                        <div className={`font-semibold ${v.canceladaEn ? 'text-gray-400 line-through' : 'text-emerald-700'}`}>
                           ${v.total.toLocaleString('es-MX')}
                         </div>
                         <div className="text-xs text-gray-500">{v._count.items} producto(s)</div>
@@ -201,7 +237,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
                         <span className="italic text-gray-400">(eliminado)</span>
                       )}
                     </div>
-                    <div className="mt-2">
+                    <div className="mt-2 flex items-center gap-4">
                       <Link
                         href={`/ventas/${v.id}/recibo`}
                         target="_blank"
@@ -210,6 +246,9 @@ export default async function PaginaVentas({ searchParams }: Props) {
                       >
                         Ver recibo →
                       </Link>
+                      {esAdmin && !v.canceladaEn && esHoy(v.creadoEn, hoy) && (
+                        <BotonCancelarVenta ventaId={v.id} variante="compact" />
+                      )}
                     </div>
                   </div>
                 ))}
