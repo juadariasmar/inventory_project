@@ -1,0 +1,43 @@
+codigo,nombre,descripcion,precio,cantidad,stockMinimo,categoria
+,Taladro percutor 600W,Mandril 13mm con maletin y kit de brocas,180000,8,2,Herramientas Electricas
+,Pulidora 4 1/2" 850W,Disco de corte incluido,220000,6,2,Herramientas Electricas
+,Sierra circular 7 1/4" 1500W,Para cortes en madera,320000,4,1,Herramientas Electricas
+,Caladora 500W,Variable con guia laser,150000,5,2,Herramientas Electricas
+,Atornillador inalambrico 12V,Dos baterias y cargador,250000,7,2,Herramientas Electricas
+,Martillo bola 16 oz,Mango de fibra,35000,20,5,Herramientas Manuales
+,Destornillador estrella PH2,Mango ergonomico,12000,40,10,Herramientas Manuales
+,Llave inglesa 10",Acero cromo vanadio,45000,15,4,Herramientas Manuales
+,Cinta metrica 5 m,Con freno y clip,18000,30,8,Herramientas Manuales
+,Alicate universal 8",Mango aislado,22000,25,6,Herramientas Manuales
+,Juego de llaves combinadas 10 pc,De 8mm a 22mm,95000,8,2,Herramientas Manuales
+,Tornillo madera 8x40 caja x100,Cabeza plana phillips,25000,30,8,Tornilleria
+,Tornillo drywall 6x1" caja x500,Para laminas de yeso,30000,25,6,Tornilleria
+,Tuerca hexagonal 1/4" paquete x50,Acero zincado,8000,50,12,Tornilleria
+,Arandela plana 1/4" paquete x100,Acero zincado,6000,60,15,Tornilleria
+,Chazo plastico azul paquete x50,Para mamposteria,9000,45,10,Tornilleria
+,Tubo PVC 1/2" x 6 m,Presion para agua,15000,50,10,Plomeria
+,Codo 90 grados PVC 1/2",Para union de tubos,1500,200,50,Plomeria
+,Tee PVC 1/2",Para derivacion,2500,150,40,Plomeria
+,Llave de paso 1/2",Bola con palanca,18000,30,8,Plomeria
+,Cinta teflon 12 mm x 10 m,Para sellado de roscas,3500,80,20,Plomeria
+,Pegante PVC 250 cc,De secado rapido,22000,25,6,Plomeria
+,Cable encauchetado 2x14 AWG metro,Color negro 100% cobre,4500,300,50,Material Electrico
+,Toma doble con polo a tierra,Blanca para empotrar,9500,60,15,Material Electrico
+,Interruptor sencillo,Blanco para empotrar,7500,70,18,Material Electrico
+,Bombillo LED 9W E27,Luz blanca 800 lumenes,12000,100,25,Material Electrico
+,Breaker 1x20A,Tipo riel din,18000,40,10,Material Electrico
+,Caja octogonal PVC,Para techo,5500,80,20,Material Electrico
+,Pintura vinilo blanco 1 galon,Acabado mate interior,65000,30,8,Pinturas y Acabados
+,Pintura vinilo blanco 5 galones,Acabado mate interior,280000,12,3,Pinturas y Acabados
+,Estuco plastico 5 kg,Para paredes y techos,32000,25,6,Pinturas y Acabados
+,Brocha 4",Cerda natural,15000,50,12,Pinturas y Acabados
+,Rodillo de lana 9",Para pinturas de agua,22000,35,8,Pinturas y Acabados
+,Manguera jardin 15 m con conectores,Reforzada con malla,90000,12,3,Jardineria
+,Tijera podadora bypass,Cuchilla curvada,48000,15,4,Jardineria
+,Pala redonda con mango,Mango de madera 90 cm,42000,18,5,Jardineria
+,Carretilla 80 L,Llanta neumatica,185000,6,2,Jardineria
+,Abono organico 20 kg,Compost mejorado,35000,25,6,Jardineria
+,Silicona transparente cartucho,Para sellado universal,22000,50,12,Adhesivos y Sellantes
+,Pegante de contacto 250 cc,Multiproposito,18000,35,8,Adhesivos y Sellantes
+,Cinta aislante negra 18 m,Vinilo PVC,4500,100,25,Adhesivos y Sellantes
+,Cinta enmascaramiento 24 mm x 40 m,Para pintura,9500,60,15,Adhesivos y Sellantes
