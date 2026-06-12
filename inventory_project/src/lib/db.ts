@@ -20,8 +20,8 @@ if (useNeonAdapter) {
     // WebSocket es un módulo CommonJS, asegurar que se pasa la clase correctamente
     if (WebSocket && typeof WebSocket === 'function') {
       neonConfig.webSocketConstructor = WebSocket as any
-    } else if (WebSocket && typeof WebSocket.default === 'function') {
-      neonConfig.webSocketConstructor = WebSocket.default as any
+    } else if ((WebSocket as any)?.default && typeof (WebSocket as any).default === 'function') {
+      neonConfig.webSocketConstructor = (WebSocket as any).default as any
     } else {
       throw new Error('[db] WebSocket constructor not available')
     }
