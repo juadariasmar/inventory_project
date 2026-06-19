@@ -4,6 +4,10 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Definimos el directorio de trabajo predeterminado para este job
+    defaults:
+      run:
+        working-directory: inventory_project
     steps:
       - uses: actions/checkout@v4
       - name: Instalar dependencias
