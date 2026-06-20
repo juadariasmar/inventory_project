@@ -25,7 +25,6 @@ jobs:
   create_neon_branch:
     name: Create Neon Branch
     outputs:
-      # Corregido: Ahora apunta a "create_neon_branch" en lugar de "create_neon_branch_encode"
       db_url: ${{ steps.create_neon_branch.outputs.db_url }}
       db_url_with_pooler: ${{ steps.create_neon_branch.outputs.db_url_with_pooler }}
     needs: setup
@@ -36,16 +35,16 @@ jobs:
       github.event.action == 'reopened')
     runs-on: ubuntu-latest
     steps:
-      - name: Get branch expiration date as an env variable (2 weeks from now)
-        id: get_expiration_date
-        run: echo "EXPIRES_AT=$(date -u --date '+14 days' +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+      # NOTA: Eliminamos o comentamos el step "get_expiration_date" si estás en el plan gratuito 
+      # para evitar que la variable EXPIRES_AT rompa la petición con un error 422.
 
       - name: Create Neon Branch
         id: create_neon_branch
         uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          # Simplificamos el nombre usando guiones en lugar de '/' para garantizar compatibilidad total
+          branch_name: preview-pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
   
   
@@ -96,5 +95,5 @@ jobs:
         uses: neondatabase/delete-branch-action@v3
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          branch: preview-pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
