@@ -43,10 +43,10 @@ jobs:
         uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          # Simplificamos el nombre usando guiones en lugar de '/' para garantizar compatibilidad total
           branch_name: preview-pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
-  
+          # Agrega esta línea para evitar el error 422 si la rama ya fue creada en ejecuciones anteriores
+          fallback_on_existing: true 
   
 
 # The step above creates a new Neon branch.
@@ -97,3 +97,4 @@ jobs:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           branch: preview-pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
+          fallback_on_existing: true
