@@ -6,10 +6,12 @@
   --color-primary: #2563eb; /* blue-600 */
   --color-primary-hover: #1d4ed8; /* blue-700 */
   --color-surface: #ffffff;
-  --color-error: #ef4444; /* red-500 */
-  --color-error-hover: #dc2626; /* red-600 */
-  --color-success: #10b981; /* emerald-500 */
+  --color-error: #b91c1c; /* red-700 */
+  --color-error-hover: #991b1b; /* red-800 */
+  --color-success: #047857; /* emerald-700 */
+  --color-success-hover: #065f46; /* emerald-800 */
   --color-border: #e5e7eb; /* gray-200 */
+  --color-focus: var(--color-primary);
 }
 
 @theme inline {
@@ -21,9 +23,22 @@
   --color-error: var(--color-error);
   --color-error-hover: var(--color-error-hover);
   --color-success: var(--color-success);
+  --color-success-hover: var(--color-success-hover);
   --color-border: var(--color-border);
+  --color-focus: var(--color-focus);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+@layer base {
+  a, button, input {
+    transition: all 200ms ease-in-out;
+  }
+  
+  *:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
 }
 
 body {
