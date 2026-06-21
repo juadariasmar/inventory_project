@@ -9,7 +9,7 @@
     "test:prisma-local": "tsx src/main-local.ts",
     "test:prisma": "tsx src/main.ts",
     "lint": "eslint",
-    "test": "jest",
+    "test": "jest --runInBand",
     "test:coverage": "jest --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
