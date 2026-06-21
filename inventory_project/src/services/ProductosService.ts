@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db'
+﻿import { prisma } from '@/lib/db'
 import { siguienteCodigoConsecutivoPorCategoria } from '@/lib/codigos'
 import { registrarAuditoria } from '@/lib/auditoria'
 import { AppError } from '@/lib/AppError'

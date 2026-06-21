@@ -20,6 +20,9 @@ describe('Productos API', () => {
   let categoriaId: number
   let productoId: number
 
+  let categoriaCreada = false
+  let usuarioCreado = false
+
   beforeAll(async () => {
     // Check if user 1 exists, if not create it
     let u = await prisma.usuario.findUnique({ where: { id: 1 } })
@@ -27,6 +30,7 @@ describe('Productos API', () => {
       u = await prisma.usuario.create({
         data: { id: 1, nombre: 'Admin', nombreUsuario: 'adminProdTest', contrasena: '1234' }
       })
+      usuarioCreado = true
     }
 
     let c = await prisma.categoria.findFirst({ where: { nombre: 'Test Cat Prod' } })
@@ -34,6 +38,7 @@ describe('Productos API', () => {
       c = await prisma.categoria.create({
         data: { nombre: 'Test Cat Prod', prefijo: 'TCP' }
       })
+      categoriaCreada = true
     }
     categoriaId = c.id
   })
@@ -44,8 +49,11 @@ describe('Productos API', () => {
       await prisma.itemCotizacion.deleteMany({ where: { productoId } })
       await prisma.producto.delete({ where: { id: productoId } })
     }
-    if (categoriaId) {
+    if (categoriaId && categoriaCreada) {
       await prisma.categoria.delete({ where: { id: categoriaId } })
+    }
+    if (usuarioCreado) {
+      await prisma.usuario.delete({ where: { id: 1 } })
     }
   })
 
