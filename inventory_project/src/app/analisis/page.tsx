@@ -1,29 +1,10 @@
 import { redirect } from 'next/navigation'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
-import dynamic from 'next/dynamic'
-
-const ChartSkeleton = () => <div className="w-full h-64 sm:h-80 bg-gray-50 animate-pulse rounded-lg flex items-center justify-center text-gray-400">Cargando gráfico...</div>
-
-const GraficoMovimientos = dynamic(() => import('@/componentes/GraficoMovimientos'), { 
-  ssr: false, 
-  loading: () => <ChartSkeleton /> 
-})
-const GraficoAltaRotacion = dynamic(() => import('@/componentes/GraficoAltaRotacion'), { 
-  ssr: false, 
-  loading: () => <ChartSkeleton /> 
-})
-const GraficoVentasDiarias = dynamic(() => import('@/componentes/GraficoVentasDiarias'), { 
-  ssr: false, 
-  loading: () => <ChartSkeleton /> 
-})
-const GraficoVentasCategoria = dynamic(() => import('@/componentes/GraficoVentasCategoria'), { 
-  ssr: false, 
-  loading: () => <ChartSkeleton /> 
-})
-const GraficoDistribucionStock = dynamic(() => import('@/componentes/GraficoDistribucionStock'), { 
-  ssr: false, 
-  loading: () => <ChartSkeleton /> 
-})
+import GraficoMovimientos from '@/componentes/GraficoMovimientos'
+import GraficoAltaRotacion from '@/componentes/GraficoAltaRotacion'
+import GraficoVentasDiarias from '@/componentes/GraficoVentasDiarias'
+import GraficoVentasCategoria from '@/componentes/GraficoVentasCategoria'
+import GraficoDistribucionStock from '@/componentes/GraficoDistribucionStock'
 import BotonExportarAnalisis from '@/componentes/BotonExportarAnalisis'
 import InventarioGeneralAgrupado from '@/componentes/InventarioGeneralAgrupado'
 import { obtenerTodoAnalisis } from '@/lib/analisis'
