@@ -31,14 +31,20 @@ describe('Cotizaciones API', () => {
     }
     usuarioId = u.id;
 
-    const c = await prisma.categoria.create({
-      data: { nombre: 'Test Cat Cot', prefijo: 'TCC' }
-    });
+    let c = await prisma.categoria.findFirst({ where: { nombre: 'Test Cat Cot' } });
+    if (!c) {
+      c = await prisma.categoria.create({
+        data: { nombre: 'Test Cat Cot', prefijo: 'TCC' }
+      });
+    }
     categoriaId = c.id;
 
-    const p = await prisma.producto.create({
-      data: { nombre: 'Test Cotiz', codigo: 'COT-123', cantidad: 5, precio: 100, categoriaId }
-    });
+    let p = await prisma.producto.findFirst({ where: { codigo: 'COT-123' } });
+    if (!p) {
+      p = await prisma.producto.create({
+        data: { nombre: 'Test Cotiz', codigo: 'COT-123', cantidad: 5, precio: 100, categoriaId }
+      });
+    }
     productoId = p.id;
   });
 
