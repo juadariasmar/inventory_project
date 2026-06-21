@@ -20,7 +20,7 @@
     "prisma:migrate": "prisma migrate deploy --schema=prisma/schema.prisma"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^1.1.0",
+    "@neondatabase/serverless": "^0.10.4",
     "@prisma/adapter-neon": "^5.22.0",
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^3.0.3",
