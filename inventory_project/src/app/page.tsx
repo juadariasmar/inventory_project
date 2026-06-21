@@ -7,6 +7,7 @@ import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 import { obtenerStockPorAgotarse, obtenerProductosSinMovimientos } from '@/lib/analisis'
 import { MARGEN_ALERTA_STOCK } from '@/lib/inventario'
 import { formatearFecha } from '@/lib/fechas'
+import { Suspense } from 'react'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,7 +44,7 @@ async function obtenerEstadisticas() {
   }
 }
 
-export default async function PaginaPrincipal() {
+async function ContenidoDashboard() {
   const [estadisticas, sesion] = await Promise.all([
     obtenerEstadisticas(),
     obtenerSesion()
@@ -60,8 +61,7 @@ export default async function PaginaPrincipal() {
   const alertasTotales = stockAgotarse.length + sinMovimientos.length
 
   return (
-    <LayoutProtegido>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <h1 className="text-2xl font-bold text-gray-800">Panel Principal</h1>
 
         {puedeVerAnalisis && alertasTotales > 0 && (
@@ -270,6 +270,19 @@ export default async function PaginaPrincipal() {
           )}
         </div>
       </div>
+  )
+}
+
+export default function PaginaPrincipal() {
+  return (
+    <LayoutProtegido>
+      <Suspense fallback={
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+        </div>
+      }>
+        <ContenidoDashboard />
+      </Suspense>
     </LayoutProtegido>
   )
 }
