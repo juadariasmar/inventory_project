@@ -23,6 +23,12 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
   },
+  {
+    // Fuerza HTTPS por 2 años en el dominio y subdominios.
+    // Activar 'preload' solo cuando el dominio esté listo para la lista HSTS preload.
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains",
+  },
 ]
 
 const nextConfig: NextConfig = {

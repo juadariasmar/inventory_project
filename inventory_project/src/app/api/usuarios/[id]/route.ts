@@ -4,6 +4,17 @@ import { prisma } from '@/lib/db'
 import { esAdmin, obtenerSesion } from '@/lib/permisos'
 import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
 
+/**
+ * Valida la fortaleza de una contraseña.
+ * Retorna un string con el mensaje de error, o null si es válida.
+ */
+function validarContrasena(contrasena: string): string | null {
+  if (contrasena.length < 8) return 'La contraseña debe tener al menos 8 caracteres.'
+  if (!/[A-Z]/.test(contrasena)) return 'La contraseña debe incluir al menos una letra mayúscula.'
+  if (!/[0-9]/.test(contrasena)) return 'La contraseña debe incluir al menos un número.'
+  return null
+}
+
 // GET - Obtener un usuario
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!(await esAdmin())) {
@@ -45,8 +56,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (datos.rol === 'ADMIN' || datos.rol === 'USUARIO') datosActualizar.rol = datos.rol
 
     if (datos.contrasena && datos.contrasena.length > 0) {
-      if (datos.contrasena.length < 6) {
-        return NextResponse.json({ error: 'La contraseña debe tener al menos 6 caracteres' }, { status: 400 })
+      const errorContrasena = validarContrasena(datos.contrasena)
+      if (errorContrasena) {
+        return NextResponse.json({ error: errorContrasena }, { status: 400 })
       }
       datosActualizar.contrasena = await bcrypt.hash(datos.contrasena, 10)
     }
