@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { prisma } from '@/lib/db'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
 import { VentasService } from '@/services/VentasService'
@@ -57,7 +56,6 @@ export async function POST(request: NextRequest) {
       consolidados.set(productoId, (consolidados.get(productoId) ?? 0) + cantidad)
     }
 
-    const productosIds = Array.from(consolidados.keys())
     const vendedorId = sesion.user.id ? parseInt(sesion.user.id, 10) : null
 
     const resultado = await VentasService.registrarVenta(consolidados, vendedorId, notas)
