@@ -200,24 +200,25 @@ export default function TerminalVentaRapida({
   const unidadesGeneral = cantidadTotalCarrito(carrito)
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Columna principal: buscador + carrito */}
-      <div className="lg:col-span-2 space-y-4">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
+      {/* Columna principal: buscador + recientes */}
+      <div className="lg:col-span-8 flex flex-col gap-6 bg-surface p-6 rounded-2xl shadow-sm border border-border">
         {/* Buscador */}
-        <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-foreground">Búsqueda de productos</h2>
           {error && (
-            <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm">
+            <div className="bg-red-50 text-red-700 p-3 rounded-xl text-sm transition-all duration-300">
               {error}
             </div>
           )}
           {exito && (
-            <div className="bg-emerald-50 text-emerald-700 p-3 rounded-md text-sm">
+            <div className="bg-emerald-50 text-emerald-700 p-3 rounded-xl text-sm transition-all duration-300">
               {exito}
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Producto (escribe para buscar o abre el listado)
             </label>
             <div className="relative" ref={contenedorRef}>
@@ -228,27 +229,25 @@ export default function TerminalVentaRapida({
                   const v = e.target.value
                   setBusqueda(v)
                   setSeleccionado(null)
-                  // Solo abrir el dropdown cuando hay texto escrito (busqueda activa).
-                  // Asi no se despliega solo al enfocar la pantalla.
                   setAbierto(v.trim().length > 0)
                 }}
                 onKeyDown={manejarTeclaBusqueda}
                 autoFocus
                 placeholder="Escribe para buscar o haz clic en ▾ para ver todos"
-                className="w-full px-3 py-3 pr-10 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-4 py-3 pr-10 text-lg border border-border rounded-xl focus:outline-none bg-surface text-foreground transition-all duration-200"
               />
               <button
                 type="button"
                 onClick={() => setAbierto((v) => !v)}
                 aria-label="Abrir listado de productos"
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-gray-500 hover:text-gray-800"
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-gray-500 hover:text-foreground transition-colors duration-200"
               >
-                <span className={`inline-block transition-transform ${abierto ? 'rotate-180' : ''}`}>
+                <span className={`inline-block transition-transform duration-200 ${abierto ? 'rotate-180' : ''}`}>
                   ▾
                 </span>
               </button>
               {abierto && opciones.length > 0 && (
-                <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-72 overflow-y-auto">
+                <div className="absolute z-10 mt-2 w-full bg-surface border border-border rounded-xl shadow-lg max-h-72 overflow-y-auto">
                   {opciones.map((p, i) => {
                     const esPrimera = !seleccionado && busqueda.trim() && i === 0
                     return (
@@ -256,13 +255,13 @@ export default function TerminalVentaRapida({
                         key={p.id}
                         type="button"
                         onClick={() => seleccionar(p)}
-                        className={`w-full text-left px-3 py-2 hover:bg-gray-100 border-b border-gray-100 last:border-b-0 ${
-                          esPrimera ? 'bg-emerald-50' : ''
+                        className={`w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-border last:border-b-0 transition-colors duration-150 ${
+                          esPrimera ? 'bg-emerald-50/50' : ''
                         }`}
                       >
                         <div className="flex justify-between items-center">
                           <div>
-                            <div className="font-medium text-gray-900">{p.nombre}</div>
+                            <div className="font-medium text-foreground">{p.nombre}</div>
                             <div className="text-xs text-gray-500">
                               {p.codigo} · Stock: {p.cantidad}
                             </div>
@@ -277,7 +276,7 @@ export default function TerminalVentaRapida({
                 </div>
               )}
               {abierto && opciones.length === 0 && (
-                <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg px-3 py-2 text-sm text-gray-500">
+                <div className="absolute z-10 mt-2 w-full bg-surface border border-border rounded-xl shadow-lg px-4 py-3 text-sm text-gray-500">
                   Sin coincidencias
                 </div>
               )}
@@ -285,23 +284,23 @@ export default function TerminalVentaRapida({
           </div>
 
           {seleccionado && (
-            <div className="bg-gray-50 p-4 rounded-md grid grid-cols-2 gap-3 text-sm">
+            <div className="bg-gray-50 p-4 rounded-xl grid grid-cols-2 gap-3 text-sm transition-all duration-300">
               <div>
                 <div className="text-xs text-gray-500">Stock disponible</div>
-                <div className="font-semibold">{seleccionado.cantidad}</div>
+                <div className="font-semibold text-foreground">{seleccionado.cantidad}</div>
               </div>
               <div>
                 <div className="text-xs text-gray-500">Precio unitario</div>
-                <div className="font-semibold">
+                <div className="font-semibold text-foreground">
                   ${seleccionado.precio.toLocaleString('es-MX')}
                 </div>
               </div>
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4 pt-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-foreground mb-1">
                 Cantidad
               </label>
               <input
@@ -310,15 +309,15 @@ export default function TerminalVentaRapida({
                 onChange={(e) => setCantidad(e.target.value)}
                 min={1}
                 max={seleccionado?.cantidad}
-                className="w-full px-3 py-3 text-lg border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-4 py-3 text-lg border border-border rounded-xl focus:outline-none bg-surface text-foreground transition-all duration-200"
               />
             </div>
-            <div className="flex items-end gap-2">
+            <div className="flex items-end gap-3">
               <button
                 type="button"
                 onClick={limpiarBuscador}
                 disabled={!seleccionado || guardando}
-                className="px-4 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                className="px-5 py-3 border border-border text-foreground rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-all duration-200"
               >
                 Limpiar
               </button>
@@ -326,190 +325,196 @@ export default function TerminalVentaRapida({
                 type="button"
                 onClick={agregarAlCarritoBoton}
                 disabled={!seleccionado || guardando}
-                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-base font-semibold"
+                className="flex-1 px-5 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 text-base font-semibold transition-all duration-200 shadow-sm"
               >
-                + Agregar producto
+                + Agregar
               </button>
             </div>
           </div>
         </div>
 
-        {/* Productos */}
-        <div className="bg-white rounded-lg shadow-md p-6 space-y-3">
-          <div className="flex justify-between items-baseline">
-            <h2 className="text-lg font-bold text-gray-800">Productos</h2>
-            <div className="text-sm text-gray-500">
-              {carrito.length} producto(s) · {unidadesGeneral} unidad(es)
+        <div className="border-t border-border my-2"></div>
+
+        {/* Resumen del día y recientes */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Total del dia */}
+          <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 text-white rounded-2xl shadow-sm p-6 flex flex-col justify-center transition-all duration-300 hover:shadow-md">
+            <div className="text-xs uppercase tracking-wider opacity-90 font-medium">
+              Vendido hoy
+            </div>
+            <div className="text-4xl font-bold mt-2">
+              ${totalHoy.toLocaleString('es-MX')}
+            </div>
+            <div className="text-sm opacity-90 mt-2 font-medium">
+              {ventasHoy} venta{ventasHoy !== 1 ? 's' : ''} registrada{ventasHoy !== 1 ? 's' : ''}
             </div>
           </div>
 
-          {carrito.length === 0 ? (
-            <p className="text-sm text-gray-500 py-6 text-center">
-              Aún no has agregado productos. Busca uno arriba o usa el botón{' '}
-              <span className="font-semibold">Vender</span> en la lista de productos.
-            </p>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="text-left px-3 py-2 font-medium text-gray-600">Producto</th>
-                      <th className="text-right px-3 py-2 font-medium text-gray-600">Precio</th>
-                      <th className="text-center px-3 py-2 font-medium text-gray-600">Cantidad</th>
-                      <th className="text-right px-3 py-2 font-medium text-gray-600">Subtotal</th>
-                      <th className="px-3 py-2"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {carrito.map((it) => (
-                      <tr key={it.productoId}>
-                        <td className="px-3 py-2">
-                          <div className="font-medium text-gray-900">{it.nombre}</div>
-                          <div className="text-xs text-gray-500">{it.codigo}</div>
-                        </td>
-                        <td className="px-3 py-2 text-right whitespace-nowrap">
-                          ${it.precio.toLocaleString('es-MX')}
-                        </td>
-                        <td className="px-3 py-2 text-center">
-                          <input
-                            type="number"
-                            min={1}
-                            max={it.stock}
-                            value={it.cantidad}
-                            onChange={(e) => cambiarCantidadItem(it.productoId, e.target.value)}
-                            className="w-20 px-2 py-1 border border-gray-300 rounded text-center"
-                          />
-                        </td>
-                        <td className="px-3 py-2 text-right font-semibold whitespace-nowrap">
-                          ${(it.precio * it.cantidad).toLocaleString('es-MX')}
-                        </td>
-                        <td className="px-3 py-2 text-right">
-                          <button
-                            type="button"
-                            onClick={() => quitarDelCarrito(it.productoId)}
-                            className="text-red-600 hover:text-red-800"
-                            title="Quitar del carrito"
-                          >
-                            ✕
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="flex justify-end pt-2">
-                <button
-                  type="button"
-                  onClick={limpiarCarrito}
-                  className="text-sm text-gray-500 hover:text-red-600 underline"
-                >
-                  Vaciar
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Resumen de venta (movido a columna principal, debajo del carrito) */}
-        <div className="bg-white rounded-lg shadow-md p-6 space-y-3">
-          <h2 className="text-lg font-bold text-gray-800">Resumen de venta</h2>
-          <div className="bg-emerald-50 border border-emerald-200 rounded-md p-4">
-            <div className="text-xs text-gray-600">Valor total</div>
-            <div className="text-3xl font-bold text-emerald-700">
-              ${totalGeneral.toLocaleString('es-MX')}
+          {/* Mis ventas recientes */}
+          <div className="flex flex-col h-full">
+            <div className="flex justify-between items-baseline mb-4">
+              <h3 className="text-lg font-bold text-foreground">Mis ventas recientes</h3>
+              <Link href="/ventas" className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200">
+                Ver historial →
+              </Link>
             </div>
-            {carrito.length > 0 && (
-              <div className="text-xs text-gray-500 mt-1">
-                {carrito.length} producto(s) · {unidadesGeneral} unidad(es)
-              </div>
+            {recientes.length === 0 ? (
+              <p className="text-sm text-gray-500 py-4 text-center bg-gray-50 rounded-xl flex-1 flex items-center justify-center">
+                Aún no has registrado ventas.
+              </p>
+            ) : (
+              <ul className="space-y-3 overflow-y-auto max-h-48 pr-2">
+                {recientes.slice(0, 3).map((v) => (
+                  <li
+                    key={v.id}
+                    className="rounded-xl border border-border p-4 hover:border-emerald-300 hover:shadow-sm transition-all duration-200 bg-surface"
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-base font-bold text-emerald-700">
+                          ${v.total.toLocaleString('es-MX')}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          Venta #{v.id} · {v.totalItems} producto(s)
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {formatearFechaHora(v.creadoEn)}
+                        </div>
+                      </div>
+                      <a
+                        href={`/ventas/${v.id}/recibo`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline whitespace-nowrap transition-colors duration-200"
+                      >
+                        Recibo →
+                      </a>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Notas (opcional)
-            </label>
-            <input
-              type="text"
-              value={notas}
-              onChange={(e) => setNotas(e.target.value)}
-              placeholder="Cliente, factura, etc."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={cobrar}
-            disabled={guardando || carrito.length === 0}
-            className="w-full px-4 py-3 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 disabled:opacity-50 text-lg font-semibold"
-          >
-            {guardando ? 'Vendiendo…' : 'Vender'}
-          </button>
         </div>
       </div>
 
-      {/* Sidebar: vendido hoy + recientes */}
-      <div className="space-y-4">
-        {/* Total del dia */}
-        <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 text-white rounded-lg shadow-md p-5">
-          <div className="text-xs uppercase tracking-wide opacity-90">
-            Vendido hoy
-          </div>
-          <div className="text-3xl font-bold mt-1">
-            ${totalHoy.toLocaleString('es-MX')}
-          </div>
-          <div className="text-xs opacity-90 mt-1">
-            {ventasHoy} venta{ventasHoy !== 1 ? 's' : ''} registrada{ventasHoy !== 1 ? 's' : ''}
+      {/* Columna lateral: carrito y cobro */}
+      <div className="lg:col-span-4 bg-surface p-6 rounded-2xl shadow-sm border border-border flex flex-col gap-6 sticky top-4 h-[calc(100vh-2rem)] overflow-y-auto">
+        <div className="flex justify-between items-baseline">
+          <h2 className="text-xl font-bold text-foreground">Carrito</h2>
+          <div className="text-sm text-gray-500 font-medium">
+            {carrito.length} item{carrito.length !== 1 ? 's' : ''}
           </div>
         </div>
 
-        {/* Mis ventas recientes */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-baseline mb-3">
-            <h2 className="text-lg font-bold text-gray-800">Mis ventas recientes</h2>
-            <Link href="/ventas" className="text-xs text-blue-600 hover:underline">
-              Ver historial →
-            </Link>
-          </div>
-          {recientes.length === 0 ? (
-            <p className="text-sm text-gray-500 py-4 text-center">
-              Aún no has registrado ventas.
-            </p>
+        <div className="flex-1 overflow-y-auto min-h-0 -mx-2 px-2">
+          {carrito.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 py-12">
+              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 border border-border">
+                <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <p className="text-sm">No hay productos agregados.</p>
+              <p className="text-xs mt-1">Busca un producto para comenzar.</p>
+            </div>
           ) : (
             <ul className="space-y-3">
-              {recientes.map((v) => (
-                <li
-                  key={v.id}
-                  className="rounded-md border border-gray-200 p-3 hover:border-emerald-300 hover:shadow-sm transition-all"
-                >
-                  <div className="flex justify-between items-start gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="text-base font-bold text-emerald-700">
-                        ${v.total.toLocaleString('es-MX')}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-0.5">
-                        Venta #{v.id} · {v.totalItems} producto(s)
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {formatearFechaHora(v.creadoEn)}
-                      </div>
+              {carrito.map((it) => (
+                <li key={it.productoId} className="flex gap-3 bg-gray-50 p-3 rounded-xl border border-transparent hover:border-gray-200 transition-colors duration-200">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-foreground truncate">{it.nombre}</div>
+                    <div className="text-xs text-gray-500 mb-2">{it.codigo} · ${it.precio.toLocaleString('es-MX')}</div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="number"
+                        min={1}
+                        max={it.stock}
+                        value={it.cantidad}
+                        onChange={(e) => cambiarCantidadItem(it.productoId, e.target.value)}
+                        className="w-16 px-2 py-1 text-sm border border-border rounded-lg text-center focus:outline-none bg-surface text-foreground transition-all duration-200"
+                      />
+                      <span className="text-xs text-gray-500">/ {it.stock} max</span>
                     </div>
-                    <a
-                      href={`/ventas/${v.id}/recibo`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:underline whitespace-nowrap"
+                  </div>
+                  <div className="flex flex-col items-end justify-between">
+                    <button
+                      type="button"
+                      onClick={() => quitarDelCarrito(it.productoId)}
+                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                      title="Quitar del carrito"
                     >
-                      Recibo →
-                    </a>
+                      ✕
+                    </button>
+                    <div className="font-bold text-foreground">
+                      ${(it.precio * it.cantidad).toLocaleString('es-MX')}
+                    </div>
                   </div>
                 </li>
               ))}
             </ul>
           )}
         </div>
+
+        {carrito.length > 0 && (
+          <div className="flex justify-end pt-2">
+            <button
+              type="button"
+              onClick={limpiarCarrito}
+              className="text-sm text-gray-500 hover:text-red-600 font-medium transition-colors duration-200"
+            >
+              Vaciar carrito
+            </button>
+          </div>
+        )}
+
+        <div className="border-t border-border"></div>
+
+        <div className="space-y-4">
+          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-5 transition-all duration-300">
+            <div className="flex justify-between items-end">
+              <div className="text-sm font-medium text-gray-600">Total a cobrar</div>
+              <div className="text-xs text-gray-500">{unidadesGeneral} unidad(es)</div>
+            </div>
+            <div className="text-4xl font-bold text-emerald-700 mt-1">
+              ${totalGeneral.toLocaleString('es-MX')}
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">
+              Notas adicionales
+            </label>
+            <input
+              type="text"
+              value={notas}
+              onChange={(e) => setNotas(e.target.value)}
+              placeholder="Cliente, factura, referencia..."
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none bg-surface text-foreground text-sm transition-all duration-200"
+            />
+          </div>
+          
+          <button
+            type="button"
+            onClick={cobrar}
+            disabled={guardando || carrito.length === 0}
+            className="w-full px-4 py-4 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 text-xl font-bold transition-all duration-200 shadow-md hover:shadow-lg disabled:shadow-none flex items-center justify-center gap-2"
+          >
+            {guardando ? (
+              <>
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Procesando...
+              </>
+            ) : (
+              'Cobrar'
+            )}
+          </button>
+        </div>
       </div>
     </div>
   )
 }
+
