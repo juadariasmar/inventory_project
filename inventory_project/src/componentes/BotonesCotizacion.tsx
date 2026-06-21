@@ -22,6 +22,12 @@ export default function BotonesCotizacion({
   const [trabajando, setTrabajando] = useState(false)
   const [error, setError] = useState('')
 
+  const cerrar = () => {
+    setAccion(null)
+    setMotivo('')
+    setError('')
+  }
+
   useEffect(() => {
     if (!accion) return
     const onKey = (e: KeyboardEvent) => {
@@ -30,12 +36,6 @@ export default function BotonesCotizacion({
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [accion, trabajando])
-
-  const cerrar = () => {
-    setAccion(null)
-    setMotivo('')
-    setError('')
-  }
 
   const convertir = async () => {
     if (!confirm('¿Convertir esta cotización en venta?\n\nSe descontará el stock y se generará una venta con los mismos items.')) {
