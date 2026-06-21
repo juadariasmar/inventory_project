@@ -31,14 +31,20 @@ describe('Movimientos API', () => {
     }
     usuarioId = u.id;
 
-    const c = await prisma.categoria.create({
-      data: { nombre: 'Test Cat Mov', prefijo: 'TCM' }
-    });
+    let c = await prisma.categoria.findFirst({ where: { nombre: 'Test Cat Mov' } });
+    if (!c) {
+      c = await prisma.categoria.create({
+        data: { nombre: 'Test Cat Mov', prefijo: 'TCM' }
+      });
+    }
     categoriaId = c.id;
 
-    const p = await prisma.producto.create({
-      data: { nombre: 'Test Prod Mov', codigo: 'TEST-MOV', cantidad: 10, precio: 100, categoriaId }
-    });
+    let p = await prisma.producto.findFirst({ where: { codigo: 'TEST-MOV' } });
+    if (!p) {
+      p = await prisma.producto.create({
+        data: { nombre: 'Test Prod Mov', codigo: 'TEST-MOV', cantidad: 10, precio: 100, categoriaId }
+      });
+    }
     productoId = p.id;
   });
 
