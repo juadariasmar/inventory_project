@@ -10,7 +10,7 @@ async function main() {
   const hashAdmin = await bcrypt.hash('Admin2024!', 10)
   const admin = await prisma.usuario.upsert({
     where: { nombreUsuario: 'admin' },
-    update: { rol: 'ADMIN' },
+    update: { rol: 'ADMIN', contrasena: hashAdmin },
     create: {
       nombreUsuario: 'admin',
       contrasena: hashAdmin,
@@ -25,7 +25,7 @@ async function main() {
   const hashUsuario = await bcrypt.hash('Usuario2024!', 10)
   const usuarioRegular = await prisma.usuario.upsert({
     where: { nombreUsuario: 'usuario' },
-    update: { rol: 'USUARIO' },
+    update: { rol: 'USUARIO', contrasena: hashUsuario },
     create: {
       nombreUsuario: 'usuario',
       contrasena: hashUsuario,
