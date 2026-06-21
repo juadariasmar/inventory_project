@@ -31,8 +31,10 @@
 }
 
 @layer base {
-  a, button, input {
+  a, button, input, select, textarea {
     transition: all 200ms ease-in-out;
+    min-height: 44px;
+    min-width: 44px;
   }
   
   *:focus-visible {
