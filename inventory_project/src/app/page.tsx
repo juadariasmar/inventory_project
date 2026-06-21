@@ -44,8 +44,10 @@ async function obtenerEstadisticas() {
 }
 
 export default async function PaginaPrincipal() {
-  const estadisticas = await obtenerEstadisticas()
-  const sesion = await obtenerSesion()
+  const [estadisticas, sesion] = await Promise.all([
+    obtenerEstadisticas(),
+    obtenerSesion()
+  ])
   const esAdmin = sesion?.user?.rol === 'ADMIN'
 
   const puedeVerAnalisis = await tienePermiso('VER_ANALISIS')
