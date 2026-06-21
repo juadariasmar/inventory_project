@@ -1,5 +1,6 @@
 import { POST } from '../../app/api/movimientos/route';
 import { createMockRequest } from '../utils/test-utils';
+import { NextRequest } from 'next/server';
 import { prisma } from '../../lib/db';
 
 jest.mock('../../lib/permisos', () => ({
@@ -48,7 +49,7 @@ describe('Movimientos API', () => {
       tipo: 'salida',
       cantidad: 50 // more than 10
     });
-    const res = await POST(req as any);
+    const res = await POST(req as unknown as NextRequest);
     expect(res.status).toBe(400);
     const data = await res.json();
     expect(data.error).toBeDefined();
@@ -61,7 +62,7 @@ describe('Movimientos API', () => {
       tipo: 'entrada',
       cantidad: 5
     });
-    const res = await POST(req as any);
+    const res = await POST(req as unknown as NextRequest);
     expect(res.status).toBe(201);
   });
 });
