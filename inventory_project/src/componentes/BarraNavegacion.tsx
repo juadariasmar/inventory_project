@@ -102,6 +102,7 @@ export default function BarraNavegacion() {
 
   // Cerrar dropdowns al navegar.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDropdownAbierto(null)
   }, [pathname])
 

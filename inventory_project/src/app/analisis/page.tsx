@@ -9,13 +9,19 @@ import BotonExportarAnalisis from '@/componentes/BotonExportarAnalisis'
 import InventarioGeneralAgrupado from '@/componentes/InventarioGeneralAgrupado'
 import { obtenerTodoAnalisis } from '@/lib/analisis'
 import { tienePermiso } from '@/lib/permisos'
+import { Suspense } from 'react'
 
 export const dynamic = 'force-dynamic'
 
-export default async function PaginaAnalisis() {
+async function ContenidoAnalisis() {
   if (!(await tienePermiso('VER_ANALISIS'))) {
     redirect('/')
   }
+
+  const [analisis, puedeExportar] = await Promise.all([
+    obtenerTodoAnalisis(),
+    tienePermiso('EXPORTAR_REPORTES')
+  ])
 
   const {
     inventarioGeneral,
@@ -27,8 +33,7 @@ export default async function PaginaAnalisis() {
     ventasPorDia,
     ventasPorCategoria,
     distribucionStock,
-  } = await obtenerTodoAnalisis()
-  const puedeExportar = await tienePermiso('EXPORTAR_REPORTES')
+  } = analisis
 
   // Contar productos UNICOS para evitar duplicados: muchos productos en
   // stock critico tambien aparecen en "por agotarse" porque ahora ambas
@@ -40,8 +45,7 @@ export default async function PaginaAnalisis() {
   const totalAlertas = productosUnicosEnAlerta.size
 
   return (
-    <LayoutProtegido>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Análisis e informes</h1>
@@ -207,6 +211,19 @@ export default async function PaginaAnalisis() {
           )}
         </section>
       </div>
+  )
+}
+
+export default function PaginaAnalisis() {
+  return (
+    <LayoutProtegido>
+      <Suspense fallback={
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+        </div>
+      }>
+        <ContenidoAnalisis />
+      </Suspense>
     </LayoutProtegido>
   )
 }

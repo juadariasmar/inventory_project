@@ -63,12 +63,12 @@ export default async function PaginaImportarProductos() {
             </p>
           </div>
 
-          <a
+          <Link
             href="/api/productos/plantilla"
             className="inline-block px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm"
           >
             ⬇ Descargar plantilla CSV (opcional)
-          </a>
+          </Link>
         </div>
 
         <FormularioImportarProductos />

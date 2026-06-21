@@ -4,13 +4,44 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    # Definimos el directorio de trabajo predeterminado para este job
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: rootpassword
+          POSTGRES_DB: inventory_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     defaults:
       run:
         working-directory: inventory_project
+
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Instalar dependencias
         run: npm install --legacy-peer-deps
+
+      - name: Preparar Base de Datos
+        env:
+          DATABASE_URL: postgresql://root:rootpassword@localhost:5432/inventory_test?schema=public
+          DATABASE_URL_UNPOOLED: postgresql://root:rootpassword@localhost:5432/inventory_test?schema=public
+        run: npx prisma db push
+
       - name: Ejecutar Tests con Jest
+        env:
+          DATABASE_URL: postgresql://root:rootpassword@localhost:5432/inventory_test?schema=public
+          DATABASE_URL_UNPOOLED: postgresql://root:rootpassword@localhost:5432/inventory_test?schema=public
         run: npm test -- --watchAll=false

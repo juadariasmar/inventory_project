@@ -20,6 +20,12 @@ export default function BotonCancelarVenta({
   const [cancelando, setCancelando] = useState(false)
   const [error, setError] = useState('')
 
+  const cerrar = () => {
+    setAbierto(false)
+    setMotivo('')
+    setError('')
+  }
+
   // Cerrar con Escape mientras el modal este abierto.
   useEffect(() => {
     if (!abierto) return
@@ -29,12 +35,6 @@ export default function BotonCancelarVenta({
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [abierto, cancelando])
-
-  const cerrar = () => {
-    setAbierto(false)
-    setMotivo('')
-    setError('')
-  }
 
   const cancelar = async () => {
     const motivoLimpio = motivo.trim()

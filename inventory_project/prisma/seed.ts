@@ -55,6 +55,23 @@ async function main() {
 
   console.log('Categorías creadas:', categorias.length)
 
+  // Crear un producto de ejemplo para que los tests E2E de venta no fallen si la BD está vacía.
+  const categoriaEjemplo = await prisma.categoria.findFirst()
+  if (categoriaEjemplo) {
+    await prisma.producto.upsert({
+      where: { codigo: 'E2E-TEST-001' },
+      update: {},
+      create: {
+        codigo: 'E2E-TEST-001',
+        nombre: 'Producto de Prueba E2E',
+        precio: 15000,
+        cantidad: 100,
+        categoriaId: categoriaEjemplo.id,
+      },
+    })
+    console.log('Producto de prueba E2E asegurado.')
+  }
+
   console.log('Seed completado!')
 }
 
