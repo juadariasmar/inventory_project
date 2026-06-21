@@ -1,0 +1,67 @@
+import { POST } from '../../app/api/movimientos/route';
+import { createMockRequest } from '../utils/test-utils';
+import { prisma } from '../../lib/db';
+
+jest.mock('../../lib/permisos', () => ({
+  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 1, role: 'admin' } }),
+  tienePermiso: jest.fn().mockResolvedValue(true)
+}));
+
+// Mock NextAuth to avoid the error 'jose' package issues or edge runtime issues in tests
+jest.mock('next-auth/jwt', () => ({
+  getToken: jest.fn().mockResolvedValue({ id: 1, role: 'admin' })
+}));
+
+jest.mock('next/cache', () => ({
+  revalidatePath: jest.fn()
+}));
+
+describe('Movimientos API', () => {
+  let productoId: number;
+  let categoriaId: number;
+
+  beforeAll(async () => {
+    const c = await prisma.categoria.create({
+      data: { nombre: 'Test Cat Mov', prefijo: 'TCM' }
+    });
+    categoriaId = c.id;
+
+    const p = await prisma.producto.create({
+      data: { nombre: 'Test Prod Mov', codigo: 'TEST-MOV', cantidad: 10, precio: 100, categoriaId }
+    });
+    productoId = p.id;
+  });
+
+  afterAll(async () => {
+    if (productoId) {
+      await prisma.movimiento.deleteMany({ where: { productoId } });
+      await prisma.producto.delete({ where: { id: productoId } });
+    }
+    if (categoriaId) {
+      await prisma.categoria.delete({ where: { id: categoriaId } });
+    }
+  });
+
+  it('prevents exit movement if stock is insufficient', async () => {
+    const req = createMockRequest('http://localhost/api/movimientos', 'POST', '127.0.0.1', {
+      productoId,
+      tipo: 'salida',
+      cantidad: 50 // more than 10
+    });
+    const res = await POST(req as any);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBeDefined();
+    expect(data.error).toContain('suficiente');
+  });
+
+  it('allows entry movement', async () => {
+    const req = createMockRequest('http://localhost/api/movimientos', 'POST', '127.0.0.1', {
+      productoId,
+      tipo: 'entrada',
+      cantidad: 5
+    });
+    const res = await POST(req as any);
+    expect(res.status).toBe(201);
+  });
+});
