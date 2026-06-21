@@ -139,6 +139,17 @@ export async function POST(request: NextRequest) {
       if (!(archivo instanceof File) || archivo.size === 0) {
         return NextResponse.json({ error: 'No se recibió ningún archivo.' }, { status: 400 })
       }
+
+      const LIMITE_BYTES = 10 * 1024 * 1024 // 10 MB
+      if (archivo.size > LIMITE_BYTES) {
+        return NextResponse.json(
+          {
+            error: `El archivo excede el límite de 10 MB (tamaño recibido: ${(archivo.size / 1024 / 1024).toFixed(1)} MB).`,
+          },
+          { status: 413 }
+        )
+      }
+
       const nombre = archivo.name.toLowerCase()
       const buffer = Buffer.from(await archivo.arrayBuffer())
       if (nombre.endsWith('.xlsx') || nombre.endsWith('.xlsm')) {
@@ -166,6 +177,16 @@ export async function POST(request: NextRequest) {
 
     if (encabezados.length === 0) {
       return NextResponse.json({ error: 'El archivo está vacío.' }, { status: 400 })
+    }
+
+    const LIMITE_FILAS = 5000
+    if (filas.length > LIMITE_FILAS) {
+      return NextResponse.json(
+        {
+          error: `El archivo contiene ${filas.length.toLocaleString()} filas. El máximo permitido es ${LIMITE_FILAS.toLocaleString()}.`,
+        },
+        { status: 400 }
+      )
     }
 
     const { mapeo, ignoradas, faltantes } = mapearColumnas(encabezados, CAMPOS_REQUERIDOS)

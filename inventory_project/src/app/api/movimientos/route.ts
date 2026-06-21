@@ -39,6 +39,21 @@ export async function POST(request: NextRequest) {
     const cantidad = parseInt(datos.cantidad)
     const tipo = datos.tipo // 'entrada' o 'salida'
 
+    // Validar tipo antes de cualquier operacion de BD.
+    if (tipo !== 'entrada' && tipo !== 'salida') {
+      return NextResponse.json(
+        { error: 'El tipo de movimiento debe ser "entrada" o "salida".' },
+        { status: 400 }
+      )
+    }
+
+    if (!productoId || isNaN(productoId) || isNaN(cantidad) || cantidad <= 0) {
+      return NextResponse.json(
+        { error: 'Se requiere un productoId valido y una cantidad mayor a 0.' },
+        { status: 400 }
+      )
+    }
+
     const puedeRegistrar = await tienePermiso('REGISTRAR_MOVIMIENTOS')
     const puedeVender = await tienePermiso('REALIZAR_VENTAS')
     const autorizado = puedeRegistrar || (puedeVender && tipo === 'salida')
@@ -49,35 +64,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Obtener el producto actual
-    const producto = await prisma.producto.findUnique({
-      where: { id: productoId },
-    })
+    // Toda la operacion (validacion de stock + creacion + actualizacion) ocurre
+    // dentro de la transaccion para evitar race conditions.
+    // Se usa increment/decrement atomico: PostgreSQL ejecuta
+    //   UPDATE productos SET cantidad = cantidad +/- N WHERE id = X
+    // lo que es seguro ante accesos concurrentes.
+    const movimiento = await prisma.$transaction(async (tx) => {
+      // Verificar existencia y stock dentro de la tx.
+      const producto = await tx.producto.findUnique({
+        where: { id: productoId },
+        select: { id: true, cantidad: true },
+      })
 
-    if (!producto) {
-      return NextResponse.json(
-        { error: 'Producto no encontrado' },
-        { status: 404 }
-      )
-    }
+      if (!producto) throw new Error('PRODUCTO_NO_ENCONTRADO')
 
-    // Calcular nueva cantidad
-    const nuevaCantidad =
-      tipo === 'entrada'
-        ? producto.cantidad + cantidad
-        : producto.cantidad - cantidad
+      if (tipo === 'salida' && producto.cantidad < cantidad) {
+        throw new Error(`STOCK_INSUFICIENTE:${producto.cantidad}:${cantidad}`)
+      }
 
-    // Validar que no quede stock negativo
-    if (nuevaCantidad < 0) {
-      return NextResponse.json(
-        { error: 'No hay suficiente stock para esta salida' },
-        { status: 400 }
-      )
-    }
-
-    // Crear el movimiento y actualizar el producto en una transacción
-    const [movimiento] = await prisma.$transaction([
-      prisma.movimiento.create({
+      const mov = await tx.movimiento.create({
         data: {
           productoId,
           tipo,
@@ -85,12 +90,18 @@ export async function POST(request: NextRequest) {
           notas: datos.notas || null,
         },
         include: { producto: true },
-      }),
-      prisma.producto.update({
+      })
+
+      // Actualizacion atomica: no usa valor absoluto precalculado fuera de la tx.
+      await tx.producto.update({
         where: { id: productoId },
-        data: { cantidad: nuevaCantidad },
-      }),
-    ])
+        data: tipo === 'entrada'
+          ? { cantidad: { increment: cantidad } }
+          : { cantidad: { decrement: cantidad } },
+      })
+
+      return mov
+    })
 
     await registrarAuditoria({
       accion: 'CREAR',
@@ -98,7 +109,6 @@ export async function POST(request: NextRequest) {
       entidadId: movimiento.id,
       datos: {
         despues: movimiento,
-        productoNuevaCantidad: nuevaCantidad,
       },
       ip: extraerIp(request),
     })
@@ -111,6 +121,18 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(movimiento, { status: 201 })
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === 'PRODUCTO_NO_ENCONTRADO') {
+        return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
+      }
+      if (error.message.startsWith('STOCK_INSUFICIENTE:')) {
+        const [, actual, solicitado] = error.message.split(':')
+        return NextResponse.json(
+          { error: `No hay suficiente stock para esta salida. Disponible: ${actual}, solicitado: ${solicitado}.` },
+          { status: 400 }
+        )
+      }
+    }
     console.error('Error al crear movimiento:', error)
     return NextResponse.json(
       { error: 'Error al crear movimiento' },
