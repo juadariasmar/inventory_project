@@ -1,5 +1,6 @@
 import { POST } from '../../app/api/cotizaciones/route';
 import { createMockRequest } from '../utils/test-utils';
+import { NextRequest } from 'next/server';
 import { prisma } from '../../lib/db';
 
 jest.mock('../../lib/permisos', () => ({
@@ -49,7 +50,7 @@ describe('Cotizaciones API', () => {
       clienteNombre: 'Cliente 1',
       items: [{ productoId, cantidad: 5, precioUnitario: 100 }]
     });
-    const res1 = await POST(req1 as any);
+    const res1 = await POST(req1 as unknown as NextRequest);
     expect(res1.status).toBe(201);
 
     // 2. Second quote trying to reserve 1 item should fail due to insufficient stock
@@ -58,7 +59,7 @@ describe('Cotizaciones API', () => {
       clienteNombre: 'Cliente 2',
       items: [{ productoId, cantidad: 1, precioUnitario: 100 }]
     });
-    const res2 = await POST(req2 as any);
+    const res2 = await POST(req2 as unknown as NextRequest);
     expect(res2.status).toBe(400);
     const data = await res2.json();
     expect(data.error).toContain('insuficiente');
