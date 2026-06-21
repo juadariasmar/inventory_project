@@ -19,8 +19,18 @@ jest.mock('next/cache', () => ({
 describe('Cotizaciones API', () => {
   let productoId: number;
   let categoriaId: number;
+  let usuarioId: number;
 
   beforeAll(async () => {
+    // Check if user 1 exists, if not create it
+    let u = await prisma.usuario.findUnique({ where: { id: 1 } });
+    if (!u) {
+      u = await prisma.usuario.create({
+        data: { id: 1, nombre: 'Admin', nombreUsuario: 'adminTest', contrasena: '1234' }
+      });
+    }
+    usuarioId = u.id;
+
     const c = await prisma.categoria.create({
       data: { nombre: 'Test Cat Cot', prefijo: 'TCC' }
     });
@@ -40,6 +50,10 @@ describe('Cotizaciones API', () => {
     }
     if (categoriaId) {
       await prisma.categoria.delete({ where: { id: categoriaId } });
+    }
+    if (usuarioId) {
+      await prisma.auditoria.deleteMany({ where: { usuarioId } });
+      await prisma.usuario.delete({ where: { id: usuarioId } });
     }
   });
 
