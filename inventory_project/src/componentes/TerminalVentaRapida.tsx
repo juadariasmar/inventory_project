@@ -234,13 +234,13 @@ export default function TerminalVentaRapida({
                 onKeyDown={manejarTeclaBusqueda}
                 autoFocus
                 placeholder="Escribe para buscar o haz clic en ▾ para ver todos"
-                className="w-full px-4 py-3 pr-10 text-lg border border-border rounded-xl focus:outline-none bg-surface text-foreground transition-all duration-200"
+                className="w-full px-4 py-3 pr-10 text-lg border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-surface text-foreground transition-all duration-200"
               />
               <button
                 type="button"
                 onClick={() => setAbierto((v) => !v)}
                 aria-label="Abrir listado de productos"
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-gray-500 hover:text-foreground transition-colors duration-200"
+                className="absolute right-2 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] rounded-lg text-gray-500 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors duration-200"
               >
                 <span className={`inline-block transition-transform duration-200 ${abierto ? 'rotate-180' : ''}`}>
                   ▾
@@ -255,7 +255,7 @@ export default function TerminalVentaRapida({
                         key={p.id}
                         type="button"
                         onClick={() => seleccionar(p)}
-                        className={`w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-border last:border-b-0 transition-colors duration-150 ${
+                        className={`w-full text-left px-4 py-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary border-b border-border last:border-b-0 transition-colors duration-150 ${
                           esPrimera ? 'bg-emerald-50/50' : ''
                         }`}
                       >
@@ -309,7 +309,7 @@ export default function TerminalVentaRapida({
                 onChange={(e) => setCantidad(e.target.value)}
                 min={1}
                 max={seleccionado?.cantidad}
-                className="w-full px-4 py-3 text-lg border border-border rounded-xl focus:outline-none bg-surface text-foreground transition-all duration-200"
+                className="w-full px-4 py-3 text-lg border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-surface text-foreground transition-all duration-200"
               />
             </div>
             <div className="flex items-end gap-3">
@@ -317,7 +317,7 @@ export default function TerminalVentaRapida({
                 type="button"
                 onClick={limpiarBuscador}
                 disabled={!seleccionado || guardando}
-                className="px-5 py-3 border border-border text-foreground rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-all duration-200"
+                className="px-5 py-3 border border-border text-foreground rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50 transition-all duration-200"
               >
                 Limpiar
               </button>
@@ -325,7 +325,7 @@ export default function TerminalVentaRapida({
                 type="button"
                 onClick={agregarAlCarritoBoton}
                 disabled={!seleccionado || guardando}
-                className="flex-1 px-5 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 text-base font-semibold transition-all duration-200 shadow-sm"
+                className="flex-1 px-5 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 text-base font-semibold transition-all duration-200 shadow-sm"
               >
                 + Agregar
               </button>
@@ -432,7 +432,7 @@ export default function TerminalVentaRapida({
                         max={it.stock}
                         value={it.cantidad}
                         onChange={(e) => cambiarCantidadItem(it.productoId, e.target.value)}
-                        className="w-16 px-2 py-1 text-sm border border-border rounded-lg text-center focus:outline-none bg-surface text-foreground transition-all duration-200"
+                        className="w-16 px-2 py-1 text-sm border border-border rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-surface text-foreground transition-all duration-200"
                       />
                       <span className="text-xs text-gray-500">/ {it.stock} max</span>
                     </div>
@@ -441,7 +441,7 @@ export default function TerminalVentaRapida({
                     <button
                       type="button"
                       onClick={() => quitarDelCarrito(it.productoId)}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                      className="p-3 min-h-[44px] min-w-[44px] text-gray-400 hover:text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-primary rounded-lg transition-colors duration-200"
                       title="Quitar del carrito"
                     >
                       ✕
@@ -461,7 +461,7 @@ export default function TerminalVentaRapida({
             <button
               type="button"
               onClick={limpiarCarrito}
-              className="text-sm text-gray-500 hover:text-red-600 font-medium transition-colors duration-200"
+              className="px-4 py-2 min-h-[44px] rounded-lg text-sm text-gray-500 hover:text-red-600 font-medium focus:outline-none focus:ring-2 focus:ring-primary transition-colors duration-200"
             >
               Vaciar carrito
             </button>
@@ -490,7 +490,7 @@ export default function TerminalVentaRapida({
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
               placeholder="Cliente, factura, referencia..."
-              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none bg-surface text-foreground text-sm transition-all duration-200"
+              className="w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-surface text-foreground text-sm transition-all duration-200"
             />
           </div>
           
@@ -498,7 +498,7 @@ export default function TerminalVentaRapida({
             type="button"
             onClick={cobrar}
             disabled={guardando || carrito.length === 0}
-            className="w-full px-4 py-4 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 text-xl font-bold transition-all duration-200 shadow-md hover:shadow-lg disabled:shadow-none flex items-center justify-center gap-2"
+            className="w-full px-4 py-4 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 text-xl font-bold transition-all duration-200 shadow-md hover:shadow-lg disabled:shadow-none flex items-center justify-center gap-2"
           >
             {guardando ? (
               <>
