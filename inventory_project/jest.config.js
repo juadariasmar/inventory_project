@@ -5,4 +5,7 @@ module.exports = {
   testMatch: ['**/__tests__/**/*.test.ts'],
   verbose: true,
   collectCoverageFrom: ['src/lib/inventario.ts'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
 }
