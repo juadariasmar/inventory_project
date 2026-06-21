@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     const data = await request.json();
     const ip = extraerIp(request);
     
-    const categoria = await CategoriasService.crear(data, ip);
+    const categoria = await CategoriasService.crear(data, ip ?? '127.0.0.1');
 
     revalidatePath('/categorias');
     revalidatePath('/productos/categorias');

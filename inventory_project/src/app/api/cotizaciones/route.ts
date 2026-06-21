@@ -4,6 +4,8 @@ import { prisma } from '@/lib/db'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
 import { obtenerDisponiblePorProducto } from '@/lib/reservas'
+import { CotizacionesService } from '@/services/CotizacionesService'
+import { AppError } from '@/lib/AppError'
 
 interface ItemEntrada {
   productoId: number
@@ -87,95 +89,13 @@ export async function POST(request: NextRequest) {
       consolidados.set(productoId, (consolidados.get(productoId) ?? 0) + cantidad)
     }
 
-    const productosIds = Array.from(consolidados.keys())
-    const [productos, disponiblePorProducto] = await Promise.all([
-      prisma.producto.findMany({ where: { id: { in: productosIds } } }),
-      obtenerDisponiblePorProducto(productosIds),
-    ])
-    const mapaProductos = new Map(productos.map((p) => [p.id, p]))
-
-    // Validar contra stock DISPONIBLE (fisico - reservado en otras cotizaciones).
-    const itemsValidados: { productoId: number; cantidad: number; precio: number; nombre: string; codigo: string }[] = []
-    for (const [productoId, cantidad] of consolidados.entries()) {
-      const p = mapaProductos.get(productoId)
-      if (!p) {
-        return NextResponse.json(
-          { error: `Producto ${productoId} no encontrado.` },
-          { status: 404 }
-        )
-      }
-      const disponible = disponiblePorProducto.get(productoId) ?? 0
-      if (cantidad > disponible) {
-        return NextResponse.json(
-          {
-            error: `Stock insuficiente para "${p.nombre}". Solicitas ${cantidad}, disponible ${disponible} (físico ${p.cantidad} − reservado en otras cotizaciones).`,
-          },
-          { status: 400 }
-        )
-      }
-      itemsValidados.push({
-        productoId: p.id,
-        cantidad,
-        precio: p.precio,
-        nombre: p.nombre,
-        codigo: p.codigo,
-      })
-    }
-
-    const total = itemsValidados.reduce((s, it) => s + it.precio * it.cantidad, 0)
     const vendedorId = sesion.user.id ? parseInt(sesion.user.id, 10) : null
-    const validaHasta = new Date()
-    validaHasta.setDate(validaHasta.getDate() + diasValidez)
-    const ahora = new Date()
-
-    // La creacion de la cotizacion ocurre dentro de una transaccion.
-    // Se re-verifica la disponibilidad usando el cliente tx para que la lectura
-    // de reservas sea atomica con la insercion de los nuevos items.
-    const cotizacion = await prisma.$transaction(async (tx) => {
-      for (const it of itemsValidados) {
-        const prod = await tx.producto.findUnique({
-          where: { id: it.productoId },
-          select: { cantidad: true, nombre: true },
-        })
-        const reservasActuales = await tx.itemCotizacion.aggregate({
-          where: {
-            productoId: it.productoId,
-            cotizacion: { estado: 'PENDIENTE', validaHasta: { gt: ahora } },
-          },
-          _sum: { cantidad: true },
-        })
-        const disponibleTx = Math.max(
-          0,
-          (prod?.cantidad ?? 0) - (reservasActuales._sum.cantidad ?? 0)
-        )
-        if (it.cantidad > disponibleTx) {
-          throw new Error(
-            `STOCK_INSUFICIENTE:${prod?.nombre ?? it.productoId}:${it.cantidad}:${disponibleTx}`
-          )
-        }
-      }
-
-      return tx.cotizacion.create({
-        data: {
-          vendedorId,
-          cliente: cliente || null,
-          total,
-          notas: notas || null,
-          validaHasta,
-          items: {
-            create: itemsValidados.map((it) => ({
-              productoId: it.productoId,
-              cantidad: it.cantidad,
-              precioUnitario: it.precio,
-              subtotal: it.precio * it.cantidad,
-            })),
-          },
-        },
-        include: {
-          items: { include: { producto: { select: { nombre: true, codigo: true } } } },
-        },
-      })
-    })
+    
+    const resultado = await CotizacionesService.crearCotizacion(consolidados, vendedorId, notas, cliente, diasValidez)
+    const cotizacion = resultado.cotizacion
+    const total = resultado.total
+    const validaHasta = resultado.validaHasta
+    const itemsValidadosResult = resultado.itemsValidados
 
     await registrarAuditoria({
       accion: 'CREAR',
@@ -187,7 +107,7 @@ export async function POST(request: NextRequest) {
           cliente: cliente || null,
           total,
           validaHasta,
-          totalItems: itemsValidados.length,
+          totalItems: itemsValidadosResult.length,
           notas: notas || null,
         },
       },
@@ -201,6 +121,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(cotizacion, { status: 201 })
   } catch (error) {
+    if (error instanceof AppError) {
+      return NextResponse.json({ error: error.message }, { status: error.statusCode })
+    }
     if (error instanceof Error && error.message.startsWith('STOCK_INSUFICIENTE:')) {
       const partes = error.message.split(':')
       const nombre = partes[1]
