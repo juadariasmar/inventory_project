@@ -1,4 +1,5 @@
 import { prisma } from '../lib/db'
+import { Prisma } from '@prisma/client'
 import { StockService } from './StockService'
 import { obtenerReservasPorProducto } from '../lib/reservas'
 import { AppError } from '../lib/AppError'
@@ -9,7 +10,7 @@ export const VentasService = {
       const productosIds = Array.from(consolidados.keys())
       const productos = await tx.producto.findMany({ where: { id: { in: productosIds } } })
       const mapaProductos = new Map(productos.map((p) => [p.id, p]))
-      const reservas = await obtenerReservasPorProducto(productosIds, tx as any)
+      const reservas = await obtenerReservasPorProducto(productosIds, tx as Prisma.TransactionClient)
 
       const itemsValidados = []
       for (const [productoId, cantidad] of consolidados.entries()) {
