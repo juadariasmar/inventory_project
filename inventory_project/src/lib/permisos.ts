@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { opcionesAuth } from './auth'
-import { Rol, Permiso } from '@prisma/client'
+import { Permiso } from '@prisma/client'
 import { prisma } from './db'
 import { cache } from 'react'
 
