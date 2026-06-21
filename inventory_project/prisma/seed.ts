@@ -7,7 +7,7 @@ async function main() {
   console.log('Iniciando seed...')
 
   // Usuario administrador
-  const hashAdmin = await bcrypt.hash('admin123', 10)
+  const hashAdmin = await bcrypt.hash('Admin2024!', 10)
   const admin = await prisma.usuario.upsert({
     where: { nombreUsuario: 'admin' },
     update: { rol: 'ADMIN' },
@@ -22,7 +22,7 @@ async function main() {
   console.log('Usuario creado:', admin.nombreUsuario, '(', admin.rol, ')')
 
   // Usuario regular de ejemplo
-  const hashUsuario = await bcrypt.hash('usuario123', 10)
+  const hashUsuario = await bcrypt.hash('Usuario2024!', 10)
   const usuarioRegular = await prisma.usuario.upsert({
     where: { nombreUsuario: 'usuario' },
     update: { rol: 'USUARIO' },
