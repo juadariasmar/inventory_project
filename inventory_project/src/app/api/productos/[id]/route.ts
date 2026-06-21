@@ -51,8 +51,30 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
   try {
     const { id } = await params
     const productoId = parseInt(id)
+    if (isNaN(productoId) || productoId <= 0) {
+      return NextResponse.json({ error: 'ID inválido.' }, { status: 400 })
+    }
+
     const datos = await request.json()
-    const nuevaCantidad = parseInt(datos.cantidad)
+    const nuevaCantidad = parseInt(String(datos.cantidad ?? ''), 10)
+    if (isNaN(nuevaCantidad) || nuevaCantidad < 0) {
+      return NextResponse.json({ error: 'La cantidad debe ser un número entero no negativo.' }, { status: 400 })
+    }
+
+    const nombre = typeof datos.nombre === 'string' ? datos.nombre.trim() : ''
+    if (!nombre || nombre.length < 2) {
+      return NextResponse.json({ error: 'El nombre debe tener al menos 2 caracteres.' }, { status: 400 })
+    }
+
+    const precio = parseFloat(datos.precio)
+    if (!Number.isFinite(precio) || precio < 0) {
+      return NextResponse.json({ error: 'El precio debe ser un número válido no negativo.' }, { status: 400 })
+    }
+
+    const stockMinimo = parseInt(String(datos.stockMinimo ?? '1'), 10)
+    if (isNaN(stockMinimo) || stockMinimo < 0) {
+      return NextResponse.json({ error: 'El stock mínimo debe ser un número entero no negativo.' }, { status: 400 })
+    }
 
     const actual = await prisma.producto.findUnique({
       where: { id: productoId },

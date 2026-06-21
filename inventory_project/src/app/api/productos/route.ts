@@ -5,17 +5,34 @@ import { esAdmin, obtenerSesion } from '@/lib/permisos'
 import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
 import { siguienteCodigoConsecutivoPorCategoria } from '@/lib/codigos'
 
-// GET - Obtener todos los productos
-export async function GET() {
+// GET - Obtener todos los productos (con paginacion por cursor)
+export async function GET(request: NextRequest) {
   if (!(await obtenerSesion())?.user) {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
   }
   try {
+    const cursorStr = request.nextUrl.searchParams.get('cursor')
+    const limiteStr = request.nextUrl.searchParams.get('limite')
+    
+    const limite = Math.min(parseInt(limiteStr ?? '50', 10), 100)
+    const cursor = cursorStr && !isNaN(parseInt(cursorStr, 10)) ? parseInt(cursorStr, 10) : undefined
+
     const productos = await prisma.producto.findMany({
       include: { categoria: true },
       orderBy: { creadoEn: 'desc' },
+      take: limite + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     })
-    return NextResponse.json(productos)
+
+    const hayMas = productos.length > limite
+    const items = hayMas ? productos.slice(0, limite) : productos
+    const nextCursor = hayMas ? items[items.length - 1].id : null
+
+    return NextResponse.json({
+      items,
+      nextCursor,
+      total: items.length
+    })
   } catch (error) {
     console.error('Error al obtener productos:', error)
     return NextResponse.json(
