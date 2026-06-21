@@ -15,6 +15,7 @@ export const CategoriasService = {
     });
   },
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async crear(datos: any, ip: string) {
     const nombre = typeof datos.nombre === 'string' ? datos.nombre.trim() : '';
     if (!nombre) {
