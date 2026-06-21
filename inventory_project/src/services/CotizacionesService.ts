@@ -14,7 +14,7 @@ export const CotizacionesService = {
       ? Math.min(365, diasValidezInput)
       : DIAS_VALIDEZ_DEFECTO
 
-    const itemsValidados = []
+    const itemsValidados: { productoId: number; cantidad: number; precio: number; nombre: string; codigo: string }[] = []
     for (const [productoId, cantidad] of consolidados.entries()) {
       const p = mapaProductos.get(productoId)
       if (!p) throw new AppError(`Producto ${productoId} no encontrado.`, 404)
