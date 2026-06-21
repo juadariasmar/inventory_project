@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { revalidatePath } from 'next/cache'
-import { prisma } from '@/lib/db'
+import { MovimientosService } from '@/services/MovimientosService'
+import { AppError } from '@/lib/AppError'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
-import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
+import { extraerIp } from '@/lib/auditoria'
+import { revalidatePath } from 'next/cache'
 
 // GET - Obtener todos los movimientos (con paginacion por cursor)
 export async function GET(request: NextRequest) {
@@ -16,22 +17,9 @@ export async function GET(request: NextRequest) {
     const limite = Math.min(parseInt(limiteStr ?? '50', 10), 100)
     const cursor = cursorStr && !isNaN(parseInt(cursorStr, 10)) ? parseInt(cursorStr, 10) : undefined
 
-    const movimientos = await prisma.movimiento.findMany({
-      include: { producto: true },
-      orderBy: { creadoEn: 'desc' },
-      take: limite + 1,
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-    })
+    const resultado = await MovimientosService.obtenerMovimientos(cursor, limite)
 
-    const hayMas = movimientos.length > limite
-    const items = hayMas ? movimientos.slice(0, limite) : movimientos
-    const nextCursor = hayMas ? items[items.length - 1].id : null
-
-    return NextResponse.json({
-      items,
-      nextCursor,
-      total: items.length
-    })
+    return NextResponse.json(resultado)
   } catch (error) {
     console.error('Error al obtener movimientos:', error)
     return NextResponse.json(
@@ -42,34 +30,15 @@ export async function GET(request: NextRequest) {
 }
 
 // POST - Crear un nuevo movimiento
-//   - REGISTRAR_MOVIMIENTOS habilita cualquier tipo (entrada y salida)
-//   - REALIZAR_VENTAS habilita solo movimientos de salida (via boton Vender o
-//     pantalla Ventas)
 export async function POST(request: NextRequest) {
-  if (!(await obtenerSesion())?.user) {
-    return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
-  }
   try {
-    const datos = await request.json()
-
-    const productoId = parseInt(datos.productoId)
-    const cantidad = parseInt(datos.cantidad)
-    const tipo = datos.tipo // 'entrada' o 'salida'
-
-    // Validar tipo antes de cualquier operacion de BD.
-    if (tipo !== 'entrada' && tipo !== 'salida') {
-      return NextResponse.json(
-        { error: 'El tipo de movimiento debe ser "entrada" o "salida".' },
-        { status: 400 }
-      )
+    const session = await obtenerSesion()
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
 
-    if (!productoId || isNaN(productoId) || isNaN(cantidad) || cantidad <= 0) {
-      return NextResponse.json(
-        { error: 'Se requiere un productoId valido y una cantidad mayor a 0.' },
-        { status: 400 }
-      )
-    }
+    const data = await request.json()
+    const tipo = data.tipo
 
     const puedeRegistrar = await tienePermiso('REGISTRAR_MOVIMIENTOS')
     const puedeVender = await tienePermiso('REALIZAR_VENTAS')
@@ -81,55 +50,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Toda la operacion (validacion de stock + creacion + actualizacion) ocurre
-    // dentro de la transaccion para evitar race conditions.
-    // Se usa increment/decrement atomico: PostgreSQL ejecuta
-    //   UPDATE productos SET cantidad = cantidad +/- N WHERE id = X
-    // lo que es seguro ante accesos concurrentes.
-    const movimiento = await prisma.$transaction(async (tx) => {
-      // Verificar existencia y stock dentro de la tx.
-      const producto = await tx.producto.findUnique({
-        where: { id: productoId },
-        select: { id: true, cantidad: true },
-      })
-
-      if (!producto) throw new Error('PRODUCTO_NO_ENCONTRADO')
-
-      if (tipo === 'salida' && producto.cantidad < cantidad) {
-        throw new Error(`STOCK_INSUFICIENTE:${producto.cantidad}:${cantidad}`)
-      }
-
-      const mov = await tx.movimiento.create({
-        data: {
-          productoId,
-          tipo,
-          cantidad,
-          notas: datos.notas || null,
-        },
-        include: { producto: true },
-      })
-
-      // Actualizacion atomica: no usa valor absoluto precalculado fuera de la tx.
-      await tx.producto.update({
-        where: { id: productoId },
-        data: tipo === 'entrada'
-          ? { cantidad: { increment: cantidad } }
-          : { cantidad: { decrement: cantidad } },
-      })
-
-      return mov
-    })
-
-    await registrarAuditoria({
-      accion: 'CREAR',
-      entidad: 'Movimiento',
-      entidadId: movimiento.id,
-      datos: {
-        despues: movimiento,
-      },
-      ip: extraerIp(request),
-    })
-
+    const ip = extraerIp(request)
+    const usuarioId = parseInt(session.user.id as string, 10)
+    
+    const movimiento = await MovimientosService.registrarMovimiento(data, usuarioId, ip || '')
+    
     revalidatePath('/movimientos')
     revalidatePath('/movimientos/nuevo')
     revalidatePath('/productos')
@@ -138,22 +63,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(movimiento, { status: 201 })
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === 'PRODUCTO_NO_ENCONTRADO') {
-        return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
-      }
-      if (error.message.startsWith('STOCK_INSUFICIENTE:')) {
-        const [, actual, solicitado] = error.message.split(':')
-        return NextResponse.json(
-          { error: `No hay suficiente stock para esta salida. Disponible: ${actual}, solicitado: ${solicitado}.` },
-          { status: 400 }
-        )
-      }
+    if (error instanceof AppError) {
+      return NextResponse.json({ error: error.message }, { status: error.statusCode })
     }
     console.error('Error al crear movimiento:', error)
-    return NextResponse.json(
-      { error: 'Error al crear movimiento' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Error al crear movimiento' }, { status: 500 })
   }
 }
