@@ -5,7 +5,7 @@ import TarjetaEstadisticaDoble from '@/componentes/TarjetaEstadisticaDoble'
 import Link from 'next/link'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 import { obtenerStockPorAgotarse, obtenerProductosSinMovimientos } from '@/lib/analisis'
-import { estadoStock } from '@/lib/inventario'
+import { MARGEN_ALERTA_STOCK } from '@/lib/inventario'
 import { formatearFecha } from '@/lib/fechas'
 
 export const dynamic = 'force-dynamic'
@@ -14,43 +14,32 @@ async function obtenerEstadisticas() {
   const [
     totalProductos,
     totalCategorias,
-    productos,
     movimientosRecientes,
+    [metricasDB]
   ] = await Promise.all([
     prisma.producto.count(),
     prisma.categoria.count(),
-    prisma.producto.findMany({
-      select: { cantidad: true, stockMinimo: true, precio: true },
-    }),
     prisma.movimiento.findMany({
       take: 5,
       orderBy: { creadoEn: 'desc' },
       include: { producto: true },
     }),
+    prisma.$queryRaw<{ valorInventario: number, productosSinStock: number, productosStockBajo: number }[]>`
+      SELECT 
+        COALESCE(SUM(precio * cantidad), 0)::float as "valorInventario",
+        COALESCE(SUM(CASE WHEN cantidad <= 0 THEN 1 ELSE 0 END), 0)::int as "productosSinStock",
+        COALESCE(SUM(CASE WHEN cantidad > 0 AND cantidad <= "stockMinimo" + ${MARGEN_ALERTA_STOCK} THEN 1 ELSE 0 END), 0)::int as "productosStockBajo"
+      FROM "Producto"
+    `
   ])
-
-  // Separar conteos de "sin stock" y "stock bajo" para mostrar en tarjetas distintas
-  let productosSinStock = 0
-  let productosStockBajo = 0
-  for (const p of productos) {
-    const e = estadoStock({ nombre: '', codigo: '', ...p })
-    if (e === 'sin_stock') productosSinStock++
-    else if (e === 'stock_bajo') productosStockBajo++
-  }
-
-  // Calcular valor total del inventario
-  const valorInventario = productos.reduce(
-    (total, p) => total + p.precio * p.cantidad,
-    0
-  )
 
   return {
     totalProductos,
     totalCategorias,
-    productosSinStock,
-    productosStockBajo,
+    productosSinStock: Number(metricasDB?.productosSinStock || 0),
+    productosStockBajo: Number(metricasDB?.productosStockBajo || 0),
     movimientosRecientes,
-    valorInventario,
+    valorInventario: Number(metricasDB?.valorInventario || 0),
   }
 }
 
