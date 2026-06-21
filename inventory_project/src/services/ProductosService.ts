@@ -1,4 +1,4 @@
-﻿import { prisma } from '@/lib/db'
+import { prisma } from '@/lib/db'
 import { siguienteCodigoConsecutivoPorCategoria } from '@/lib/codigos'
 import { registrarAuditoria } from '@/lib/auditoria'
 import { AppError } from '@/lib/AppError'
@@ -25,6 +25,7 @@ export const ProductosService = {
     }
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async crear(datos: any, ip: string | null) {
     const cantidadInicial = parseInt(datos.cantidad) || 0
 

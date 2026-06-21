@@ -12,6 +12,7 @@ function validarContrasena(contrasena: string): string | null {
 const permisosValidos = ['VER_ANALISIS', 'EXPORTAR_REPORTES', 'REGISTRAR_MOVIMIENTOS', 'REALIZAR_VENTAS'] as const
 
 export const UsuariosService = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async crearUsuario(datos: any) {
     if (!datos.nombreUsuario || !datos.contrasena || !datos.nombre) {
       throw new AppError('Campos requeridos faltantes', 400)
@@ -54,7 +55,9 @@ export const UsuariosService = {
     })
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async actualizarUsuario(id: number, datos: any) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const datosActualizar: any = {}
 
     if (datos.nombre) datosActualizar.nombre = datos.nombre
