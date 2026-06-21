@@ -1,4 +1,5 @@
 import { prisma } from '../lib/db';
+import { Prisma } from '@prisma/client';
 import { AppError } from '../lib/AppError';
 import { StockService } from './StockService';
 
@@ -33,7 +34,7 @@ export const MovimientosService = {
     }
 
     if (!productoId || isNaN(productoId) || isNaN(cantidad) || cantidad <= 0) {
-      throw new AppError('Se requiere un productoId válido y una cantidad mayor a 0.', 400);
+      throw new AppError('Se requiere un productoId valido y una cantidad mayor a 0.', 400);
     }
 
     return await prisma.$transaction(async (tx) => {
@@ -82,7 +83,7 @@ export const MovimientosService = {
           accion: 'CREAR',
           entidad: 'Movimiento',
           entidadId: movimiento.id,
-          datos: { despues: movimiento } as any,
+          datos: { despues: movimiento } as unknown as Prisma.InputJsonObject,
           ip
         }
       });
