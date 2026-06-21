@@ -36,6 +36,11 @@ export default async function PaginaAnalisis() {
     redirect('/')
   }
 
+  const [analisis, puedeExportar] = await Promise.all([
+    obtenerTodoAnalisis(),
+    tienePermiso('EXPORTAR_REPORTES')
+  ])
+
   const {
     inventarioGeneral,
     stockAgotarse,
@@ -46,8 +51,7 @@ export default async function PaginaAnalisis() {
     ventasPorDia,
     ventasPorCategoria,
     distribucionStock,
-  } = await obtenerTodoAnalisis()
-  const puedeExportar = await tienePermiso('EXPORTAR_REPORTES')
+  } = analisis
 
   // Contar productos UNICOS para evitar duplicados: muchos productos en
   // stock critico tambien aparecen en "por agotarse" porque ahora ambas
