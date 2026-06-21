@@ -1,19 +1,17 @@
 import { PrismaClient } from '@prisma/client'
+import { Pool, neonConfig } from '@neondatabase/serverless'
+import { PrismaNeon } from '@prisma/adapter-neon'
+import ws from 'ws'
 
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient }
+neonConfig.webSocketConstructor = ws
+const connectionString = process.env.DATABASE_URL || ''
+const pool = new Pool({ connectionString })
+const adapter = new PrismaNeon(pool)
 
-let prisma: PrismaClient
+const prismaGlobal = global as unknown as { prisma: PrismaClient }
 
-// Usar cliente Prisma estándar con DATABASE_URL de Neon
-// Neon proporciona una connection string compatible con PostgreSQL estándar
-prisma = globalForPrisma.prisma ?? new PrismaClient({
-  log: process.env.NODE_ENV === 'development'
-    ? [{ emit: 'stdout', level: 'warn' }, { emit: 'stdout', level: 'error' }]
-    : [{ emit: 'stdout', level: 'error' }],
-})
+export const prisma =
+  prismaGlobal.prisma ||
+  new PrismaClient({ adapter, log: ['error'] })
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma
-}
-
-export { prisma }
+if (process.env.NODE_ENV !== 'production') prismaGlobal.prisma = prisma
