@@ -1,0 +1,590 @@
+# Instincts generated from https://github.com/juadariasmar/inventory_project
+# Generated: 2026-06-21T12:04:51.935Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: inventory_project-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/juadariasmar/inventory_project
+---
+
+# Inventory_project Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: fix, docs, feat, chore, test
+
+## Evidence
+
+- 13 commits analyzed
+- Detected conventional commit pattern
+- Examples: fix: resolve race conditions, enhance security and add DoS protection, chore: implement remaining audit fixes (pagination, validation, enum)
+
+---
+id: inventory_project-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/juadariasmar/inventory_project
+---
+
+# Inventory_project Commit Length
+
+## Action
+
+Keep commit messages concise (~48 characters)
+
+## Evidence
+
+- Average commit message length: 48 chars
+- Based on 13 commits
+
+---
+id: inventory_project-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/juadariasmar/inventory_project
+---
+
+# Inventory_project Naming Files
+
+## Action
+
+Use camelCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: camelCase
+
+---
+id: inventory_project-import-alias
+trigger: "when importing modules"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/juadariasmar/inventory_project
+---
+
+# Inventory_project Import Alias
+
+## Action
+
+Use path aliases (@/, ~/) instead of relative imports
+
+## Evidence
+
+- Import analysis shows alias pattern
+- Example: import { x } from '@/lib/x'
+
+---
+id: inventory_project-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/juadariasmar/inventory_project
+---
+
+# Inventory_project Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: inventory_project-arch-type-based
+trigger: "when adding new code"
+confidence: 0.8
+domain: architecture
+source: repo-analysis
+source_repo: https://github.com/juadariasmar/inventory_project
+---
+
+# Inventory_project Arch Type Based
+
+## Action
+
+Place code in the appropriate type folder (components/, services/, utils/, etc.)
+
+## Evidence
+
+- Type-based module organization detected
+- Folders: 
+
+---
+id: inventory_project-test-framework
+trigger: "when writing tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/juadariasmar/inventory_project
+---
+
+# Inventory_project Test Framework
+
+## Action
+
+Use jest as the test framework
+
+## Evidence
+
+- Test framework detected: jest
+- File pattern: *.test.ts
+
+---
+id: inventory_project-test-naming
+trigger: "when creating a test file"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/juadariasmar/inventory_project
+---
+
+# Inventory_project Test Naming
+
+## Action
+
+Name test files using the pattern: *.test.ts
+
+## Evidence
+
+- File pattern: *.test.ts
+- Consistent across test files
+
+---
+id: inventory_project-workflow-feature-development
+trigger: "when implementing a new feature"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/juadariasmar/inventory_project
+---
+
+# Inventory_project Workflow Feature Development
+
+## Action
+
+Follow the feature-development workflow:
+1. Add feature implementation
+2. Add tests for feature
+3. Update documentation
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~16x per month
+- Files: inventory_project/*, inventory_project/src/app/api/cotizaciones/*, inventory_project/src/app/api/movimientos/*
+
+---
+id: inventory_project-workflow-service-extraction-or-implementation
+trigger: "when doing service extraction or implementation"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/juadariasmar/inventory_project
+---
+
+# Inventory_project Workflow Service Extraction Or Implementation
+
+## Action
+
+Follow the service-extraction-or-implementation workflow:
+1. Create or update a service file in src/services (e.g., StockService.ts, VentasService.ts)
+2. Add or update corresponding test file in __tests__ (e.g., StockService.test.ts, AppError.test.ts)
+3. Update API route or other files to use the new service (optional, depending on refactor)
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: inventory_project/src/services/*.ts, inventory_project/__tests__/*.test.ts
+
+---
+id: inventory_project-workflow-database-schema-change-with-migration
+trigger: "when doing database schema change with migration"
+confidence: 0.55
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/juadariasmar/inventory_project
+---
+
+# Inventory_project Workflow Database Schema Change With Migration
+
+## Action
+
+Follow the database-schema-change-with-migration workflow:
+1. Edit prisma/schema.prisma
+2. Generate a new migration in prisma/migrations
+3. Update seed.ts or related files for new/changed data
+4. Update affected API route files in src/app/api
+5. Regenerate Prisma client (node_modules/.prisma/client/* updated)
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~1x per month
+- Files: inventory_project/prisma/schema.prisma, inventory_project/prisma/migrations/*/migration.sql, inventory_project/prisma/seed.ts
+
+---
+id: inventory_project-workflow-documentation-spec-or-plan-update
+trigger: "when doing documentation spec or plan update"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/juadariasmar/inventory_project
+---
+
+# Inventory_project Workflow Documentation Spec Or Plan Update
+
+## Action
+
+Follow the documentation-spec-or-plan-update workflow:
+1. Create or update a spec or plan markdown file in docs/superpowers/specs or docs/superpowers/plans
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: docs/superpowers/specs/*.md, docs/superpowers/plans/*.md
+
+---
+id: inventory_project-workflow-test-fix-or-cleanup
+trigger: "when doing test fix or cleanup"
+confidence: 0.55
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/juadariasmar/inventory_project
+---
+
+# Inventory_project Workflow Test Fix Or Cleanup
+
+## Action
+
+Follow the test-fix-or-cleanup workflow:
+1. Edit test files in __tests__
+2. Remove or update related code in src/lib
+3. Update test database setup files if needed
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~1x per month
+- Files: inventory_project/__tests__/*.test.ts, inventory_project/src/lib/*.ts, inventory_project/test-db.mjs
+
+---
+id: inventory_project-instinct-file-naming
+trigger: "When creating or renaming a file"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: juadariasmar/inventory_project
+---
+
+# Inventory_project Instinct File Naming
+
+## Action
+
+Use camelCase for file names
+
+## Evidence
+
+- Pattern in namingConventions.files
+- inventory_project/src/app/api/cotizaciones/route.ts
+
+---
+id: inventory_project-instinct-function-naming
+trigger: "When defining a function"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: juadariasmar/inventory_project
+---
+
+# Inventory_project Instinct Function Naming
+
+## Action
+
+Use camelCase for function names
+
+## Evidence
+
+- Pattern in namingConventions.functions
+- inventory_project/src/services/StockService.ts
+
+---
+id: inventory_project-instinct-class-naming
+trigger: "When defining a class"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: juadariasmar/inventory_project
+---
+
+# Inventory_project Instinct Class Naming
+
+## Action
+
+Use PascalCase for class names
+
+## Evidence
+
+- Pattern in namingConventions.classes
+- feat: implement AppError class
+
+---
+id: inventory_project-instinct-constant-naming
+trigger: "When declaring a constant"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: juadariasmar/inventory_project
+---
+
+# Inventory_project Instinct Constant Naming
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for constant names
+
+## Evidence
+
+- Pattern in namingConventions.constants
+
+---
+id: inventory_project-instinct-import-alias
+trigger: "When importing modules"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: juadariasmar/inventory_project
+---
+
+# Inventory_project Instinct Import Alias
+
+## Action
+
+Use alias import style
+
+## Evidence
+
+- Pattern in importStyle
+- inventory_project/src/app/api/cotizaciones/route.ts
+
+---
+id: inventory_project-instinct-named-exports
+trigger: "When exporting functions or classes"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: juadariasmar/inventory_project
+---
+
+# Inventory_project Instinct Named Exports
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- Pattern in exportStyle
+- inventory_project/src/services/StockService.ts
+
+---
+id: inventory_project-instinct-test-file-pattern
+trigger: "When creating a test file"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: juadariasmar/inventory_project
+---
+
+# Inventory_project Instinct Test File Pattern
+
+## Action
+
+Name the file with the pattern *.test.ts and place in __tests__ directory
+
+## Evidence
+
+- Pattern in testing.filePattern
+- inventory_project/__tests__/StockService.test.ts
+
+---
+id: inventory_project-instinct-unit-test-jest
+trigger: "When writing tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: juadariasmar/inventory_project
+---
+
+# Inventory_project Instinct Unit Test Jest
+
+## Action
+
+Use Jest for unit testing
+
+## Evidence
+
+- Pattern in testing.framework
+- test: fix open handles and remove dead code
+
+---
+id: inventory_project-instinct-test-type-unit
+trigger: "When adding new tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: juadariasmar/inventory_project
+---
+
+# Inventory_project Instinct Test Type Unit
+
+## Action
+
+Focus on unit tests
+
+## Evidence
+
+- Pattern in testing.testTypes
+- inventory_project/__tests__/StockService.test.ts
+
+---
+id: inventory_project-instinct-git-commit-format
+trigger: "When writing a commit message"
+confidence: 0.95
+domain: git
+source: repo-analysis
+source_repo: juadariasmar/inventory_project
+---
+
+# Inventory_project Instinct Git Commit Format
+
+## Action
+
+Use conventional commit format with prefixes: fix, docs, feat, chore, test, refactor
+
+## Evidence
+
+- fix: resolve race conditions, enhance security and add DoS protection
+- docs: add clean code refactor design spec
+- feat: implement AppError class
+
+---
+id: inventory_project-instinct-git-commit-length
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: juadariasmar/inventory_project
+---
+
+# Inventory_project Instinct Git Commit Length
+
+## Action
+
+Keep commit messages concise, around 48 characters on average
+
+## Evidence
+
+- Pattern in commits.averageLength
+
+---
+id: inventory_project-instinct-service-extraction
+trigger: "When refactoring logic into a dedicated service or adding a new service"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: juadariasmar/inventory_project
+---
+
+# Inventory_project Instinct Service Extraction
+
+## Action
+
+Create or update a service file in src/services and add/update corresponding test file in __tests__
+
+## Evidence
+
+- service-extraction-or-implementation workflow
+- inventory_project/src/services/StockService.ts
+- inventory_project/__tests__/StockService.test.ts
+
+---
+id: inventory_project-instinct-db-migration
+trigger: "When adding or changing a database table, enum, or field"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: juadariasmar/inventory_project
+---
+
+# Inventory_project Instinct Db Migration
+
+## Action
+
+Edit prisma/schema.prisma, generate migration, update seed.ts, update affected API routes, and regenerate Prisma client
+
+## Evidence
+
+- database-schema-change-with-migration workflow
+- inventory_project/prisma/schema.prisma
+- inventory_project/prisma/migrations/*/migration.sql
+
+---
+id: inventory_project-instinct-doc-spec-update
+trigger: "When documenting a new feature, refactor, or implementation plan"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: juadariasmar/inventory_project
+---
+
+# Inventory_project Instinct Doc Spec Update
+
+## Action
+
+Create or update a markdown file in docs/superpowers/specs or docs/superpowers/plans
+
+## Evidence
+
+- documentation-spec-or-plan-update workflow
+- docs: add clean code refactor design spec
+- docs/superpowers/specs/*.md
+
+---
+id: inventory_project-instinct-test-fix-cleanup
+trigger: "When improving test reliability or cleaning up test-related code"
+confidence: 0.8
+domain: workflow
+source: repo-analysis
+source_repo: juadariasmar/inventory_project
+---
+
+# Inventory_project Instinct Test Fix Cleanup
+
+## Action
+
+Edit test files in __tests__, update/remove related code in src/lib, and update test database setup files if needed
+
+## Evidence
+
+- test-fix-or-cleanup workflow
+- test: fix open handles and remove dead code
+- inventory_project/__tests__/StockService.test.ts
+
