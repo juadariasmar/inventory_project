@@ -126,26 +126,55 @@ export async function POST(request: NextRequest) {
     const vendedorId = sesion.user.id ? parseInt(sesion.user.id, 10) : null
     const validaHasta = new Date()
     validaHasta.setDate(validaHasta.getDate() + diasValidez)
+    const ahora = new Date()
 
-    const cotizacion = await prisma.cotizacion.create({
-      data: {
-        vendedorId,
-        cliente: cliente || null,
-        total,
-        notas: notas || null,
-        validaHasta,
-        items: {
-          create: itemsValidados.map((it) => ({
+    // La creacion de la cotizacion ocurre dentro de una transaccion.
+    // Se re-verifica la disponibilidad usando el cliente tx para que la lectura
+    // de reservas sea atomica con la insercion de los nuevos items.
+    const cotizacion = await prisma.$transaction(async (tx) => {
+      for (const it of itemsValidados) {
+        const prod = await tx.producto.findUnique({
+          where: { id: it.productoId },
+          select: { cantidad: true, nombre: true },
+        })
+        const reservasActuales = await tx.itemCotizacion.aggregate({
+          where: {
             productoId: it.productoId,
-            cantidad: it.cantidad,
-            precioUnitario: it.precio,
-            subtotal: it.precio * it.cantidad,
-          })),
+            cotizacion: { estado: 'PENDIENTE', validaHasta: { gt: ahora } },
+          },
+          _sum: { cantidad: true },
+        })
+        const disponibleTx = Math.max(
+          0,
+          (prod?.cantidad ?? 0) - (reservasActuales._sum.cantidad ?? 0)
+        )
+        if (it.cantidad > disponibleTx) {
+          throw new Error(
+            `STOCK_INSUFICIENTE:${prod?.nombre ?? it.productoId}:${it.cantidad}:${disponibleTx}`
+          )
+        }
+      }
+
+      return tx.cotizacion.create({
+        data: {
+          vendedorId,
+          cliente: cliente || null,
+          total,
+          notas: notas || null,
+          validaHasta,
+          items: {
+            create: itemsValidados.map((it) => ({
+              productoId: it.productoId,
+              cantidad: it.cantidad,
+              precioUnitario: it.precio,
+              subtotal: it.precio * it.cantidad,
+            })),
+          },
         },
-      },
-      include: {
-        items: { include: { producto: { select: { nombre: true, codigo: true } } } },
-      },
+        include: {
+          items: { include: { producto: { select: { nombre: true, codigo: true } } } },
+        },
+      })
     })
 
     await registrarAuditoria({
@@ -172,6 +201,18 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(cotizacion, { status: 201 })
   } catch (error) {
+    if (error instanceof Error && error.message.startsWith('STOCK_INSUFICIENTE:')) {
+      const partes = error.message.split(':')
+      const nombre = partes[1]
+      const solicitado = partes[2]
+      const disponible = partes[3]
+      return NextResponse.json(
+        {
+          error: `Stock insuficiente para "${nombre}". Solicitas ${solicitado}, disponible ${disponible} (físico − reservado en otras cotizaciones).`,
+        },
+        { status: 400 }
+      )
+    }
     console.error('Error al crear cotización:', error)
     return NextResponse.json(
       { error: 'Error al crear la cotización' },
