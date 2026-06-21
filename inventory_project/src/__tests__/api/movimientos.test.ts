@@ -20,8 +20,17 @@ jest.mock('next/cache', () => ({
 describe('Movimientos API', () => {
   let productoId: number;
   let categoriaId: number;
+  let usuarioId: number;
 
   beforeAll(async () => {
+    let u = await prisma.usuario.findUnique({ where: { id: 1 } });
+    if (!u) {
+      u = await prisma.usuario.create({
+        data: { id: 1, nombre: 'Admin', nombreUsuario: 'adminTestMov', contrasena: '1234' }
+      });
+    }
+    usuarioId = u.id;
+
     const c = await prisma.categoria.create({
       data: { nombre: 'Test Cat Mov', prefijo: 'TCM' }
     });
@@ -40,6 +49,10 @@ describe('Movimientos API', () => {
     }
     if (categoriaId) {
       await prisma.categoria.delete({ where: { id: categoriaId } });
+    }
+    if (usuarioId) {
+      await prisma.auditoria.deleteMany({ where: { usuarioId } });
+      await prisma.usuario.delete({ where: { id: usuarioId } });
     }
   });
 
