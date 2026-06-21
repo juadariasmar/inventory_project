@@ -13,28 +13,30 @@ Create a `src/services/` directory to house domain logic:
 - **`MovimientosService.ts`**: Handles inventory movements (entries and adjustments).
 - **`StockService.ts`**: A shared utility service for atomic operations (increment/decrement) and stock availability validation.
 
+### Error Handling Standard
+Introduce a global `AppError` class (e.g., `src/lib/AppError.ts`) that extends `Error` and includes an HTTP `statusCode` property. Services will throw `new AppError("Stock Insuficiente", 400)`. API routes will catch these errors and automatically map the status code and message to the `NextResponse`, eliminating brittle string-parsing in the `catch` blocks.
+
 ### API Route Refactor
 API routes will become "thin controllers". They will only:
 1. Parse and validate the incoming HTTP request.
 2. Delegate to the corresponding Service.
-3. Return the formatted HTTP Response.
+3. Catch `AppError` to return structured HTTP Responses.
 
 ## 2. Frontend Abstractions
 UI components currently duplicate presentation and state logic.
 
 ### Structural Changes
-- **`<FiltrosBase>` Component**: Unify `FiltrosAuditoria` and `FiltrosVentas` into a single customizable component that accepts field configurations via props.
-- **`<ListaBaseFiltrable>` Component**: Unify the visual lists that handle pagination and tabular data display.
-- **Hooks**: Create `useFormularioInventario()` to extract form state, submission logic, and generic error handling shared between `FormularioMovimiento`, `FormularioProducto`, and others.
+- **`<FiltrosBase>` Component**: Unify `FiltrosAuditoria` and `FiltrosVentas` into a single customizable component that handles URL query synchronization (`useSearchParams`, `useRouter`) using a generic configuration array.
+- **Hooks**: Create `useFormularioInventario()` to extract form state, submission logic (`fetch`), `isLoading`, and generic error handling shared between `FormularioMovimiento`, `FormularioProducto`, and others.
 
-## 3. Dead Code Elimination
-Based on the `knip` report, we will remove orphaned code to reduce maintenance overhead.
+## 3. Database Adapters and Dead Code Elimination
+Based on the `knip` report and design decisions, we will clean and properly configure the environment.
+- **Database Configuration (Neon)**: Instead of removing the Neon packages, we will implement `@neondatabase/serverless` and `@prisma/adapter-neon` properly inside `src/lib/db.ts`. This ensures the database connection is future-proof for Edge deployments (Serverless) natively.
 - **Unused Files**: Delete `test-db.mjs`.
-- **Ghost Dependencies**: Remove `@neondatabase/serverless`, `@prisma/adapter-neon`, and `ws` from `package.json` unless a valid use case for Edge environments is confirmed.
 - **Unused Exports**: Clean up exported functions and types in `lib/permisos.ts`, `lib/analisis.ts`, and `lib/codigos.ts` that have no consumers.
 
 ## 4. Stability and Testing
-- **Test Teardown**: Address the Jest "Open Handles" warning by ensuring the global Prisma instance is disconnected in an `afterAll()` block within the test setup.
+- **Test Teardown**: Address the Jest "Open Handles" warning by ensuring the global Prisma instance is disconnected in an `afterAll()` block within the test setup (`afterAll(async () => await prisma.$disconnect())`).
 - **TDD Requirement**: As required by the TDD skill, new helper structures or services must be validated through tests first.
 
 ## Scope Limits
