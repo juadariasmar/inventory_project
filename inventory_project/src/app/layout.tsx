@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Sistema de Inventarios",
   description: "Gestión de inventarios - Juan",
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({
