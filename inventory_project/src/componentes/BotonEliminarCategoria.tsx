@@ -54,7 +54,7 @@ export default function BotonEliminarCategoria({
     <button
       onClick={manejarEliminacion}
       disabled={eliminando}
-      className={`mt-4 w-full py-3 rounded-lg transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-error focus:ring-offset-2 min-h-[44px] flex items-center justify-center font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${
+      className={`py-2 px-4 rounded-lg transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-error focus:ring-offset-2 min-h-[44px] inline-flex items-center justify-center font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${
         tieneProductos
           ? 'bg-gray-400 text-white'
           : 'bg-error text-white hover:bg-error-hover'
