@@ -73,11 +73,16 @@ model Producto {
   creadoEn        DateTime         @default(now())
 }
 
+enum TipoMovimiento {
+  entrada
+  salida
+}
+
 model Movimiento {
   id         Int      @id @default(autoincrement())
   productoId Int
   producto   Producto @relation(fields: [productoId], references: [id])
-  tipo       String   // "entrada" o "salida"
+  tipo       TipoMovimiento
   cantidad   Int
   notas      String?
   ventaId    Int?

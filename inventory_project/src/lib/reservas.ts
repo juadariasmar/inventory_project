@@ -10,11 +10,18 @@ import { prisma } from './db'
 //
 // Devuelve un Map productoId -> unidades reservadas. Los productos sin
 // reserva no aparecen (consultar con .get() y usar `?? 0`).
+//
+// Acepta un cliente de transaccion opcional (tx) para que las llamadas
+// desde dentro de un $transaction sean atomicas con el resto de la tx.
+type TxClient = Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>
+
 export async function obtenerReservasPorProducto(
-  productoIds?: number[]
+  productoIds?: number[],
+  tx?: TxClient
 ): Promise<Map<number, number>> {
+  const cliente = tx ?? prisma
   const ahora = new Date()
-  const reservas = await prisma.itemCotizacion.groupBy({
+  const reservas = await cliente.itemCotizacion.groupBy({
     by: ['productoId'],
     where: {
       ...(productoIds && productoIds.length > 0

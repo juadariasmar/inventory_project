@@ -248,3 +248,8 @@ describe('formatearPrecio', () => {
     expect(resultado).toContain('0')
   })
 })
+
+import { prisma } from '../src/lib/db'
+afterAll(async () => {
+  await prisma.$disconnect()
+})
