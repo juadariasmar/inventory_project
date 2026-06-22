@@ -7,7 +7,8 @@ async function main() {
   console.log('Iniciando seed...')
 
   // Usuario administrador
-  const hashAdmin = await bcrypt.hash('Admin2024!', 10)
+  const adminPass = process.env.ADMIN_PASSWORD || 'Admin2024!'
+  const hashAdmin = await bcrypt.hash(adminPass, 10)
   const admin = await prisma.usuario.upsert({
     where: { nombreUsuario: 'admin' },
     update: { rol: 'ADMIN', contrasena: hashAdmin },
@@ -22,7 +23,8 @@ async function main() {
   console.log('Usuario creado:', admin.nombreUsuario, '(', admin.rol, ')')
 
   // Usuario regular de ejemplo
-  const hashUsuario = await bcrypt.hash('Usuario2024!', 10)
+  const userPass = process.env.USER_PASSWORD || 'Usuario2024!'
+  const hashUsuario = await bcrypt.hash(userPass, 10)
   const usuarioRegular = await prisma.usuario.upsert({
     where: { nombreUsuario: 'usuario' },
     update: { rol: 'USUARIO', contrasena: hashUsuario },
