@@ -53,17 +53,19 @@ function normalizarParaPrefijo(s: string): string {
  */
 export async function siguienteCodigoConsecutivoPorCategoria(
   categoriaId: number,
+  empresaId: string
 ): Promise<string> {
+  if (!empresaId) throw new Error('empresaId es requerido')
   const categoria = await prisma.categoria.findUnique({
     where: { id: categoriaId },
-    select: { prefijo: true },
+    select: { prefijo: true, empresaId: true },
   })
-  if (!categoria) {
-    throw new Error('Categoría no encontrada')
+  if (!categoria || categoria.empresaId !== empresaId) {
+    throw new Error('Categoría no encontrada o no pertenece a la empresa')
   }
   const prefijo = categoria.prefijo
   const productos = await prisma.producto.findMany({
-    where: { categoriaId },
+    where: { categoriaId, empresaId },
     select: { codigo: true },
   })
   const patron = new RegExp(`^${escapeRegex(prefijo)}-(\\d+)$`)
@@ -93,8 +95,9 @@ function escapeRegex(s: string): string {
 
 // Fallback global (sin categoria). Mantenido por compatibilidad pero no
 // deberia llamarse ahora que la categoria es obligatoria.
-export async function siguienteCodigoConsecutivo(): Promise<string> {
-  const productos = await prisma.producto.findMany({ select: { codigo: true } })
+export async function siguienteCodigoConsecutivo(empresaId: string): Promise<string> {
+  if (!empresaId) throw new Error('empresaId es requerido')
+  const productos = await prisma.producto.findMany({ where: { empresaId }, select: { codigo: true } })
   let max = 0
   const usados = new Set<string>()
   for (const p of productos) {

@@ -13,6 +13,10 @@ export async function GET() {
   }
   try {
     const sesion = await obtenerSesion()
+    const empresaId = sesion?.user?.empresaId
+    if (!empresaId) {
+      return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
+    }
     const {
       inventarioGeneral,
       stockAgotarse,
@@ -20,7 +24,7 @@ export async function GET() {
       altaRotacion,
       stockCritico,
       resumen,
-    } = await obtenerTodoAnalisis()
+    } = await obtenerTodoAnalisis(empresaId)
 
     const ahora = new Date()
     // YYYYMMDD-HHMMSS en hora local de Colombia para que cada descarga tenga

@@ -12,15 +12,17 @@ export default async function PaginaConfiguracion() {
   if (!sesion?.user || sesion.user.rol !== 'ADMIN') {
     redirect('/')
   }
+  const empresaId = sesion.user.empresaId
+  if (!empresaId) redirect('/login')
 
   const [productos, categorias, movimientos, ventas, cotizaciones, auditorias] =
     await Promise.all([
-      prisma.producto.count(),
-      prisma.categoria.count(),
-      prisma.movimiento.count(),
-      prisma.venta.count(),
-      prisma.cotizacion.count(),
-      prisma.auditoria.count(),
+      prisma.producto.count({ where: { empresaId } }),
+      prisma.categoria.count({ where: { empresaId } }),
+      prisma.movimiento.count({ where: { empresaId } }),
+      prisma.venta.count({ where: { empresaId } }),
+      prisma.cotizacion.count({ where: { empresaId } }),
+      prisma.auditoria.count({ where: { empresaId } }),
     ])
 
   return (

@@ -4,8 +4,10 @@ import { generarPrefijoSugerido } from '../lib/codigos';
 import { registrarAuditoria } from '../lib/auditoria';
 
 export const CategoriasService = {
-  async obtenerTodos() {
+  async obtenerTodos(empresaId: string) {
+    if (!empresaId) throw new AppError('empresaId es requerido', 400);
     return await prisma.categoria.findMany({
+      where: { empresaId },
       include: {
         _count: {
           select: { productos: true },
@@ -16,7 +18,8 @@ export const CategoriasService = {
   },
   
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async crear(datos: any, ip: string) {
+  async crear(datos: any, ip: string, empresaId: string) {
+    if (!empresaId) throw new AppError('empresaId es requerido', 400);
     const nombre = typeof datos.nombre === 'string' ? datos.nombre.trim() : '';
     if (!nombre) {
       throw new AppError('El nombre es obligatorio.', 400);
@@ -24,6 +27,7 @@ export const CategoriasService = {
 
     let prefijo = typeof datos.prefijo === 'string' ? datos.prefijo.trim().toUpperCase() : '';
     const existentes = await prisma.categoria.findMany({
+      where: { empresaId },
       select: { prefijo: true },
     });
     const prefijosEnUso = new Set(existentes.map((c) => c.prefijo));
@@ -37,15 +41,16 @@ export const CategoriasService = {
     }
 
     const categoria = await prisma.categoria.create({
-      data: { nombre, prefijo }
+      data: { nombre, prefijo, empresaId }
     });
 
     await registrarAuditoria({
       accion: 'CREAR',
       entidad: 'Categoria',
-      entidadId: categoria.id,
+      entidadId: String(categoria.id),
       datos: { despues: categoria },
       ip,
+      empresaId
     });
 
     return categoria;

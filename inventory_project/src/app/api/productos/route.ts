@@ -11,6 +11,10 @@ export async function GET(request: NextRequest) {
   if (!sesion?.user || sesion.user.estado !== 'ACTIVO') {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
   }
+  const empresaId = sesion.user.empresaId
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
+  }
   try {
     const cursorStr = request.nextUrl.searchParams.get('cursor')
     const limiteStr = request.nextUrl.searchParams.get('limite')
@@ -18,7 +22,7 @@ export async function GET(request: NextRequest) {
     const limite = Math.min(parseInt(limiteStr ?? '50', 10), 100)
     const cursor = cursorStr && !isNaN(parseInt(cursorStr, 10)) ? parseInt(cursorStr, 10) : undefined
 
-    const resultado = await ProductosService.obtenerTodos(cursor, limite)
+    const resultado = await ProductosService.obtenerTodos(empresaId, cursor, limite)
 
     return NextResponse.json(resultado)
   } catch (error) {
@@ -38,11 +42,16 @@ export async function POST(request: NextRequest) {
   if (!(await esAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
+  const sesion = await obtenerSesion()
+  const empresaId = sesion?.user?.empresaId
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
+  }
   try {
     const datos = await request.json()
     const ip = extraerIp(request)
     
-    const producto = await ProductosService.crear(datos, ip)
+    const producto = await ProductosService.crear(datos, ip, empresaId)
 
     revalidatePath('/movimientos')
     revalidatePath('/movimientos/nuevo')

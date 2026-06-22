@@ -2,11 +2,18 @@ import { prisma } from '@/lib/db'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import FormularioProducto from '@/componentes/FormularioProducto'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { obtenerSesion } from '@/lib/permisos'
 
 export const dynamic = 'force-dynamic'
 
 export default async function PaginaNuevoProducto() {
+  const sesion = await obtenerSesion()
+  if (!sesion?.user?.empresaId) redirect('/login')
+  const empresaId = sesion.user.empresaId
+
   const categorias = await prisma.categoria.findMany({
+    where: { empresaId },
     orderBy: { nombre: 'asc' },
     select: { id: true, nombre: true, prefijo: true },
   })

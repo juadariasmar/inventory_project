@@ -25,6 +25,10 @@ export async function POST(request: NextRequest) {
   if (!sesion?.user) {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
   }
+  const empresaId = sesion.user.empresaId
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
+  }
   const esAdmin = sesion.user.rol === 'ADMIN'
   if (!esAdmin && !(await tienePermiso('REALIZAR_VENTAS'))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
@@ -58,12 +62,13 @@ export async function POST(request: NextRequest) {
 
     const vendedorId = sesion.user.id ? sesion.user.id : null
 
-    const resultado = await VentasService.registrarVenta(consolidados, vendedorId, notas)
+    const resultado = await VentasService.registrarVenta(consolidados, vendedorId, notas, empresaId)
 
     await registrarAuditoria({
       accion: 'CREAR',
       entidad: 'Venta',
       entidadId: resultado.venta.id,
+      empresaId,
       datos: {
         despues: {
           id: resultado.venta.id,

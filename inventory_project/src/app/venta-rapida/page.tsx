@@ -8,7 +8,8 @@ export const dynamic = 'force-dynamic'
 
 export default async function PaginaVentaRapida() {
   const sesion = await obtenerSesion()
-  if (!sesion?.user) redirect('/login')
+  if (!sesion?.user?.empresaId) redirect('/login')
+  const empresaId = sesion.user.empresaId
 
   const puedeVender =
     (await tienePermiso('REALIZAR_VENTAS')) ||
@@ -26,17 +27,19 @@ export default async function PaginaVentaRapida() {
 
   const [productos, ventasRecientes, ventasDeHoy] = await Promise.all([
     prisma.producto.findMany({
+      where: { empresaId },
       orderBy: { nombre: 'asc' },
       select: { id: true, codigo: true, nombre: true, precio: true, cantidad: true },
     }),
     prisma.venta.findMany({
-      where: { vendedorId, canceladaEn: null },
+      where: { empresaId, vendedorId, canceladaEn: null },
       include: { _count: { select: { items: true } } },
       orderBy: { creadoEn: 'desc' },
       take: 5,
     }),
     prisma.venta.aggregate({
       where: {
+        empresaId,
         vendedorId,
         creadoEn: { gte: hoyDesde, lte: hoyHasta },
         canceladaEn: null,

@@ -17,8 +17,10 @@ type TxClient = Omit<typeof prisma, '$connect' | '$disconnect' | '$on' | '$trans
 
 export async function obtenerReservasPorProducto(
   productoIds?: number[],
-  tx?: TxClient
+  tx?: TxClient,
+  empresaId?: string
 ): Promise<Map<number, number>> {
+  if (!empresaId) throw new Error('empresaId es requerido')
   const cliente = tx ?? prisma
   const ahora = new Date()
   const reservas = await cliente.itemCotizacion.groupBy({
@@ -30,6 +32,7 @@ export async function obtenerReservasPorProducto(
       cotizacion: {
         estado: 'PENDIENTE',
         validaHasta: { gt: ahora },
+        empresaId
       },
     },
     _sum: { cantidad: true },
@@ -41,16 +44,21 @@ export async function obtenerReservasPorProducto(
 // Mismo formato (productoId -> disponible). Si el producto no tiene fila
 // es porque no se encontro (no porque no este disponible).
 export async function obtenerDisponiblePorProducto(
+  empresaId: string,
   productoIds?: number[]
 ): Promise<Map<number, number>> {
+  if (!empresaId) throw new Error('empresaId es requerido')
   const [productos, reservas] = await Promise.all([
     prisma.producto.findMany({
-      ...(productoIds && productoIds.length > 0
-        ? { where: { id: { in: productoIds } } }
-        : {}),
+      where: {
+        empresaId,
+        ...(productoIds && productoIds.length > 0
+          ? { id: { in: productoIds } }
+          : {}),
+      },
       select: { id: true, cantidad: true },
     }),
-    obtenerReservasPorProducto(productoIds),
+    obtenerReservasPorProducto(productoIds, undefined, empresaId),
   ])
   return new Map(
     productos.map((p) => {

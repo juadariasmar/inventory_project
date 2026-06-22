@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import { prisma } from '@/lib/db'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
@@ -26,7 +26,8 @@ export default async function PaginaDetalleProducto({ params }: Props) {
   if (!productoId || Number.isNaN(productoId)) notFound()
 
   const sesion = await obtenerSesion()
-  if (!sesion?.user) notFound()
+  if (!sesion?.user?.empresaId) redirect('/login')
+  const empresaId = sesion.user.empresaId
   const esAdmin = sesion.user.rol === 'ADMIN'
 
   const desde = new Date()
@@ -34,22 +35,22 @@ export default async function PaginaDetalleProducto({ params }: Props) {
 
   const [producto, movimientos, salidasVentana, entradasVentana] = await Promise.all([
     prisma.producto.findUnique({
-      where: { id: productoId },
+      where: { id: productoId, empresaId },
       include: { categoria: true },
     }),
     prisma.movimiento.findMany({
-      where: { productoId },
+      where: { productoId, empresaId },
       include: { venta: { select: { id: true, total: true } } },
       orderBy: { creadoEn: 'desc' },
       take: 100,
     }),
     prisma.movimiento.aggregate({
-      where: { productoId, tipo: 'salida', creadoEn: { gte: desde } },
+      where: { productoId, empresaId, tipo: 'salida', creadoEn: { gte: desde } },
       _sum: { cantidad: true },
       _count: { _all: true },
     }),
     prisma.movimiento.aggregate({
-      where: { productoId, tipo: 'entrada', creadoEn: { gte: desde } },
+      where: { productoId, empresaId, tipo: 'entrada', creadoEn: { gte: desde } },
       _sum: { cantidad: true },
       _count: { _all: true },
     }),

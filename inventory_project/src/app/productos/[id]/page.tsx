@@ -10,27 +10,35 @@ interface PropiedadesPagina {
   params: Promise<{ id: string }>
 }
 
-async function obtenerProducto(id: number) {
+import { redirect } from 'next/navigation'
+import { obtenerSesion } from '@/lib/permisos'
+
+async function obtenerProducto(empresaId: string, id: number) {
   return await prisma.producto.findUnique({
-    where: { id },
+    where: { id, empresaId },
     include: { categoria: true },
   })
 }
 
-async function obtenerCategorias() {
+async function obtenerCategorias(empresaId: string) {
   return await prisma.categoria.findMany({
+    where: { empresaId },
     orderBy: { nombre: 'asc' },
     select: { id: true, nombre: true, prefijo: true },
   })
 }
 
 export default async function PaginaEditarProducto({ params }: PropiedadesPagina) {
+  const sesion = await obtenerSesion()
+  if (!sesion?.user?.empresaId) redirect('/login')
+  const empresaId = sesion.user.empresaId
+
   const { id } = await params
   const productoId = parseInt(id)
 
   const [producto, categorias] = await Promise.all([
-    obtenerProducto(productoId),
-    obtenerCategorias(),
+    obtenerProducto(empresaId, productoId),
+    obtenerCategorias(empresaId),
   ])
 
   if (!producto) {

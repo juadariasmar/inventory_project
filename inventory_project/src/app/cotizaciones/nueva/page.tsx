@@ -10,15 +10,17 @@ export const dynamic = 'force-dynamic'
 
 export default async function PaginaNuevaCotizacion() {
   const sesion = await obtenerSesion()
-  if (!sesion?.user) redirect('/login')
+  if (!sesion?.user?.empresaId) redirect('/login')
+  const empresaId = sesion.user.empresaId
   const esAdmin = sesion.user.rol === 'ADMIN'
   if (!esAdmin && !(await tienePermiso('REALIZAR_VENTAS'))) redirect('/')
 
   const productos = await prisma.producto.findMany({
+    where: { empresaId },
     orderBy: { nombre: 'asc' },
     select: { id: true, codigo: true, nombre: true, precio: true, cantidad: true },
   })
-  const reservas = await obtenerReservasPorProducto(productos.map((p) => p.id))
+  const reservas = await obtenerReservasPorProducto(empresaId, productos.map((p) => p.id))
 
   const productosConDisponible = productos.map((p) => ({
     ...p,

@@ -10,12 +10,16 @@ export async function GET(request: NextRequest) {
   if (!sesion?.user || sesion.user.rol !== 'ADMIN') {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
+  const empresaId = sesion.user.empresaId
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
+  }
   if (!(await tienePermiso('EXPORTAR_REPORTES'))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
 
   const sp = request.nextUrl.searchParams
-  const where: Prisma.AuditoriaWhereInput = {}
+  const where: Prisma.AuditoriaWhereInput = { empresaId }
   if (sp.get('usuario')) where.usuarioId = sp.get('usuario')!
   if (sp.get('entidad')) where.entidad = sp.get('entidad')!
   if (sp.get('accion')) where.accion = sp.get('accion')!

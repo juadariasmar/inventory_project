@@ -5,9 +5,10 @@ import { AppError } from '../lib/AppError'
 const DIAS_VALIDEZ_DEFECTO = 7
 
 export const CotizacionesService = {
-  async crearCotizacion(consolidados: Map<number, number>, vendedorId: string | null, notas: string, cliente: string, diasValidezInput?: number) {
+  async crearCotizacion(consolidados: Map<number, number>, vendedorId: string | null, notas: string, cliente: string, empresaId: string, diasValidezInput?: number) {
+    if (!empresaId) throw new AppError('empresaId es requerido', 400);
     const productosIds = Array.from(consolidados.keys())
-    const productos = await prisma.producto.findMany({ where: { id: { in: productosIds } } })
+    const productos = await prisma.producto.findMany({ where: { id: { in: productosIds }, empresaId } })
     const mapaProductos = new Map(productos.map((p) => [p.id, p]))
 
     const diasValidez = diasValidezInput && Number.isInteger(diasValidezInput) && diasValidezInput > 0
@@ -17,7 +18,7 @@ export const CotizacionesService = {
     const itemsValidados: { productoId: number; cantidad: number; precio: number; nombre: string; codigo: string }[] = []
     for (const [productoId, cantidad] of consolidados.entries()) {
       const p = mapaProductos.get(productoId)
-      if (!p) throw new AppError(`Producto ${productoId} no encontrado.`, 404)
+      if (!p) throw new AppError(`Producto ${productoId} no encontrado en la empresa actual.`, 404)
       itemsValidados.push({ productoId: p.id, cantidad, precio: p.precio, nombre: p.nombre, codigo: p.codigo })
     }
 
@@ -30,12 +31,15 @@ export const CotizacionesService = {
       for (const it of itemsValidados) {
         const prod = await tx.producto.findUnique({
           where: { id: it.productoId },
-          select: { cantidad: true, nombre: true },
+          select: { cantidad: true, nombre: true, empresaId: true },
         })
+        if (prod?.empresaId !== empresaId) {
+           throw new AppError(`Producto no pertenece a la empresa`, 403);
+        }
         const reservasActuales = await tx.itemCotizacion.aggregate({
           where: {
             productoId: it.productoId,
-            cotizacion: { estado: 'PENDIENTE', validaHasta: { gt: ahora } },
+            cotizacion: { estado: 'PENDIENTE', validaHasta: { gt: ahora }, empresaId },
           },
           _sum: { cantidad: true },
         })
@@ -50,6 +54,7 @@ export const CotizacionesService = {
 
       const cotizacion = await tx.cotizacion.create({
         data: {
+          empresaId,
           vendedorId,
           cliente: cliente || null,
           total,

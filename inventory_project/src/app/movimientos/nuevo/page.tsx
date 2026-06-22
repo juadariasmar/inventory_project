@@ -3,12 +3,13 @@ import LayoutProtegido from '@/componentes/LayoutProtegido'
 import FormularioMovimiento from '@/componentes/FormularioMovimiento'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { tienePermiso } from '@/lib/permisos'
+import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 
 export const dynamic = 'force-dynamic'
 
-async function obtenerProductos() {
+async function obtenerProductos(empresaId: string) {
   return await prisma.producto.findMany({
+    where: { empresaId },
     orderBy: { nombre: 'asc' },
     select: {
       id: true,
@@ -20,10 +21,14 @@ async function obtenerProductos() {
 }
 
 export default async function PaginaNuevoMovimiento() {
+  const sesion = await obtenerSesion()
+  if (!sesion?.user?.empresaId) redirect('/login')
+  const empresaId = sesion.user.empresaId
+
   if (!(await tienePermiso('REGISTRAR_MOVIMIENTOS'))) {
     redirect('/movimientos')
   }
-  const productos = await obtenerProductos()
+  const productos = await obtenerProductos(empresaId)
 
   return (
     <LayoutProtegido>
