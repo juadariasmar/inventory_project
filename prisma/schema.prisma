@@ -47,6 +47,7 @@ model Empresa {
   ventas       Venta[]
   cotizaciones Cotizacion[]
   auditorias   Auditoria[]
+  Movimiento   Movimiento[]
 }
 
 model Usuario {
@@ -124,6 +125,10 @@ model Movimiento {
   venta      Venta?         @relation(fields: [ventaId], references: [id], onDelete: SetNull)
   creadoEn   DateTime       @default(now())
 
+  empresaId String?
+  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
   @@index([ventaId])
 }
 

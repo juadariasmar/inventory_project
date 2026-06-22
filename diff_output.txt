@@ -1,0 +1,1410 @@
+﻿diff --git a/inventory_project/jest.config.js b/inventory_project/jest.config.js
+index 1043047..eb18769 100644
+--- a/inventory_project/jest.config.js
++++ b/inventory_project/jest.config.js
+@@ -8,4 +8,5 @@ module.exports = {
+   moduleNameMapper: {
+     '^@/(.*)$': '<rootDir>/src/$1',
+   },
++  transformIgnorePatterns: ['node_modules/(?!(@neondatabase)/)'],
+ }
+diff --git a/inventory_project/package-lock.json b/inventory_project/package-lock.json
+index 3720ff5..05f6786 100644
+--- a/inventory_project/package-lock.json
++++ b/inventory_project/package-lock.json
+@@ -18,11 +18,9 @@
+         "@upstash/redis": "^1.38.0",
+         "@vercel/analytics": "^2.0.1",
+         "@vercel/speed-insights": "^2.0.0",
+-        "bcryptjs": "^3.0.3",
+         "dotenv": "^17.2.3",
+         "exceljs": "^4.4.0",
+         "next": "16.0.7",
+-        "next-auth": "^4.24.13",
+         "react": "19.2.0",
+         "react-dom": "19.2.0",
+         "recharts": "^3.8.1",
+@@ -32,7 +30,6 @@
+         "@jest/globals": "^30.4.1",
+         "@playwright/test": "^1.60.0",
+         "@tailwindcss/postcss": "^4",
+-        "@types/bcryptjs": "^2.4.6",
+         "@types/jest": "^30.0.0",
+         "@types/node": "^20",
+         "@types/react": "^19",
+@@ -2321,15 +2318,6 @@
+         "node": ">=12.4.0"
+       }
+     },
+-    "node_modules/@panva/hkdf": {
+-      "version": "1.2.1",
+-      "resolved": "https://registry.npmjs.org/@panva/hkdf/-/hkdf-1.2.1.tgz",
+-      "integrity": "sha512-6oclG6Y3PiDFcoyk8srjLfVKyMfVCKJ27JwNPViuXziFpmdz+MZnZN/aKY0JGXgYuO/VghU0jcOAZgWXZ1Dmrw==",
+-      "license": "MIT",
+-      "funding": {
+-        "url": "https://github.com/sponsors/panva"
+-      }
+-    },
+     "node_modules/@peculiar/asn1-android": {
+       "version": "2.8.0",
+       "resolved": "https://registry.npmjs.org/@peculiar/asn1-android/-/asn1-android-2.8.0.tgz",
+@@ -4191,13 +4179,6 @@
+         "@babel/types": "^7.28.2"
+       }
+     },
+-    "node_modules/@types/bcryptjs": {
+-      "version": "2.4.6",
+-      "resolved": "https://registry.npmjs.org/@types/bcryptjs/-/bcryptjs-2.4.6.tgz",
+-      "integrity": "sha512-9xlo6R2qDs5uixm0bcIqCeMCE6HiQsIyel9KQySStiyqNl2tnj2mP3DX1Nf56MD6KMenNNlBBsy3LJ7gUEQPXQ==",
+-      "dev": true,
+-      "license": "MIT"
+-    },
+     "node_modules/@types/d3-array": {
+       "version": "3.2.2",
+       "resolved": "https://registry.npmjs.org/@types/d3-array/-/d3-array-3.2.2.tgz",
+@@ -5470,15 +5451,6 @@
+         "node": ">=6.0.0"
+       }
+     },
+-    "node_modules/bcryptjs": {
+-      "version": "3.0.3",
+-      "resolved": "https://registry.npmjs.org/bcryptjs/-/bcryptjs-3.0.3.tgz",
+-      "integrity": "sha512-GlF5wPWnSa/X5LKM1o0wz0suXIINz1iHRLvTS+sLyi7XPbe5ycmYI3DlZqVGZZtDgl4DmasFg7gOB3JYbphV5g==",
+-      "license": "BSD-3-Clause",
+-      "bin": {
+-        "bcrypt": "bin/bcrypt"
+-      }
+-    },
+     "node_modules/better-call": {
+       "version": "1.1.8",
+       "resolved": "https://registry.npmjs.org/better-call/-/better-call-1.1.8.tgz",
+@@ -6005,15 +5977,6 @@
+       "dev": true,
+       "license": "MIT"
+     },
+-    "node_modules/cookie": {
+-      "version": "0.7.2",
+-      "resolved": "https://registry.npmjs.org/cookie/-/cookie-0.7.2.tgz",
+-      "integrity": "sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w==",
+-      "license": "MIT",
+-      "engines": {
+-        "node": ">= 0.6"
+-      }
+-    },
+     "node_modules/copy-anything": {
+       "version": "4.0.5",
+       "resolved": "https://registry.npmjs.org/copy-anything/-/copy-anything-4.0.5.tgz",
+@@ -9795,15 +9758,6 @@
+         "jiti": "lib/jiti-cli.mjs"
+       }
+     },
+-    "node_modules/jose": {
+-      "version": "4.15.9",
+-      "resolved": "https://registry.npmjs.org/jose/-/jose-4.15.9.tgz",
+-      "integrity": "sha512-1vUQX+IdDMVPj4k8kOxgUqlcK518yluMuGZwqlr44FS1ppZB/5GWh4rZG89erpOBOJjU/OBsnCVFfapsRz6nEA==",
+-      "license": "MIT",
+-      "funding": {
+-        "url": "https://github.com/sponsors/panva"
+-      }
+-    },
+     "node_modules/js-tokens": {
+       "version": "4.0.0",
+       "resolved": "https://registry.npmjs.org/js-tokens/-/js-tokens-4.0.0.tgz",
+@@ -10568,38 +10522,6 @@
+         }
+       }
+     },
+-    "node_modules/next-auth": {
+-      "version": "4.24.13",
+-      "resolved": "https://registry.npmjs.org/next-auth/-/next-auth-4.24.13.tgz",
+-      "integrity": "sha512-sgObCfcfL7BzIK76SS5TnQtc3yo2Oifp/yIpfv6fMfeBOiBJkDWF3A2y9+yqnmJ4JKc2C+nMjSjmgDeTwgN1rQ==",
+-      "license": "ISC",
+-      "dependencies": {
+-        "@babel/runtime": "^7.20.13",
+-        "@panva/hkdf": "^1.0.2",
+-        "cookie": "^0.7.0",
+-        "jose": "^4.15.5",
+-        "oauth": "^0.9.15",
+-        "openid-client": "^5.4.0",
+-        "preact": "^10.6.3",
+-        "preact-render-to-string": "^5.1.19",
+-        "uuid": "^8.3.2"
+-      },
+-      "peerDependencies": {
+-        "@auth/core": "0.34.3",
+-        "next": "^12.2.5 || ^13 || ^14 || ^15 || ^16",
+-        "nodemailer": "^7.0.7",
+-        "react": "^17.0.2 || ^18 || ^19",
+-        "react-dom": "^17.0.2 || ^18 || ^19"
+-      },
+-      "peerDependenciesMeta": {
+-        "@auth/core": {
+-          "optional": true
+-        },
+-        "nodemailer": {
+-          "optional": true
+-        }
+-      }
+-    },
+     "node_modules/next-themes": {
+       "version": "0.4.6",
+       "resolved": "https://registry.npmjs.org/next-themes/-/next-themes-0.4.6.tgz",
+@@ -10674,12 +10596,6 @@
+         "node": ">=8"
+       }
+     },
+-    "node_modules/oauth": {
+-      "version": "0.9.15",
+-      "resolved": "https://registry.npmjs.org/oauth/-/oauth-0.9.15.tgz",
+-      "integrity": "sha512-a5ERWK1kh38ExDEfoO6qUHJb32rd7aYmPHuyCu3Fta/cnICvYmgd2uhuKXvPD+PXB+gCEYYEaQdIRAjCOwAKNA==",
+-      "license": "MIT"
+-    },
+     "node_modules/object-assign": {
+       "version": "4.1.1",
+       "resolved": "https://registry.npmjs.org/object-assign/-/object-assign-4.1.1.tgz",
+@@ -10689,15 +10605,6 @@
+         "node": ">=0.10.0"
+       }
+     },
+-    "node_modules/object-hash": {
+-      "version": "2.2.0",
+-      "resolved": "https://registry.npmjs.org/object-hash/-/object-hash-2.2.0.tgz",
+-      "integrity": "sha512-gScRMn0bS5fH+IuwyIFgnh9zBdo4DV+6GhygmWM9HyNJSgS0hScp1f5vjtm7oIIOiT9trXrShAkLFSc2IqKNgw==",
+-      "license": "MIT",
+-      "engines": {
+-        "node": ">= 6"
+-      }
+-    },
+     "node_modules/object-inspect": {
+       "version": "1.13.4",
+       "resolved": "https://registry.npmjs.org/object-inspect/-/object-inspect-1.13.4.tgz",
+@@ -10817,15 +10724,6 @@
+       "integrity": "sha512-PX1wu0AmAdPqOL1mWhqmlOd8kOIZQwGZw6rh7uby9fTc5lhaOWFLX3I6R1hrF9k3zUY40e6igsLGkDXK92LJNg==",
+       "license": "MIT"
+     },
+-    "node_modules/oidc-token-hash": {
+-      "version": "5.2.0",
+-      "resolved": "https://registry.npmjs.org/oidc-token-hash/-/oidc-token-hash-5.2.0.tgz",
+-      "integrity": "sha512-6gj2m8cJZ+iSW8bm0FXdGF0YhIQbKrfP4yWTNzxc31U6MOjfEmB1rHvlYvxI1B7t7BCi1F2vYTT6YhtQRG4hxw==",
+-      "license": "MIT",
+-      "engines": {
+-        "node": "^10.13.0 || >=12.0.0"
+-      }
+-    },
+     "node_modules/once": {
+       "version": "1.4.0",
+       "resolved": "https://registry.npmjs.org/once/-/once-1.4.0.tgz",
+@@ -10851,39 +10749,6 @@
+         "url": "https://github.com/sponsors/sindresorhus"
+       }
+     },
+-    "node_modules/openid-client": {
+-      "version": "5.7.1",
+-      "resolved": "https://registry.npmjs.org/openid-client/-/openid-client-5.7.1.tgz",
+-      "integrity": "sha512-jDBPgSVfTnkIh71Hg9pRvtJc6wTwqjRkN88+gCFtYWrlP4Yx2Dsrow8uPi3qLr/aeymPF3o2+dS+wOpglK04ew==",
+-      "license": "MIT",
+-      "dependencies": {
+-        "jose": "^4.15.9",
+-        "lru-cache": "^6.0.0",
+-        "object-hash": "^2.2.0",
+-        "oidc-token-hash": "^5.0.3"
+-      },
+-      "funding": {
+-        "url": "https://github.com/sponsors/panva"
+-      }
+-    },
+-    "node_modules/openid-client/node_modules/lru-cache": {
+-      "version": "6.0.0",
+-      "resolved": "https://registry.npmjs.org/lru-cache/-/lru-cache-6.0.0.tgz",
+-      "integrity": "sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==",
+-      "license": "ISC",
+-      "dependencies": {
+-        "yallist": "^4.0.0"
+-      },
+-      "engines": {
+-        "node": ">=10"
+-      }
+-    },
+-    "node_modules/openid-client/node_modules/yallist": {
+-      "version": "4.0.0",
+-      "resolved": "https://registry.npmjs.org/yallist/-/yallist-4.0.0.tgz",
+-      "integrity": "sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==",
+-      "license": "ISC"
+-    },
+     "node_modules/optionator": {
+       "version": "0.9.4",
+       "resolved": "https://registry.npmjs.org/optionator/-/optionator-0.9.4.tgz",
+@@ -11345,28 +11210,6 @@
+       "integrity": "sha512-i/hbxIE9803Alj/6ytL7UHQxRvZkI9O4Sy+J3HGc4F4oo/2eQAjTSNJ0bfxyse3bH0nuVesCk+3IRLaMtG3H6w==",
+       "license": "MIT"
+     },
+-    "node_modules/preact": {
+-      "version": "10.28.0",
+-      "resolved": "https://registry.npmjs.org/preact/-/preact-10.28.0.tgz",
+-      "integrity": "sha512-rytDAoiXr3+t6OIP3WGlDd0ouCUG1iCWzkcY3++Nreuoi17y6T5i/zRhe6uYfoVcxq6YU+sBtJouuRDsq8vvqA==",
+-      "license": "MIT",
+-      "funding": {
+-        "type": "opencollective",
+-        "url": "https://opencollective.com/preact"
+-      }
+-    },
+-    "node_modules/preact-render-to-string": {
+-      "version": "5.2.6",
+-      "resolved": "https://registry.npmjs.org/preact-render-to-string/-/preact-render-to-string-5.2.6.tgz",
+-      "integrity": "sha512-JyhErpYOvBV1hEPwIxc/fHWXPfnEGdRKxc8gFdAZ7XV4tlzyzG847XAyEZqoDnynP88akM4eaHcSOzNcLWFguw==",
+-      "license": "MIT",
+-      "dependencies": {
+-        "pretty-format": "^3.8.0"
+-      },
+-      "peerDependencies": {
+-        "preact": ">=10"
+-      }
+-    },
+     "node_modules/prelude-ls": {
+       "version": "1.2.1",
+       "resolved": "https://registry.npmjs.org/prelude-ls/-/prelude-ls-1.2.1.tgz",
+@@ -11392,12 +11235,6 @@
+         "url": "https://github.com/prettier/prettier?sponsor=1"
+       }
+     },
+-    "node_modules/pretty-format": {
+-      "version": "3.8.0",
+-      "resolved": "https://registry.npmjs.org/pretty-format/-/pretty-format-3.8.0.tgz",
+-      "integrity": "sha512-WuxUnVtlWL1OfZFQFuqvnvs6MiAGk9UNsBostyBOB0Is9wb5uRESevA6rnl/rkksXaGX3GzZhPup5d6Vp1nFew==",
+-      "license": "MIT"
+-    },
+     "node_modules/prisma": {
+       "version": "5.22.0",
+       "resolved": "https://registry.npmjs.org/prisma/-/prisma-5.22.0.tgz",
+diff --git a/inventory_project/package.json b/inventory_project/package.json
+index d5934cd..a91e9d9 100644
+--- a/inventory_project/package.json
++++ b/inventory_project/package.json
+@@ -29,11 +29,9 @@
+     "@upstash/redis": "^1.38.0",
+     "@vercel/analytics": "^2.0.1",
+     "@vercel/speed-insights": "^2.0.0",
+-    "bcryptjs": "^3.0.3",
+     "dotenv": "^17.2.3",
+     "exceljs": "^4.4.0",
+     "next": "16.0.7",
+-    "next-auth": "^4.24.13",
+     "react": "19.2.0",
+     "react-dom": "19.2.0",
+     "recharts": "^3.8.1",
+@@ -43,7 +41,6 @@
+     "@jest/globals": "^30.4.1",
+     "@playwright/test": "^1.60.0",
+     "@tailwindcss/postcss": "^4",
+-    "@types/bcryptjs": "^2.4.6",
+     "@types/jest": "^30.0.0",
+     "@types/node": "^20",
+     "@types/react": "^19",
+diff --git a/inventory_project/prisma/schema.prisma b/inventory_project/prisma/schema.prisma
+index 20b697f..db5aeb5 100644
+--- a/inventory_project/prisma/schema.prisma
++++ b/inventory_project/prisma/schema.prisma
+@@ -37,7 +37,7 @@ enum EstadoUsuario {
+ }
+ 
+ model Usuario {
+-  id                     Int              @id @default(autoincrement())
++  id                     String           @id @default(cuid())
+   neonAuthId             String           @unique    // ID del usuario en neon_auth.user
+   email                  String           @unique    // email sincronizado desde Neon Auth
+   nombre                 String
+@@ -101,7 +101,7 @@ model Movimiento {
+ 
+ model Venta {
+   id                 Int          @id @default(autoincrement())
+-  vendedorId         Int?
++  vendedorId         String?
+   vendedor           Usuario?     @relation("VentaVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
+   total              Float
+   notas              String?
+@@ -109,7 +109,7 @@ model Venta {
+   movimientos        Movimiento[]
+   creadoEn           DateTime     @default(now())
+   canceladaEn        DateTime?
+-  canceladaPorId     Int?
++  canceladaPorId     String?
+   canceladaPor       Usuario?     @relation("VentaCanceladaPor", fields: [canceladaPorId], references: [id], onDelete: SetNull)
+   motivoCancelacion  String?
+   // Si esta venta nacio de convertir una cotizacion, la cotizacion la apunta.
+@@ -142,7 +142,7 @@ enum EstadoCotizacion {
+ 
+ model Cotizacion {
+   id                Int              @id @default(autoincrement())
+-  vendedorId        Int?
++  vendedorId        String?
+   vendedor          Usuario?         @relation("CotizacionVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
+   cliente           String?
+   total             Float
+@@ -157,7 +157,7 @@ model Cotizacion {
+   convertidaEn      DateTime?
+   // Cuando se cancela.
+   canceladaEn       DateTime?
+-  canceladaPorId    Int?
++  canceladaPorId    String?
+   canceladaPor      Usuario?         @relation("CotizacionCanceladaPor", fields: [canceladaPorId], references: [id], onDelete: SetNull)
+   motivoCancelacion String?
+ 
+@@ -183,7 +183,7 @@ model ItemCotizacion {
+ 
+ model Auditoria {
+   id        Int      @id @default(autoincrement())
+-  usuarioId Int?
++  usuarioId String?
+   usuario   Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+   accion    String   // CREAR | ACTUALIZAR | ELIMINAR | LOGIN | LOGIN_FALLIDO
+   entidad   String   // Producto | Categoria | Movimiento | Usuario | Sesion
+diff --git a/inventory_project/src/__tests__/api/cotizaciones.test.ts b/inventory_project/src/__tests__/api/cotizaciones.test.ts
+index 081e56b..1366157 100644
+--- a/inventory_project/src/__tests__/api/cotizaciones.test.ts
++++ b/inventory_project/src/__tests__/api/cotizaciones.test.ts
+@@ -4,13 +4,10 @@ import { NextRequest } from 'next/server';
+ import { prisma } from '../../lib/db';
+ 
+ jest.mock('../../lib/permisos', () => ({
+-  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 1, role: 'admin' } }),
++  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 'test-user-cot-1', role: 'admin' } }),
+   tienePermiso: jest.fn().mockResolvedValue(true)
+ }));
+ 
+-jest.mock('next-auth/jwt', () => ({
+-  getToken: jest.fn().mockResolvedValue({ id: 1, role: 'admin' })
+-}));
+ 
+ jest.mock('next/cache', () => ({
+   revalidatePath: jest.fn()
+@@ -19,14 +16,14 @@ jest.mock('next/cache', () => ({
+ describe('Cotizaciones API', () => {
+   let productoId: number;
+   let categoriaId: number;
+-  let usuarioId: number;
++  let usuarioId: string;
+ 
+   beforeAll(async () => {
+     // Check if user 1 exists, if not create it
+-    let u = await prisma.usuario.findUnique({ where: { id: 1 } });
++    let u = await prisma.usuario.findUnique({ where: { id: 'test-user-cot-1' } });
+     if (!u) {
+       u = await prisma.usuario.create({
+-        data: { id: 1, nombre: 'Admin', email: 'adminTest' }
++        data: { id: 'test-user-cot-1', neonAuthId: 'test-neon-auth-cot', nombre: 'Admin Cot', email: 'adminCotTest@example.com' }
+       });
+     }
+     usuarioId = u.id;
+@@ -59,7 +56,7 @@ describe('Cotizaciones API', () => {
+     }
+     if (usuarioId) {
+       await prisma.auditoria.deleteMany({ where: { usuarioId } });
+-      await prisma.usuario.delete({ where: { id: usuarioId } });
++      await prisma.usuario.deleteMany({ where: { id: usuarioId } });
+     }
+   });
+ 
+diff --git a/inventory_project/src/__tests__/api/movimientos.test.ts b/inventory_project/src/__tests__/api/movimientos.test.ts
+index edb1a16..0c07682 100644
+--- a/inventory_project/src/__tests__/api/movimientos.test.ts
++++ b/inventory_project/src/__tests__/api/movimientos.test.ts
+@@ -4,14 +4,11 @@ import { NextRequest } from 'next/server';
+ import { prisma } from '../../lib/db';
+ 
+ jest.mock('../../lib/permisos', () => ({
+-  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 1, role: 'admin' } }),
++  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 'test-user-mov-1', role: 'admin' } }),
+   tienePermiso: jest.fn().mockResolvedValue(true)
+ }));
+ 
+-// Mock NextAuth to avoid the error 'jose' package issues or edge runtime issues in tests
+-jest.mock('next-auth/jwt', () => ({
+-  getToken: jest.fn().mockResolvedValue({ id: 1, role: 'admin' })
+-}));
++
+ 
+ jest.mock('next/cache', () => ({
+   revalidatePath: jest.fn()
+@@ -20,13 +17,13 @@ jest.mock('next/cache', () => ({
+ describe('Movimientos API', () => {
+   let productoId: number;
+   let categoriaId: number;
+-  let usuarioId: number;
++  let usuarioId: string;
+ 
+   beforeAll(async () => {
+-    let u = await prisma.usuario.findUnique({ where: { id: 1 } });
++    let u = await prisma.usuario.findUnique({ where: { id: 'test-user-mov-1' } });
+     if (!u) {
+       u = await prisma.usuario.create({
+-        data: { id: 1, nombre: 'Admin', email: 'adminTestMov' }
++        data: { id: 'test-user-mov-1', neonAuthId: 'test-neon-auth-mov', nombre: 'Admin Mov', email: 'adminMovTest@example.com' }
+       });
+     }
+     usuarioId = u.id;
+@@ -58,7 +55,7 @@ describe('Movimientos API', () => {
+     }
+     if (usuarioId) {
+       await prisma.auditoria.deleteMany({ where: { usuarioId } });
+-      await prisma.usuario.delete({ where: { id: usuarioId } });
++      await prisma.usuario.deleteMany({ where: { id: usuarioId } });
+     }
+   });
+ 
+diff --git a/inventory_project/src/__tests__/api/productos.test.ts b/inventory_project/src/__tests__/api/productos.test.ts
+index 8b27a71..11484a9 100644
+--- a/inventory_project/src/__tests__/api/productos.test.ts
++++ b/inventory_project/src/__tests__/api/productos.test.ts
+@@ -4,13 +4,10 @@ import { NextRequest } from 'next/server'
+ import { prisma } from '../../lib/db'
+ 
+ jest.mock('../../lib/permisos', () => ({
+-  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 1, role: 'admin' } }),
++  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 'test-user-prod-1', role: 'admin' } }),
+   esAdmin: jest.fn().mockResolvedValue(true)
+ }))
+ 
+-jest.mock('next-auth/jwt', () => ({
+-  getToken: jest.fn().mockResolvedValue({ id: 1, role: 'admin' })
+-}))
+ 
+ jest.mock('next/cache', () => ({
+   revalidatePath: jest.fn()
+@@ -25,10 +22,10 @@ describe('Productos API', () => {
+ 
+   beforeAll(async () => {
+     // Check if user 1 exists, if not create it
+-    let u = await prisma.usuario.findUnique({ where: { id: 1 } })
++    let u = await prisma.usuario.findUnique({ where: { id: 'test-user-prod-1' } })
+     if (!u) {
+       u = await prisma.usuario.create({
+-        data: { id: 1, nombre: 'Admin', email: 'adminProdTest' }
++        data: { id: 'test-user-prod-1', neonAuthId: 'test-neon-auth-prod-1', nombre: 'Admin Prod', email: 'adminProdTest@example.com' }
+       })
+       usuarioCreado = true
+     }
+@@ -53,7 +50,7 @@ describe('Productos API', () => {
+       await prisma.categoria.delete({ where: { id: categoriaId } })
+     }
+     if (usuarioCreado) {
+-      await prisma.usuario.delete({ where: { id: 1 } })
++      await prisma.usuario.deleteMany({ where: { id: 'test-user-prod-1' } })
+     }
+   })
+ 
+diff --git a/inventory_project/src/__tests__/middleware.test.ts b/inventory_project/src/__tests__/middleware.test.ts
+index 7e4382b..3654914 100644
+--- a/inventory_project/src/__tests__/middleware.test.ts
++++ b/inventory_project/src/__tests__/middleware.test.ts
+@@ -1,6 +1,13 @@
+-import { proxy as middleware } from '../../src/proxy';
++import { middleware } from '../../src/middleware';
+ import { createMockRequest } from './utils/test-utils';
+ 
++jest.mock('../../src/lib/auth/server', () => ({
++  auth: {
++    getSession: jest.fn().mockResolvedValue(null),
++    middleware: jest.fn(() => (req: any) => null)
++  }
++}));
++
+ describe('Middleware Security Tests', () => {
+   beforeEach(() => {
+     jest.useFakeTimers();
+diff --git a/inventory_project/src/__tests__/services/CotizacionesService.test.ts b/inventory_project/src/__tests__/services/CotizacionesService.test.ts
+index 954dcd8..cbc510e 100644
+--- a/inventory_project/src/__tests__/services/CotizacionesService.test.ts
++++ b/inventory_project/src/__tests__/services/CotizacionesService.test.ts
+@@ -8,10 +8,10 @@ describe('CotizacionesService', () => {
+   let usuarioCreado = false;
+ 
+   beforeAll(async () => {
+-    let u = await prisma.usuario.findUnique({ where: { id: 1 } });
++    let u = await prisma.usuario.findUnique({ where: { id: '1' } });
+     if (!u) {
+       u = await prisma.usuario.create({
+-        data: { id: 1, nombre: 'Admin', email: 'adminCotServTest' }
++        data: { id: '1', neonAuthId: 'test-neon-auth-1', nombre: 'Admin', email: 'adminCotServTest' }
+       });
+       usuarioCreado = true;
+     }
+@@ -43,7 +43,7 @@ describe('CotizacionesService', () => {
+       await prisma.categoria.delete({ where: { id: categoriaId } });
+     }
+     if (usuarioCreado) {
+-      await prisma.usuario.delete({ where: { id: 1 } });
++      await prisma.usuario.delete({ where: { id: '1' } });
+     }
+   });
+ 
+@@ -53,12 +53,12 @@ describe('CotizacionesService', () => {
+ 
+   it('throws error if product not found', async () => {
+     const consolidados = new Map<number, number>([[-999, 1]]);
+-    await expect(CotizacionesService.crearCotizacion(consolidados, 1, 'test', 'Test Cliente')).rejects.toThrow(AppError);
++    await expect(CotizacionesService.crearCotizacion(consolidados, '1', 'test', 'Test Cliente')).rejects.toThrow(AppError);
+   });
+ 
+   it('creates a quotation successfully', async () => {
+     const consolidados = new Map<number, number>([[productoId, 5]]);
+-    const resultado = await CotizacionesService.crearCotizacion(consolidados, 1, 'Cot de test', 'Test Cliente', 7);
++    const resultado = await CotizacionesService.crearCotizacion(consolidados, '1', 'Cot de test', 'Test Cliente', 7);
+     
+     expect(resultado).toBeDefined();
+     expect(resultado.cotizacion).toBeDefined();
+@@ -69,6 +69,6 @@ describe('CotizacionesService', () => {
+ 
+   it('throws error if stock is insufficient', async () => {
+     const consolidados = new Map<number, number>([[productoId, 100]]);
+-    await expect(CotizacionesService.crearCotizacion(consolidados, 1, 'Cot de test', 'Test Cliente', 7)).rejects.toThrow(AppError);
++    await expect(CotizacionesService.crearCotizacion(consolidados, '1', 'Cot de test', 'Test Cliente', 7)).rejects.toThrow(AppError);
+   });
+ });
+diff --git a/inventory_project/src/__tests__/services/MovimientosService.test.ts b/inventory_project/src/__tests__/services/MovimientosService.test.ts
+index 39974e1..f84e55d 100644
+--- a/inventory_project/src/__tests__/services/MovimientosService.test.ts
++++ b/inventory_project/src/__tests__/services/MovimientosService.test.ts
+@@ -15,10 +15,10 @@ describe('MovimientosService', () => {
+   let usuarioCreado = false;
+ 
+   beforeAll(async () => {
+-    let u = await prisma.usuario.findUnique({ where: { id: 1 } });
++    let u = await prisma.usuario.findUnique({ where: { id: '1' } });
+     if (!u) {
+       u = await prisma.usuario.create({
+-        data: { id: 1, nombre: 'Admin', email: 'adminMovServTest' }
++        data: { id: '1', neonAuthId: 'test-neon-auth-1', nombre: 'Admin', email: 'adminMovServTest' }
+       });
+       usuarioCreado = true;
+     }
+@@ -50,7 +50,7 @@ describe('MovimientosService', () => {
+       await prisma.categoria.delete({ where: { id: categoriaId } });
+     }
+     if (usuarioCreado) {
+-      await prisma.usuario.delete({ where: { id: 1 } });
++      await prisma.usuario.delete({ where: { id: '1' } });
+     }
+   });
+ 
+@@ -61,7 +61,7 @@ describe('MovimientosService', () => {
+   it('throws error if type is invalid', async () => {
+     await expect(MovimientosService.registrarMovimiento(
+       { productoId, tipo: 'invalido', cantidad: 5 },
+-      1,
++      '1',
+       '127.0.0.1'
+     )).rejects.toThrow(AppError);
+   });
+@@ -69,7 +69,7 @@ describe('MovimientosService', () => {
+   it('throws error if required fields are missing', async () => {
+     await expect(MovimientosService.registrarMovimiento(
+       { tipo: 'entrada', cantidad: 5 },
+-      1,
++      '1',
+       '127.0.0.1'
+     )).rejects.toThrow(AppError);
+   });
+@@ -77,7 +77,7 @@ describe('MovimientosService', () => {
+   it('registers an entry movement successfully', async () => {
+     const mov = await MovimientosService.registrarMovimiento(
+       { productoId, tipo: 'entrada', cantidad: 5 },
+-      1,
++      '1',
+       '127.0.0.1'
+     );
+     expect(mov).toBeDefined();
+@@ -93,7 +93,7 @@ describe('MovimientosService', () => {
+     // We mock StockService.validarDisponibilidad to ensure it gets called
+     await MovimientosService.registrarMovimiento(
+       { productoId, tipo: 'salida', cantidad: 2 },
+-      1,
++      '1',
+       '127.0.0.1'
+     );
+     expect(StockService.validarDisponibilidad).toHaveBeenCalled();
+diff --git a/inventory_project/src/__tests__/services/UsuariosService.test.ts b/inventory_project/src/__tests__/services/UsuariosService.test.ts
+index 5596fab..070079f 100644
+--- a/inventory_project/src/__tests__/services/UsuariosService.test.ts
++++ b/inventory_project/src/__tests__/services/UsuariosService.test.ts
+@@ -1,17 +1,16 @@
+ import { UsuariosService } from '../../services/UsuariosService';
+ import { prisma } from '../../lib/db';
+ import { AppError } from '../../lib/AppError';
+-import bcrypt from 'bcryptjs';
+ 
+ describe('UsuariosService', () => {
+-  let adminId: number;
+-  let testUserId: number;
++  let adminId: string;
++  let testUserId: string;
+ 
+   beforeAll(async () => {
+     let u = await prisma.usuario.findFirst({ where: { email: 'adminUsuariosTest' } });
+     if (!u) {
+       u = await prisma.usuario.create({
+-        data: { nombre: 'Admin', email: 'adminUsuariosTest' }
++        data: { neonAuthId: 'test-admin', nombre: 'Admin', email: 'adminUsuariosTest' }
+       });
+     }
+     adminId = u.id;
+@@ -33,12 +32,7 @@ describe('UsuariosService', () => {
+     jest.clearAllMocks();
+   });
+ 
+-  it('crearUsuario throws error if password is too weak', async () => {
+-    const datos = { email: 'testuser', nombre: 'Test' };
+-    await expect(UsuariosService.crearUsuario(datos)).rejects.toThrow(AppError);
+-  });
+-
+-  it('crearUsuario succeeds with strong password', async () => {
++  it('crearUsuario succeeds', async () => {
+     const datos = { email: 'testuser1', nombre: 'Test 1' };
+     const user = await UsuariosService.crearUsuario(datos);
+     expect(user).toBeDefined();
+@@ -47,7 +41,7 @@ describe('UsuariosService', () => {
+   });
+ 
+   it('actualizarUsuario throws error if user not found', async () => {
+-    await expect(UsuariosService.actualizarUsuario(-999, { nombre: 'Updated' })).rejects.toThrow(AppError);
++    await expect(UsuariosService.actualizarUsuario('-999', { nombre: 'Updated' })).rejects.toThrow(AppError);
+   });
+ 
+   it('actualizarUsuario succeeds', async () => {
+diff --git a/inventory_project/src/__tests__/services/VentasService.test.ts b/inventory_project/src/__tests__/services/VentasService.test.ts
+index 62ba38b..e9da51c 100644
+--- a/inventory_project/src/__tests__/services/VentasService.test.ts
++++ b/inventory_project/src/__tests__/services/VentasService.test.ts
+@@ -15,10 +15,10 @@ describe('VentasService', () => {
+   let usuarioCreado = false;
+ 
+   beforeAll(async () => {
+-    let u = await prisma.usuario.findUnique({ where: { id: 1 } });
++    let u = await prisma.usuario.findUnique({ where: { id: '1' } });
+     if (!u) {
+       u = await prisma.usuario.create({
+-        data: { id: 1, nombre: 'Admin', email: 'adminVentasTest' }
++        data: { id: '1', neonAuthId: 'test-neon-auth-1', nombre: 'Admin', email: 'adminVentasTest' }
+       });
+       usuarioCreado = true;
+     }
+@@ -51,7 +51,7 @@ describe('VentasService', () => {
+       await prisma.categoria.delete({ where: { id: categoriaId } });
+     }
+     if (usuarioCreado) {
+-      await prisma.usuario.delete({ where: { id: 1 } });
++      await prisma.usuario.delete({ where: { id: '1' } });
+     }
+   });
+ 
+@@ -61,12 +61,12 @@ describe('VentasService', () => {
+ 
+   it('throws error if product not found', async () => {
+     const consolidados = new Map<number, number>([[-999, 1]]);
+-    await expect(VentasService.registrarVenta(consolidados, 1, 'test')).rejects.toThrow(AppError);
++    await expect(VentasService.registrarVenta(consolidados, '1', 'test')).rejects.toThrow(AppError);
+   });
+ 
+   it('registers a sale successfully', async () => {
+     const consolidados = new Map<number, number>([[productoId, 5]]);
+-    const resultado = await VentasService.registrarVenta(consolidados, 1, 'Venta de test');
++    const resultado = await VentasService.registrarVenta(consolidados, '1', 'Venta de test');
+     
+     expect(resultado).toBeDefined();
+     expect(resultado.venta).toBeDefined();
+diff --git a/inventory_project/src/app/api/auditoria/exportar/route.ts b/inventory_project/src/app/api/auditoria/exportar/route.ts
+index ddf7fff..fd5c598 100644
+--- a/inventory_project/src/app/api/auditoria/exportar/route.ts
++++ b/inventory_project/src/app/api/auditoria/exportar/route.ts
+@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
+ 
+   const sp = request.nextUrl.searchParams
+   const where: Prisma.AuditoriaWhereInput = {}
+-  if (sp.get('usuario')) where.usuarioId = parseInt(sp.get('usuario')!)
++  if (sp.get('usuario')) where.usuarioId = sp.get('usuario')!
+   if (sp.get('entidad')) where.entidad = sp.get('entidad')!
+   if (sp.get('accion')) where.accion = sp.get('accion')!
+   if (sp.get('desde') || sp.get('hasta')) {
+diff --git a/inventory_project/src/app/api/cotizaciones/[id]/cancelar/route.ts b/inventory_project/src/app/api/cotizaciones/[id]/cancelar/route.ts
+index b15d253..89f11d5 100644
+--- a/inventory_project/src/app/api/cotizaciones/[id]/cancelar/route.ts
++++ b/inventory_project/src/app/api/cotizaciones/[id]/cancelar/route.ts
+@@ -55,7 +55,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
+       )
+     }
+ 
+-    const usuarioId = Number(sesion.user.id)
++    const usuarioId = sesion.user.id
+     if (!esAdmin && cotizacion.vendedorId !== usuarioId) {
+       return NextResponse.json(
+         { error: 'Solo el vendedor original o un administrador puede cancelar esta cotización.' },
+diff --git a/inventory_project/src/app/api/cotizaciones/[id]/convertir/route.ts b/inventory_project/src/app/api/cotizaciones/[id]/convertir/route.ts
+index 604af57..e940829 100644
+--- a/inventory_project/src/app/api/cotizaciones/[id]/convertir/route.ts
++++ b/inventory_project/src/app/api/cotizaciones/[id]/convertir/route.ts
+@@ -57,7 +57,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
+     }
+ 
+     // Solo el vendedor original o admin.
+-    const usuarioId = Number(sesion.user.id)
++    const usuarioId = sesion.user.id
+     if (!esAdmin && cotizacion.vendedorId !== usuarioId) {
+       return NextResponse.json(
+         { error: 'Solo el vendedor original o un administrador puede convertir esta cotización.' },
+diff --git a/inventory_project/src/app/api/cotizaciones/route.ts b/inventory_project/src/app/api/cotizaciones/route.ts
+index 5e78997..2796833 100644
+--- a/inventory_project/src/app/api/cotizaciones/route.ts
++++ b/inventory_project/src/app/api/cotizaciones/route.ts
+@@ -28,10 +28,10 @@ export async function GET(request: NextRequest) {
+ 
+   const estado = request.nextUrl.searchParams.get('estado')
+   const where: {
+-    vendedorId?: number
++    vendedorId?: string
+     estado?: 'PENDIENTE' | 'CONVERTIDA' | 'CANCELADA'
+   } = {}
+-  if (!esAdmin) where.vendedorId = Number(sesion.user.id)
++  if (!esAdmin) where.vendedorId = sesion.user.id
+   if (estado === 'PENDIENTE' || estado === 'CONVERTIDA' || estado === 'CANCELADA') {
+     where.estado = estado
+   }
+@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
+       consolidados.set(productoId, (consolidados.get(productoId) ?? 0) + cantidad)
+     }
+ 
+-    const vendedorId = sesion.user.id ? Number(sesion.user.id) : null
++    const vendedorId = sesion.user.id ? sesion.user.id : null
+     
+     const resultado = await CotizacionesService.crearCotizacion(consolidados, vendedorId, notas, cliente, diasValidez)
+     const cotizacion = resultado.cotizacion
+diff --git a/inventory_project/src/app/api/movimientos/route.ts b/inventory_project/src/app/api/movimientos/route.ts
+index 8c1cef6..fded7d7 100644
+--- a/inventory_project/src/app/api/movimientos/route.ts
++++ b/inventory_project/src/app/api/movimientos/route.ts
+@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
+     }
+ 
+     const ip = extraerIp(request)
+-    const usuarioId = Number(session.user.id)
++    const usuarioId = String(session.user.id)
+     
+     const movimiento = await MovimientosService.registrarMovimiento(data, usuarioId, ip || '')
+     
+diff --git a/inventory_project/src/app/api/usuarios/[id]/route.ts b/inventory_project/src/app/api/usuarios/[id]/route.ts
+index ef680cd..7fbccb3 100644
+--- a/inventory_project/src/app/api/usuarios/[id]/route.ts
++++ b/inventory_project/src/app/api/usuarios/[id]/route.ts
+@@ -1,5 +1,4 @@
+ import { NextRequest, NextResponse } from 'next/server'
+-import bcrypt from 'bcryptjs'
+ import { prisma } from '@/lib/db'
+ import { esAdmin, obtenerSesion } from '@/lib/permisos'
+ import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
+@@ -16,8 +15,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
+ 
+   const { id } = await params
+   const usuario = await prisma.usuario.findUnique({
+-    where: { id: parseInt(id, 10) },
+-    select: { id: true, email: true, nombre: true, rol: true, permisos: true, creadoEn: true },
++    where: { id },
++    select: { id: true, email: true, nombre: true, rol: true, estado: true, permisos: true, creadoEn: true },
+   })
+   if (!usuario) {
+     return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
+@@ -34,11 +33,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{
+   try {
+     const { id } = await params
+     const datos = await request.json()
+-    const usuarioId = parseInt(id, 10)
++    const usuarioId = id
+ 
+     const antes = await prisma.usuario.findUnique({
+       where: { id: usuarioId },
+-      select: { id: true, email: true, nombre: true, rol: true, permisos: true, creadoEn: true },
++      select: { id: true, email: true, nombre: true, rol: true, estado: true, permisos: true, creadoEn: true },
+     })
+ 
+     const usuario = await UsuariosService.actualizarUsuario(usuarioId, datos)
+@@ -73,14 +72,14 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
+ 
+   try {
+     const { id } = await params
+-    const usuarioId = parseInt(id, 10)
++    const usuarioId = id
+     const sesion = await obtenerSesion()
+     
+-    const usuarioLogueadoId = sesion?.user?.id ? Number(sesion.user.id) : -1
++    const usuarioLogueadoId = sesion?.user?.id ? String(sesion.user.id) : '-1'
+ 
+     const antes = await prisma.usuario.findUnique({
+       where: { id: usuarioId },
+-      select: { id: true, email: true, nombre: true, rol: true, permisos: true, creadoEn: true },
++      select: { id: true, email: true, nombre: true, rol: true, estado: true, permisos: true, creadoEn: true },
+     })
+ 
+     await UsuariosService.eliminarUsuario(usuarioId, usuarioLogueadoId)
+diff --git a/inventory_project/src/app/api/usuarios/route.ts b/inventory_project/src/app/api/usuarios/route.ts
+index 187fdd7..2db519d 100644
+--- a/inventory_project/src/app/api/usuarios/route.ts
++++ b/inventory_project/src/app/api/usuarios/route.ts
+@@ -1,5 +1,4 @@
+ import { NextRequest, NextResponse } from 'next/server'
+-import bcrypt from 'bcryptjs'
+ import { prisma } from '@/lib/db'
+ import { esAdmin } from '@/lib/permisos'
+ import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
+@@ -21,6 +20,7 @@ export async function GET() {
+         email: true,
+         nombre: true,
+         rol: true,
++        estado: true,
+         creadoEn: true,
+       },
+       orderBy: { creadoEn: 'desc' },
+diff --git a/inventory_project/src/app/api/ventas/[id]/cancelar/route.ts b/inventory_project/src/app/api/ventas/[id]/cancelar/route.ts
+index 48750e5..4ae23dd 100644
+--- a/inventory_project/src/app/api/ventas/[id]/cancelar/route.ts
++++ b/inventory_project/src/app/api/ventas/[id]/cancelar/route.ts
+@@ -74,7 +74,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
+       )
+     }
+ 
+-    const adminId = sesion.user.id ? Number(sesion.user.id) : null
++    const adminId = sesion.user.id ? sesion.user.id : null
+ 
+     const cancelada = await prisma.$transaction(async (tx) => {
+       // Devolver stock + registrar movimiento por cada item.
+diff --git a/inventory_project/src/app/api/ventas/route.ts b/inventory_project/src/app/api/ventas/route.ts
+index 3df6aa6..c8784e4 100644
+--- a/inventory_project/src/app/api/ventas/route.ts
++++ b/inventory_project/src/app/api/ventas/route.ts
+@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
+       consolidados.set(productoId, (consolidados.get(productoId) ?? 0) + cantidad)
+     }
+ 
+-    const vendedorId = sesion.user.id ? Number(sesion.user.id) : null
++    const vendedorId = sesion.user.id ? sesion.user.id : null
+ 
+     const resultado = await VentasService.registrarVenta(consolidados, vendedorId, notas)
+ 
+diff --git a/inventory_project/src/app/auditoria/page.tsx b/inventory_project/src/app/auditoria/page.tsx
+index a642055..a9769c4 100644
+--- a/inventory_project/src/app/auditoria/page.tsx
++++ b/inventory_project/src/app/auditoria/page.tsx
+@@ -40,7 +40,7 @@ export default async function PaginaAuditoria({ searchParams }: Props) {
+ 
+   const pagina = Math.max(1, parseInt(params.pagina ?? '1') || 1)
+   const where: Prisma.AuditoriaWhereInput = {}
+-  if (params.usuario) where.usuarioId = parseInt(params.usuario)
++  if (params.usuario) where.usuarioId = params.usuario
+   if (params.entidad) where.entidad = params.entidad
+   if (params.accion) where.accion = params.accion
+   if (params.desde || params.hasta) {
+diff --git a/inventory_project/src/app/cotizaciones/[id]/page.tsx b/inventory_project/src/app/cotizaciones/[id]/page.tsx
+index d622942..576418a 100644
+--- a/inventory_project/src/app/cotizaciones/[id]/page.tsx
++++ b/inventory_project/src/app/cotizaciones/[id]/page.tsx
+@@ -50,7 +50,7 @@ export default async function PaginaDetalleCotizacion({ params }: Props) {
+   if (!cotizacion) notFound()
+ 
+   // Solo el vendedor original o admin pueden ver el detalle.
+-  const usuarioId = Number(sesion.user.id)
++  const usuarioId = sesion.user.id
+   if (!esAdmin && cotizacion.vendedorId !== usuarioId) redirect('/cotizaciones')
+ 
+   const ahora = new Date()
+diff --git a/inventory_project/src/app/cotizaciones/page.tsx b/inventory_project/src/app/cotizaciones/page.tsx
+index f8daad2..1b3901b 100644
+--- a/inventory_project/src/app/cotizaciones/page.tsx
++++ b/inventory_project/src/app/cotizaciones/page.tsx
+@@ -39,10 +39,10 @@ export default async function PaginaCotizaciones({ searchParams }: Props) {
+   const filtroEstado = params.estado
+ 
+   const where: {
+-    vendedorId?: number
++    vendedorId?: string
+     estado?: 'PENDIENTE' | 'CONVERTIDA' | 'CANCELADA'
+   } = {}
+-  if (!esAdmin) where.vendedorId = Number(sesion.user.id)
++  if (!esAdmin) where.vendedorId = sesion.user.id
+   if (
+     filtroEstado === 'PENDIENTE' ||
+     filtroEstado === 'CONVERTIDA' ||
+diff --git a/inventory_project/src/app/usuarios/[id]/page.tsx b/inventory_project/src/app/usuarios/[id]/page.tsx
+index bfbb768..83ba528 100644
+--- a/inventory_project/src/app/usuarios/[id]/page.tsx
++++ b/inventory_project/src/app/usuarios/[id]/page.tsx
+@@ -17,7 +17,7 @@ export default async function PaginaEditarUsuario({
+ 
+   const { id } = await params
+   const usuario = await prisma.usuario.findUnique({
+-    where: { id: parseInt(id, 10) },
++    where: { id },
+     select: { id: true, email: true, nombre: true, rol: true, permisos: true },
+   })
+ 
+diff --git a/inventory_project/src/app/usuarios/page.tsx b/inventory_project/src/app/usuarios/page.tsx
+index f651e68..4dbc55a 100644
+--- a/inventory_project/src/app/usuarios/page.tsx
++++ b/inventory_project/src/app/usuarios/page.tsx
+@@ -19,6 +19,7 @@ export default async function PaginaUsuarios() {
+       email: true,
+       nombre: true,
+       rol: true,
++      estado: true,
+       creadoEn: true,
+     },
+     orderBy: { nombre: 'asc' },
+@@ -39,7 +40,7 @@ export default async function PaginaUsuarios() {
+ 
+         <ListaUsuariosFiltrable
+           usuarios={usuarios}
+-          usuarioActualId={String(sesion.user.id)}
++          usuarioActualId={sesion.user.id}
+         />
+       </div>
+     </LayoutProtegido>
+diff --git a/inventory_project/src/app/venta-rapida/page.tsx b/inventory_project/src/app/venta-rapida/page.tsx
+index 055b7b9..b01cbaf 100644
+--- a/inventory_project/src/app/venta-rapida/page.tsx
++++ b/inventory_project/src/app/venta-rapida/page.tsx
+@@ -17,7 +17,7 @@ export default async function PaginaVentaRapida() {
+     redirect('/')
+   }
+ 
+-  const vendedorId = Number(sesion.user.id)
++  const vendedorId = sesion.user.id
+   // Rango de "hoy" en hora local Colombia: desde 00:00 hasta 23:59:59.
+   const hoyDesde = new Date()
+   hoyDesde.setHours(0, 0, 0, 0)
+diff --git a/inventory_project/src/app/ventas/[id]/recibo/page.tsx b/inventory_project/src/app/ventas/[id]/recibo/page.tsx
+index 26f74ab..3059335 100644
+--- a/inventory_project/src/app/ventas/[id]/recibo/page.tsx
++++ b/inventory_project/src/app/ventas/[id]/recibo/page.tsx
+@@ -34,7 +34,7 @@ export default async function PaginaReciboVenta({ params }: Props) {
+ 
+   // Solo admin o quien hizo la venta puede ver el recibo.
+   const esAdmin = sesion.user.rol === 'ADMIN'
+-  const esVendedor = venta.vendedorId !== null && String(sesion.user.id) === venta.vendedorId.toString()
++  const esVendedor = venta.vendedorId !== null && sesion.user.id === venta.vendedorId
+   if (!esAdmin && !esVendedor) redirect('/')
+ 
+   const cantidadTotalItems = venta.items.reduce((s, it) => s + it.cantidad, 0)
+diff --git a/inventory_project/src/app/ventas/page.tsx b/inventory_project/src/app/ventas/page.tsx
+index 1847339..f733927 100644
+--- a/inventory_project/src/app/ventas/page.tsx
++++ b/inventory_project/src/app/ventas/page.tsx
+@@ -44,9 +44,9 @@ export default async function PaginaVentas({ searchParams }: Props) {
+   const where: Prisma.VentaWhereInput = {}
+   // Usuario regular solo ve sus propias ventas.
+   if (!esAdmin) {
+-    where.vendedorId = Number(sesion.user.id)
++    where.vendedorId = sesion.user.id
+   } else if (params.vendedor) {
+-    where.vendedorId = parseInt(params.vendedor)
++    where.vendedorId = params.vendedor
+   }
+   if (params.desde || params.hasta) {
+     where.creadoEn = {}
+@@ -59,7 +59,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
+     prisma.venta.findMany({
+       where,
+       include: {
+-        vendedor: { select: { id: true, nombre: true, email: true } },
++      vendedor: { select: { id: true, nombre: true, email: true } },
+         _count: { select: { items: true } },
+       },
+       orderBy: { creadoEn: 'desc' },
+diff --git a/inventory_project/src/componentes/BotonEliminarUsuario.tsx b/inventory_project/src/componentes/BotonEliminarUsuario.tsx
+index 3b77320..ec3af4c 100644
+--- a/inventory_project/src/componentes/BotonEliminarUsuario.tsx
++++ b/inventory_project/src/componentes/BotonEliminarUsuario.tsx
+@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
+ import { useState } from 'react'
+ 
+ interface PropiedadesBoton {
+-  id: number
++  id: string
+   email: string
+   esActual: boolean
+ }
+diff --git a/inventory_project/src/componentes/FiltrosAuditoria.tsx b/inventory_project/src/componentes/FiltrosAuditoria.tsx
+index 1654654..17f4ad9 100644
+--- a/inventory_project/src/componentes/FiltrosAuditoria.tsx
++++ b/inventory_project/src/componentes/FiltrosAuditoria.tsx
+@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
+ import { ACCIONES, ENTIDADES } from '@/lib/auditoria'
+ 
+ interface UsuarioLite {
+-  id: number
++  id: string
+   nombre: string
+   email: string
+ }
+diff --git a/inventory_project/src/componentes/FiltrosVentas.tsx b/inventory_project/src/componentes/FiltrosVentas.tsx
+index 29819d8..8955aef 100644
+--- a/inventory_project/src/componentes/FiltrosVentas.tsx
++++ b/inventory_project/src/componentes/FiltrosVentas.tsx
+@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
+ import { useEffect, useState } from 'react'
+ 
+ interface UsuarioLite {
+-  id: number
++  id: string
+   nombre: string
+   email: string
+ }
+diff --git a/inventory_project/src/componentes/FormularioUsuario.tsx b/inventory_project/src/componentes/FormularioUsuario.tsx
+index 4f11c09..cde11c4 100644
+--- a/inventory_project/src/componentes/FormularioUsuario.tsx
++++ b/inventory_project/src/componentes/FormularioUsuario.tsx
+@@ -10,11 +10,12 @@ type PermisoTipo =
+   | 'REALIZAR_VENTAS'
+ 
+ interface DatosUsuario {
+-  id?: number
++  id?: string
+   email: string
+   nombre: string
+   rol: 'ADMIN' | 'USUARIO'
+   permisos?: PermisoTipo[]
++  estado?: 'PENDIENTE' | 'ACTIVO' | 'SUSPENDIDO'
+ }
+ 
+ interface PropiedadesFormulario {
+@@ -52,6 +53,7 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
+     email: usuario?.email || '',
+     nombre: usuario?.nombre || '',
+     rol: usuario?.rol || 'USUARIO',
++    estado: usuario?.estado || 'PENDIENTE',
+     contrasena: '',
+   })
+   const [permisos, setPermisos] = useState<PermisoTipo[]>(usuario?.permisos ?? [])
+@@ -94,6 +96,7 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
+         email: datos.email,
+         nombre: datos.nombre,
+         rol: datos.rol,
++        estado: datos.estado,
+         permisos,
+       }
+       if (datos.contrasena) {
+@@ -180,6 +183,23 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
+           </select>
+         </div>
+ 
++        <div>
++          <label htmlFor="estado" className="block text-sm font-medium text-gray-700 mb-1">
++            Estado *
++          </label>
++          <select
++            id="estado"
++            name="estado"
++            value={datos.estado}
++            onChange={manejarCambio}
++            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
++          >
++            <option value="PENDIENTE">Pendiente (Sin acceso)</option>
++            <option value="ACTIVO">Activo</option>
++            <option value="SUSPENDIDO">Suspendido</option>
++          </select>
++        </div>
++
+         <div>
+           <label
+             htmlFor="contrasena"
+diff --git a/inventory_project/src/componentes/LayoutProtegido.tsx b/inventory_project/src/componentes/LayoutProtegido.tsx
+index 20f17fc..af119d4 100644
+--- a/inventory_project/src/componentes/LayoutProtegido.tsx
++++ b/inventory_project/src/componentes/LayoutProtegido.tsx
+@@ -11,7 +11,7 @@ export default async function LayoutProtegido({ children }: PropiedadesLayout) {
+   const sesion = await obtenerSesion()
+ 
+   if (!sesion) {
+-    redirect('/login')
++    redirect('/auth/sign-in')
+   }
+ 
+   if (sesion.user.estado === 'PENDIENTE') {
+diff --git a/inventory_project/src/componentes/ListaUsuariosFiltrable.tsx b/inventory_project/src/componentes/ListaUsuariosFiltrable.tsx
+index 0a0492b..6a9a0c8 100644
+--- a/inventory_project/src/componentes/ListaUsuariosFiltrable.tsx
++++ b/inventory_project/src/componentes/ListaUsuariosFiltrable.tsx
+@@ -7,10 +7,11 @@ import BotonEliminarUsuario from '@/componentes/BotonEliminarUsuario'
+ import { formatearFecha } from '@/lib/fechas'
+ 
+ interface UsuarioFilaProps {
+-  id: number
++  id: string
+   email: string
+   nombre: string
+   rol: 'ADMIN' | 'USUARIO'
++  estado: 'PENDIENTE' | 'ACTIVO' | 'SUSPENDIDO'
+   creadoEn: string | Date
+ }
+ 
+@@ -20,7 +21,7 @@ interface Propiedades {
+ }
+ 
+ type RolFiltro = 'todos' | 'ADMIN' | 'USUARIO'
+-type CampoOrden = 'nombre' | 'usuario' | 'rol' | 'creado'
++type CampoOrden = 'nombre' | 'usuario' | 'rol' | 'estado' | 'creado'
+ type Dir = 'asc' | 'desc'
+ 
+ export default function ListaUsuariosFiltrable({
+@@ -71,6 +72,8 @@ export default function ListaUsuariosFiltrable({
+           break
+         case 'rol':
+           av = a.rol; bv = b.rol; break
++        case 'estado':
++          av = a.estado; bv = b.estado; break
+         case 'creado':
+           av = new Date(a.creadoEn).getTime()
+           bv = new Date(b.creadoEn).getTime()
+@@ -177,6 +180,12 @@ export default function ListaUsuariosFiltrable({
+                     >
+                       Rol{flecha('rol')}
+                     </th>
++                    <th
++                      onClick={() => ordenarPor('estado')}
++                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100"
++                    >
++                      Estado{flecha('estado')}
++                    </th>
+                     <th
+                       onClick={() => ordenarPor('creado')}
+                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100"
+@@ -208,6 +217,17 @@ export default function ListaUsuariosFiltrable({
+                           {u.rol === 'ADMIN' ? 'Administrador' : 'Usuario'}
+                         </span>
+                       </td>
++                      <td className="px-6 py-4 whitespace-nowrap">
++                        <span
++                          className={`px-2 py-1 text-xs font-medium rounded-full ${
++                            u.estado === 'ACTIVO' ? 'bg-green-100 text-green-800' :
++                            u.estado === 'PENDIENTE' ? 'bg-yellow-100 text-yellow-800' :
++                            'bg-red-100 text-red-800'
++                          }`}
++                        >
++                          {u.estado}
++                        </span>
++                      </td>
+                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                         {formatearFecha(u.creadoEn)}
+                       </td>
+@@ -238,15 +258,26 @@ export default function ListaUsuariosFiltrable({
+                       <div className="font-semibold text-gray-900">{u.nombre}</div>
+                       <div className="text-sm text-gray-500">@{u.email}</div>
+                     </div>
+-                    <span
+-                      className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+-                        u.rol === 'ADMIN'
+-                          ? 'bg-purple-100 text-purple-800'
+-                          : 'bg-gray-100 text-gray-800'
+-                      }`}
+-                    >
+-                      {u.rol === 'ADMIN' ? 'Administrador' : 'Usuario'}
+-                    </span>
++                    <div className="flex gap-2">
++                      <span
++                        className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
++                          u.rol === 'ADMIN'
++                            ? 'bg-purple-100 text-purple-800'
++                            : 'bg-gray-100 text-gray-800'
++                        }`}
++                      >
++                        {u.rol === 'ADMIN' ? 'Administrador' : 'Usuario'}
++                      </span>
++                      <span
++                        className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
++                          u.estado === 'ACTIVO' ? 'bg-green-100 text-green-800' :
++                          u.estado === 'PENDIENTE' ? 'bg-yellow-100 text-yellow-800' :
++                          'bg-red-100 text-red-800'
++                        }`}
++                      >
++                        {u.estado}
++                      </span>
++                    </div>
+                   </div>
+                   <div className="mt-2 text-xs text-gray-500">
+                     Creado: {formatearFecha(u.creadoEn)}
+diff --git a/inventory_project/src/lib/auditoria.ts b/inventory_project/src/lib/auditoria.ts
+index 8f0ff6f..781e4b5 100644
+--- a/inventory_project/src/lib/auditoria.ts
++++ b/inventory_project/src/lib/auditoria.ts
+@@ -42,28 +42,28 @@ export const ENTIDADES: EntidadAuditoria[] = [
+ interface ParametrosAuditoria {
+   accion: AccionAuditoria
+   entidad: EntidadAuditoria
+-  entidadId?: number | null
++  entidadId?: number | string | null
+   datos?: unknown
+   // Si se conoce el usuario (p. ej. en LOGIN antes de la sesion), se pasa aqui.
+   // Si no se pasa, se intenta obtener de la sesion actual.
+-  usuarioId?: number | null
++  usuarioId?: string | null
+   ip?: string | null
+ }
+ 
+ export async function registrarAuditoria(params: ParametrosAuditoria): Promise<void> {
+   try {
+-    let usuarioId: number | null | undefined = params.usuarioId
++    let usuarioId: string | null | undefined = params.usuarioId
+     if (usuarioId === undefined) {
+       const sesion = await obtenerSesion()
+       const idVal = sesion?.user?.id
+-      usuarioId = typeof idVal === 'number' ? idVal : (idVal ? parseInt(String(idVal), 10) : null)
++      usuarioId = typeof idVal === 'string' ? idVal : (idVal ? String(idVal) : null)
+     }
+     await prisma.auditoria.create({
+       data: {
+         usuarioId: usuarioId ?? null,
+         accion: params.accion,
+         entidad: params.entidad,
+-        entidadId: params.entidadId ?? null,
++        entidadId: typeof params.entidadId === 'number' ? params.entidadId : null,
+         // Prisma JsonValue acepta cualquier objeto serializable
+         datos: (params.datos as object | null | undefined) ?? undefined,
+         ip: params.ip ?? null,
+diff --git a/inventory_project/src/lib/permisos.ts b/inventory_project/src/lib/permisos.ts
+index 882f4b6..775dc1c 100644
+--- a/inventory_project/src/lib/permisos.ts
++++ b/inventory_project/src/lib/permisos.ts
+@@ -11,6 +11,18 @@ export const obtenerSesion = cache(async () => {
+     where: { neonAuthId: data.user.id },
+   })
+ 
++  if (!usuario && data.user.email) {
++    usuario = await prisma.usuario.findUnique({
++      where: { email: data.user.email }
++    })
++    if (usuario) {
++      usuario = await prisma.usuario.update({
++        where: { id: usuario.id },
++        data: { neonAuthId: data.user.id }
++      })
++    }
++  }
++
+   if (!usuario) {
+     usuario = await prisma.usuario.create({
+       data: {
+@@ -31,7 +43,7 @@ export async function esAdmin() {
+   return sesion?.user?.rol === 'ADMIN'
+ }
+ 
+-const obtenerPermisosUsuario = cache(async (usuarioId: number) => {
++const obtenerPermisosUsuario = cache(async (usuarioId: string) => {
+   const usuario = await prisma.usuario.findUnique({
+     where: { id: usuarioId },
+     select: { permisos: true },
+@@ -44,7 +56,7 @@ export async function tienePermiso(permiso: Permiso): Promise<boolean> {
+   if (!sesion?.user) return false
+   if (sesion.user.rol === 'ADMIN') return true
+ 
+-  const idParaBuscar = typeof sesion.user.id === 'number' ? sesion.user.id : Number(sesion.user.id)
++  const idParaBuscar = typeof sesion.user.id === 'string' ? sesion.user.id : String(sesion.user.id)
+   const permisos = await obtenerPermisosUsuario(idParaBuscar)
+   return permisos.includes(permiso)
+ }
+diff --git a/inventory_project/src/proxy.ts b/inventory_project/src/middleware.ts
+similarity index 97%
+rename from inventory_project/src/proxy.ts
+rename to inventory_project/src/middleware.ts
+index acc561e..226332b 100644
+--- a/inventory_project/src/proxy.ts
++++ b/inventory_project/src/middleware.ts
+@@ -18,7 +18,7 @@ const ratelimit = redisUrl && redisToken ? new Ratelimit({
+   analytics: true,
+ }) : null;
+ 
+-export async function proxy(request: NextRequest) {
++export async function middleware(request: NextRequest) {
+   // Aplicar rate limiting solo al endpoint de credenciales.
+   if (
+     request.nextUrl.pathname.includes('/api/auth/') &&
+diff --git a/inventory_project/src/services/CotizacionesService.ts b/inventory_project/src/services/CotizacionesService.ts
+index 0f793e8..86834cd 100644
+--- a/inventory_project/src/services/CotizacionesService.ts
++++ b/inventory_project/src/services/CotizacionesService.ts
+@@ -5,7 +5,7 @@ import { AppError } from '../lib/AppError'
+ const DIAS_VALIDEZ_DEFECTO = 7
+ 
+ export const CotizacionesService = {
+-  async crearCotizacion(consolidados: Map<number, number>, vendedorId: number | null, notas: string, cliente: string, diasValidezInput?: number) {
++  async crearCotizacion(consolidados: Map<number, number>, vendedorId: string | null, notas: string, cliente: string, diasValidezInput?: number) {
+     const productosIds = Array.from(consolidados.keys())
+     const productos = await prisma.producto.findMany({ where: { id: { in: productosIds } } })
+     const mapaProductos = new Map(productos.map((p) => [p.id, p]))
+diff --git a/inventory_project/src/services/MovimientosService.ts b/inventory_project/src/services/MovimientosService.ts
+index 45f6106..62409cd 100644
+--- a/inventory_project/src/services/MovimientosService.ts
++++ b/inventory_project/src/services/MovimientosService.ts
+@@ -24,7 +24,7 @@ export const MovimientosService = {
+   },
+ 
+   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+-  async registrarMovimiento(data: any, usuarioId: number, ip: string) {
++  async registrarMovimiento(data: any, usuarioId: string, ip: string) {
+     const { productoId: rawProductoId, tipo, cantidad: rawCantidad, notas } = data;
+     
+     const productoId = parseInt(rawProductoId, 10);
+diff --git a/inventory_project/src/services/UsuariosService.ts b/inventory_project/src/services/UsuariosService.ts
+index 67e6b63..2066a12 100644
+--- a/inventory_project/src/services/UsuariosService.ts
++++ b/inventory_project/src/services/UsuariosService.ts
+@@ -1,5 +1,4 @@
+ import { prisma } from '../lib/db'
+-import bcrypt from 'bcryptjs'
+ import { AppError } from '../lib/AppError'
+ 
+ // Removed manual password validation since Neon Auth manages credentials
+@@ -37,6 +36,7 @@ export const UsuariosService = {
+         email: true,
+         nombre: true,
+         rol: true,
++        estado: true,
+         permisos: true,
+         creadoEn: true,
+       },
+@@ -44,13 +44,14 @@ export const UsuariosService = {
+   },
+ 
+   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+-  async actualizarUsuario(id: number, datos: any) {
++  async actualizarUsuario(id: string, datos: any) {
+     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     const datosActualizar: any = {}
+ 
+     if (datos.nombre) datosActualizar.nombre = datos.nombre
+     if (datos.email) datosActualizar.email = datos.email
+     if (datos.rol === 'ADMIN' || datos.rol === 'USUARIO') datosActualizar.rol = datos.rol
++    if (['PENDIENTE', 'ACTIVO', 'SUSPENDIDO'].includes(datos.estado)) datosActualizar.estado = datos.estado
+ 
+ 
+ 
+@@ -66,11 +67,11 @@ export const UsuariosService = {
+     return await prisma.usuario.update({
+       where: { id },
+       data: datosActualizar,
+-      select: { id: true, email: true, nombre: true, rol: true, permisos: true, creadoEn: true },
++      select: { id: true, email: true, nombre: true, rol: true, estado: true, permisos: true, creadoEn: true },
+     })
+   },
+ 
+-  async eliminarUsuario(id: number, usuarioLogueadoId: number) {
++  async eliminarUsuario(id: string, usuarioLogueadoId: string) {
+     if (usuarioLogueadoId === id) {
+       throw new AppError('No puedes eliminar tu propio usuario', 400)
+     }
+diff --git a/inventory_project/src/services/VentasService.ts b/inventory_project/src/services/VentasService.ts
+index a1f5bca..55a87ee 100644
+--- a/inventory_project/src/services/VentasService.ts
++++ b/inventory_project/src/services/VentasService.ts
+@@ -5,7 +5,7 @@ import { obtenerReservasPorProducto } from '../lib/reservas'
+ import { AppError } from '../lib/AppError'
+ 
+ export const VentasService = {
+-  async registrarVenta(consolidados: Map<number, number>, vendedorId: number | null, notas: string) {
++  async registrarVenta(consolidados: Map<number, number>, vendedorId: string | null, notas: string) {
+     return await prisma.$transaction(async (tx) => {
+       const productosIds = Array.from(consolidados.keys())
+       const productos = await tx.producto.findMany({ where: { id: { in: productosIds } } })

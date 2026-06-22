@@ -20,7 +20,7 @@ export default async function PaginaNuevaCotizacion() {
     orderBy: { nombre: 'asc' },
     select: { id: true, codigo: true, nombre: true, precio: true, cantidad: true },
   })
-  const reservas = await obtenerReservasPorProducto(empresaId, productos.map((p) => p.id))
+  const reservas = await obtenerReservasPorProducto(productos.map((p) => p.id), undefined, empresaId)
 
   const productosConDisponible = productos.map((p) => ({
     ...p,
