@@ -16,7 +16,7 @@ export default async function PaginaUsuarios() {
   const usuarios = await prisma.usuario.findMany({
     select: {
       id: true,
-      nombreUsuario: true,
+      email: true,
       nombre: true,
       rol: true,
       creadoEn: true,
@@ -39,7 +39,7 @@ export default async function PaginaUsuarios() {
 
         <ListaUsuariosFiltrable
           usuarios={usuarios}
-          usuarioActualId={sesion.user.id}
+          usuarioActualId={String(sesion.user.id)}
         />
       </div>
     </LayoutProtegido>

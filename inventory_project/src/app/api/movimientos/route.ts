@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     const ip = extraerIp(request)
-    const usuarioId = parseInt(session.user.id as string, 10)
+    const usuarioId = Number(session.user.id)
     
     const movimiento = await MovimientosService.registrarMovimiento(data, usuarioId, ip || '')
     

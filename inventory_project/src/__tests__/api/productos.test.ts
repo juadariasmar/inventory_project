@@ -28,7 +28,7 @@ describe('Productos API', () => {
     let u = await prisma.usuario.findUnique({ where: { id: 1 } })
     if (!u) {
       u = await prisma.usuario.create({
-        data: { id: 1, nombre: 'Admin', nombreUsuario: 'adminProdTest', contrasena: '1234' }
+        data: { id: 1, nombre: 'Admin', email: 'adminProdTest' }
       })
       usuarioCreado = true
     }

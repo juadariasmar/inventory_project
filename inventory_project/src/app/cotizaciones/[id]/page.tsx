@@ -41,8 +41,8 @@ export default async function PaginaDetalleCotizacion({ params }: Props) {
   const cotizacion = await prisma.cotizacion.findUnique({
     where: { id: cotizacionId },
     include: {
-      vendedor: { select: { id: true, nombre: true, nombreUsuario: true } },
-      canceladaPor: { select: { id: true, nombre: true, nombreUsuario: true } },
+      vendedor: { select: { id: true, nombre: true, email: true } },
+      canceladaPor: { select: { id: true, nombre: true, email: true } },
       items: { include: { producto: { select: { nombre: true, codigo: true } } } },
       venta: { select: { id: true } },
     },
@@ -50,7 +50,7 @@ export default async function PaginaDetalleCotizacion({ params }: Props) {
   if (!cotizacion) notFound()
 
   // Solo el vendedor original o admin pueden ver el detalle.
-  const usuarioId = parseInt(sesion.user.id, 10)
+  const usuarioId = Number(sesion.user.id)
   if (!esAdmin && cotizacion.vendedorId !== usuarioId) redirect('/cotizaciones')
 
   const ahora = new Date()
@@ -87,7 +87,7 @@ export default async function PaginaDetalleCotizacion({ params }: Props) {
             <p className="text-sm text-gray-500 mt-1">
               Creada {formatearFechaHora(cotizacion.creadoEn)}
               {cotizacion.vendedor &&
-                ` por ${cotizacion.vendedor.nombre} (@${cotizacion.vendedor.nombreUsuario})`}
+                ` por ${cotizacion.vendedor.nombre} (@${cotizacion.vendedor.email})`}
             </p>
           </div>
           <BotonesCotizacion
@@ -124,7 +124,7 @@ export default async function PaginaDetalleCotizacion({ params }: Props) {
             <div>
               Cancelada el {cotizacion.canceladaEn ? formatearFechaHora(cotizacion.canceladaEn) : ''}
               {cotizacion.canceladaPor &&
-                ` por ${cotizacion.canceladaPor.nombre} (@${cotizacion.canceladaPor.nombreUsuario})`}
+                ` por ${cotizacion.canceladaPor.nombre} (@${cotizacion.canceladaPor.email})`}
               .
             </div>
             {cotizacion.motivoCancelacion && (

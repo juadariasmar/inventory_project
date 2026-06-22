@@ -14,8 +14,8 @@ export default function ProveedorSesion({ children }: PropiedadesProveedor) {
       authClient={authClient}
       social={{ providers: ['google'] }}
       localization={{
-        signIn: "Iniciar sesión",
-        signUp: "Registrarse",
+        SIGN_IN: "Iniciar sesión",
+        SIGN_UP: "Registrarse",
       }}
     >
       {children}

@@ -7,7 +7,7 @@ import { ACCIONES, ENTIDADES } from '@/lib/auditoria'
 interface UsuarioLite {
   id: number
   nombre: string
-  nombreUsuario: string
+  email: string
 }
 
 interface Propiedades {
@@ -65,7 +65,7 @@ export default function FiltrosAuditoria({ usuarios, permiteExportar }: Propieda
           >
             <option value="">Todos</option>
             {usuarios.map((u) => (
-              <option key={u.id} value={u.id}>{u.nombre} (@{u.nombreUsuario})</option>
+              <option key={u.id} value={u.id}>{u.nombre} (@{u.email})</option>
             ))}
           </select>
         </div>

@@ -74,7 +74,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
       )
     }
 
-    const adminId = sesion.user.id ? parseInt(sesion.user.id, 10) : null
+    const adminId = sesion.user.id ? Number(sesion.user.id) : null
 
     const cancelada = await prisma.$transaction(async (tx) => {
       // Devolver stock + registrar movimiento por cada item.
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
         },
         include: {
           items: { include: { producto: { select: { nombre: true, codigo: true } } } },
-          canceladaPor: { select: { id: true, nombre: true, nombreUsuario: true } },
+          canceladaPor: { select: { id: true, nombre: true, email: true } },
         },
       })
     })

@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 interface UsuarioLite {
   id: number
   nombre: string
-  nombreUsuario: string
+  email: string
 }
 
 interface Propiedades {
@@ -54,7 +54,7 @@ export default function FiltrosVentas({ esAdmin, vendedores }: Propiedades) {
               <option value="">Todos</option>
               {vendedores.map((v) => (
                 <option key={v.id} value={v.id}>
-                  {v.nombre} (@{v.nombreUsuario})
+                  {v.nombre} (@{v.email})
                 </option>
               ))}
             </select>

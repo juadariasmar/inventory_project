@@ -5,13 +5,13 @@ import { useState } from 'react'
 
 interface PropiedadesBoton {
   id: number
-  nombreUsuario: string
+  email: string
   esActual: boolean
 }
 
 export default function BotonEliminarUsuario({
   id,
-  nombreUsuario,
+  email,
   esActual,
 }: PropiedadesBoton) {
   const router = useRouter()
@@ -22,7 +22,7 @@ export default function BotonEliminarUsuario({
       alert('No puedes eliminar tu propio usuario.')
       return
     }
-    if (!confirm(`¿Estás seguro de eliminar el usuario "${nombreUsuario}"?`)) {
+    if (!confirm(`¿Estás seguro de eliminar el usuario "${email}"?`)) {
       return
     }
 

@@ -191,7 +191,7 @@ export default function BarraNavegacion({ sesion }: { sesion: any }) {
           {/* Mi cuenta (escritorio) */}
           <div className="hidden lg:flex items-center">
             {sesion?.user && (
-              <UserButton authClient={authClient} />
+              <UserButton />
             )}
           </div>
 
@@ -265,7 +265,7 @@ export default function BarraNavegacion({ sesion }: { sesion: any }) {
           </div>
           {sesion?.user && (
             <div className="border-t border-blue-500 pt-3 pb-3 px-4 flex justify-center">
-              <UserButton authClient={authClient} />
+              <UserButton />
             </div>
           )}
         </div>
