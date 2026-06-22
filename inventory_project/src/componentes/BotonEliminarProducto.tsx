@@ -41,7 +41,7 @@ export default function BotonEliminarProducto({ id, nombre }: PropiedadesBoton) 
     <button
       onClick={manejarEliminacion}
       disabled={eliminando}
-      className="text-red-600 hover:text-red-800 disabled:opacity-50"
+      className="bg-error text-white py-2 px-4 rounded-lg hover:bg-error-hover transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-error focus:ring-offset-2 min-h-[44px] inline-flex items-center justify-center font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {eliminando ? 'Eliminando...' : 'Eliminar'}
     </button>

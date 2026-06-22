@@ -54,11 +54,11 @@ export default function BotonEliminarCategoria({
     <button
       onClick={manejarEliminacion}
       disabled={eliminando}
-      className={`text-sm ${
+      className={`py-2 px-4 rounded-lg transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-error focus:ring-offset-2 min-h-[44px] inline-flex items-center justify-center font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${
         tieneProductos
-          ? 'text-gray-400 cursor-not-allowed'
-          : 'text-red-600 hover:text-red-800'
-      } disabled:opacity-50`}
+          ? 'bg-gray-400 text-white'
+          : 'bg-error text-white hover:bg-error-hover'
+      }`}
       title={
         tieneProductos
           ? 'No se puede eliminar: tiene productos asociados'

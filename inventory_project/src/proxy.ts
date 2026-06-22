@@ -17,7 +17,7 @@ const ratelimit = redisUrl && redisToken ? new Ratelimit({
   analytics: true,
 }) : null;
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Aplicar rate limiting solo al endpoint de credenciales de NextAuth.
   if (
     request.nextUrl.pathname === '/api/auth/callback/credentials' &&

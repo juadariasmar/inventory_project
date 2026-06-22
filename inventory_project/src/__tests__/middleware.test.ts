@@ -1,4 +1,4 @@
-import { middleware } from '../../src/middleware';
+import { proxy as middleware } from '../../src/proxy';
 import { createMockRequest } from './utils/test-utils';
 
 describe('Middleware Security Tests', () => {

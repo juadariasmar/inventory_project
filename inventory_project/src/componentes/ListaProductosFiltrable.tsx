@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react'
 import BarraSeleccionMultiple from '@/componentes/BarraSeleccionMultiple'
 import BotonEliminarProducto from '@/componentes/BotonEliminarProducto'
 import BotonVenderProducto from '@/componentes/BotonVenderProducto'
+import MenuDesplegableAcciones from '@/componentes/MenuDesplegableAcciones'
 import { estadoStock, etiquetaEstadoStock, type EstadoStock } from '@/lib/inventario'
 import { diasDesde, formatearAntiguedad, formatearFecha } from '@/lib/fechas'
 
@@ -438,13 +439,7 @@ export default function ListaProductosFiltrable({
                             {formatearFecha(producto.creadoEn)}
                           </div>
                         </td>
-                        <td className="px-3 py-3 text-sm space-x-2 whitespace-nowrap">
-                          <Link
-                            href={`/productos/${producto.id}/detalle`}
-                            className="text-gray-600 hover:text-gray-900"
-                          >
-                            Histórico
-                          </Link>
+                        <td className="px-3 py-3 text-sm flex items-center justify-end gap-2 whitespace-nowrap">
                           {puedeVender && (
                             <BotonVenderProducto
                               id={producto.id}
@@ -454,20 +449,25 @@ export default function ListaProductosFiltrable({
                               precio={producto.precio}
                             />
                           )}
-                          {esAdmin && (
-                            <>
-                              <Link
-                                href={`/productos/${producto.id}`}
-                                className="text-blue-600 hover:text-blue-800"
-                              >
-                                Editar
+                          <MenuDesplegableAcciones>
+                            <div className="px-4 py-2 hover:bg-gray-100">
+                              <Link href={`/productos/${producto.id}/detalle`} className="text-gray-700 block w-full text-left">
+                                Histórico
                               </Link>
-                              <BotonEliminarProducto
-                                id={producto.id}
-                                nombre={producto.nombre}
-                              />
-                            </>
-                          )}
+                            </div>
+                            {esAdmin && (
+                              <>
+                                <div className="px-4 py-2 hover:bg-gray-100">
+                                  <Link href={`/productos/${producto.id}`} className="text-blue-600 block w-full text-left">
+                                    Editar
+                                  </Link>
+                                </div>
+                                <div className="px-4 py-2 hover:bg-gray-100">
+                                  <BotonEliminarProducto id={producto.id} nombre={producto.nombre} />
+                                </div>
+                              </>
+                            )}
+                          </MenuDesplegableAcciones>
                         </td>
                       </tr>
                     )
@@ -533,13 +533,7 @@ export default function ListaProductosFiltrable({
                         </div>
                       </div>
                     </div>
-                    <div className="mt-3 flex gap-4 text-sm">
-                      <Link
-                        href={`/productos/${producto.id}/detalle`}
-                        className="text-gray-600 hover:text-gray-900"
-                      >
-                        Histórico
-                      </Link>
+                    <div className="mt-3 flex items-center justify-end gap-2 text-sm">
                       {puedeVender && (
                         <BotonVenderProducto
                           id={producto.id}
@@ -549,20 +543,25 @@ export default function ListaProductosFiltrable({
                           precio={producto.precio}
                         />
                       )}
-                      {esAdmin && (
-                        <>
-                          <Link
-                            href={`/productos/${producto.id}`}
-                            className="text-blue-600 hover:text-blue-800"
-                          >
-                            Editar
+                      <MenuDesplegableAcciones>
+                        <div className="px-4 py-2 hover:bg-gray-100">
+                          <Link href={`/productos/${producto.id}/detalle`} className="text-gray-700 block w-full text-left">
+                            Histórico
                           </Link>
-                          <BotonEliminarProducto
-                            id={producto.id}
-                            nombre={producto.nombre}
-                          />
-                        </>
-                      )}
+                        </div>
+                        {esAdmin && (
+                          <>
+                            <div className="px-4 py-2 hover:bg-gray-100">
+                              <Link href={`/productos/${producto.id}`} className="text-blue-600 block w-full text-left">
+                                Editar
+                              </Link>
+                            </div>
+                            <div className="px-4 py-2 hover:bg-gray-100">
+                              <BotonEliminarProducto id={producto.id} nombre={producto.nombre} />
+                            </div>
+                          </>
+                        )}
+                      </MenuDesplegableAcciones>
                     </div>
                   </div>
                 )
