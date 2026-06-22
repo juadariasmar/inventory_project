@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
-import LayoutProtegido from '@/componentes/LayoutProtegido'
-import FormularioImportarProductos from '@/componentes/FormularioImportarProductos'
+import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
+import FormularioImportarProductos from '@/componentes/productos/FormularioImportarProductos'
 import { obtenerSesion } from '@/lib/permisos'
 import Link from 'next/link'
 

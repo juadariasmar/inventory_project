@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db'
-import LayoutProtegido from '@/componentes/LayoutProtegido'
+import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
 import Link from 'next/link'
-import ListaMovimientosFiltrable from '@/componentes/ListaMovimientosFiltrable'
+import ListaMovimientosFiltrable from '@/componentes/movimientos/ListaMovimientosFiltrable'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 import { redirect } from 'next/navigation'
 

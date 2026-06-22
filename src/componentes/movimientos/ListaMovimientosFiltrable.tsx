@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
-import BarraSeleccionMultiple from '@/componentes/BarraSeleccionMultiple'
+import BarraSeleccionMultiple from '@/componentes/comunes/BarraSeleccionMultiple'
 import { formatearFechaHora } from '@/lib/fechas'
 
 interface MovimientoFilaProps {

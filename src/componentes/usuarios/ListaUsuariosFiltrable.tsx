@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
-import BotonEliminarUsuario from '@/componentes/BotonEliminarUsuario'
-import BotonCambiarEstadoUsuario from '@/componentes/BotonCambiarEstadoUsuario'
+import BotonEliminarUsuario from '@/componentes/usuarios/BotonEliminarUsuario'
+import BotonCambiarEstadoUsuario from '@/componentes/usuarios/BotonCambiarEstadoUsuario'
 import { formatearFecha } from '@/lib/fechas'
 
 interface UsuarioFilaProps {
