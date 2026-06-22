@@ -27,6 +27,8 @@ export default async function PaginaUsuarios() {
     orderBy: { nombre: 'asc' },
   })
 
+  const pendientes = usuarios.filter((u) => u.estado === 'PENDIENTE').length
+
   return (
     <LayoutProtegido>
       <div className="space-y-6">
@@ -39,6 +41,17 @@ export default async function PaginaUsuarios() {
             + Nuevo Usuario
           </Link>
         </div>
+
+        {pendientes > 0 && (
+          <div
+            role="status"
+            className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+          >
+            {pendientes === 1
+              ? 'Tienes 1 usuario pendiente de aprobación.'
+              : `Tienes ${pendientes} usuarios pendientes de aprobación.`}
+          </div>
+        )}
 
         <ListaUsuariosFiltrable
           usuarios={usuarios}

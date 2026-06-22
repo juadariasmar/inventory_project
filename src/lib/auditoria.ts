@@ -19,6 +19,8 @@ export type EntidadAuditoria =
   | 'Usuario'
   | 'Venta'
   | 'Cotizacion'
+  | 'Proveedor'
+  | 'OrdenCompra'
   | 'Sesion'
 
 export const ACCIONES: AccionAuditoria[] = [
@@ -36,6 +38,8 @@ export const ENTIDADES: EntidadAuditoria[] = [
   'Usuario',
   'Venta',
   'Cotizacion',
+  'Proveedor',
+  'OrdenCompra',
   'Sesion',
 ]
 
