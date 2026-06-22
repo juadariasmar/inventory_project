@@ -22,7 +22,7 @@ async function obtenerProductos(empresaId: string) {
 
 export default async function PaginaNuevoMovimiento() {
   const sesion = await obtenerSesion()
-  if (!sesion?.user?.empresaId) redirect('/login')
+  if (!sesion?.user?.empresaId) redirect('/auth/sign-in')
   const empresaId = sesion.user.empresaId
 
   if (!(await tienePermiso('REGISTRAR_MOVIMIENTOS'))) {

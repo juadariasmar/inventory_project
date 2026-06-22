@@ -8,8 +8,8 @@ import { esAdmin, obtenerSesion } from '@/lib/permisos'
 //
 // Restablece la BD al estado de "empresa nueva":
 //   BORRA en transaccion: cotizaciones + items, ventas + items,
-//     movimientos, productos, categorias, auditoria
-//   CONSERVA: usuarios y sus permisos
+//     movimientos, productos, categorias
+//   CONSERVA: usuarios, permisos y los registros de auditoria
 //
 // Solo ADMIN. La frase de confirmacion debe ser exactamente "RESTABLECER".
 export async function POST(request: NextRequest) {
@@ -44,14 +44,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Conteo previo para reportar al usuario.
-    const [productos, categorias, movimientos, ventas, cotizaciones, auditorias] =
+    const [productos, categorias, movimientos, ventas, cotizaciones] =
       await Promise.all([
         prisma.producto.count({ where: { empresaId } }),
         prisma.categoria.count({ where: { empresaId } }),
         prisma.movimiento.count({ where: { empresaId } }),
         prisma.venta.count({ where: { empresaId } }),
         prisma.cotizacion.count({ where: { empresaId } }),
-        prisma.auditoria.count({ where: { empresaId } }),
       ])
 
     // Orden: hijos antes que padres por las FK.
@@ -65,9 +64,8 @@ export async function POST(request: NextRequest) {
       await tx.venta.deleteMany({ where: { empresaId } })
       await tx.producto.deleteMany({ where: { empresaId } })
       await tx.categoria.deleteMany({ where: { empresaId } })
-      // Auditoria al final: si algun paso anterior falla, el registro
-      // historico se conserva.
-      await tx.auditoria.deleteMany({ where: { empresaId } })
+      // Los registros de auditoria se CONSERVAN deliberadamente para mantener
+      // la trazabilidad historica de las operaciones.
     })
 
     // Invalidar todas las paginas que dependen de estos datos.
@@ -81,7 +79,6 @@ export async function POST(request: NextRequest) {
         movimientos,
         ventas,
         cotizaciones,
-        auditorias,
       },
     })
   } catch (error) {
