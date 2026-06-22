@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 interface PropiedadesBoton {
-  id: number
+  id: string
   email: string
   esActual: boolean
 }

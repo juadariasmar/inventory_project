@@ -1,17 +1,16 @@
 import { UsuariosService } from '../../services/UsuariosService';
 import { prisma } from '../../lib/db';
 import { AppError } from '../../lib/AppError';
-import bcrypt from 'bcryptjs';
 
 describe('UsuariosService', () => {
-  let adminId: number;
-  let testUserId: number;
+  let adminId: string;
+  let testUserId: string;
 
   beforeAll(async () => {
     let u = await prisma.usuario.findFirst({ where: { email: 'adminUsuariosTest' } });
     if (!u) {
       u = await prisma.usuario.create({
-        data: { nombre: 'Admin', email: 'adminUsuariosTest' }
+        data: { neonAuthId: 'test-admin', nombre: 'Admin', email: 'adminUsuariosTest' }
       });
     }
     adminId = u.id;
@@ -33,12 +32,7 @@ describe('UsuariosService', () => {
     jest.clearAllMocks();
   });
 
-  it('crearUsuario throws error if password is too weak', async () => {
-    const datos = { email: 'testuser', nombre: 'Test' };
-    await expect(UsuariosService.crearUsuario(datos)).rejects.toThrow(AppError);
-  });
-
-  it('crearUsuario succeeds with strong password', async () => {
+  it('crearUsuario succeeds', async () => {
     const datos = { email: 'testuser1', nombre: 'Test 1' };
     const user = await UsuariosService.crearUsuario(datos);
     expect(user).toBeDefined();
@@ -47,7 +41,7 @@ describe('UsuariosService', () => {
   });
 
   it('actualizarUsuario throws error if user not found', async () => {
-    await expect(UsuariosService.actualizarUsuario(-999, { nombre: 'Updated' })).rejects.toThrow(AppError);
+    await expect(UsuariosService.actualizarUsuario('-999', { nombre: 'Updated' })).rejects.toThrow(AppError);
   });
 
   it('actualizarUsuario succeeds', async () => {

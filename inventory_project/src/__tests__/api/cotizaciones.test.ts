@@ -4,13 +4,10 @@ import { NextRequest } from 'next/server';
 import { prisma } from '../../lib/db';
 
 jest.mock('../../lib/permisos', () => ({
-  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 1, role: 'admin' } }),
+  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 'test-user-cot-1', role: 'admin' } }),
   tienePermiso: jest.fn().mockResolvedValue(true)
 }));
 
-jest.mock('next-auth/jwt', () => ({
-  getToken: jest.fn().mockResolvedValue({ id: 1, role: 'admin' })
-}));
 
 jest.mock('next/cache', () => ({
   revalidatePath: jest.fn()
@@ -19,14 +16,14 @@ jest.mock('next/cache', () => ({
 describe('Cotizaciones API', () => {
   let productoId: number;
   let categoriaId: number;
-  let usuarioId: number;
+  let usuarioId: string;
 
   beforeAll(async () => {
     // Check if user 1 exists, if not create it
-    let u = await prisma.usuario.findUnique({ where: { id: 1 } });
+    let u = await prisma.usuario.findUnique({ where: { id: 'test-user-cot-1' } });
     if (!u) {
       u = await prisma.usuario.create({
-        data: { id: 1, nombre: 'Admin', email: 'adminTest' }
+        data: { id: 'test-user-cot-1', neonAuthId: 'test-neon-auth-cot', nombre: 'Admin Cot', email: 'adminCotTest@example.com' }
       });
     }
     usuarioId = u.id;
@@ -59,7 +56,7 @@ describe('Cotizaciones API', () => {
     }
     if (usuarioId) {
       await prisma.auditoria.deleteMany({ where: { usuarioId } });
-      await prisma.usuario.delete({ where: { id: usuarioId } });
+      await prisma.usuario.deleteMany({ where: { id: usuarioId } });
     }
   });
 

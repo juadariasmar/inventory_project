@@ -1,5 +1,4 @@
 import { prisma } from '../lib/db'
-import bcrypt from 'bcryptjs'
 import { AppError } from '../lib/AppError'
 
 // Removed manual password validation since Neon Auth manages credentials
@@ -37,6 +36,7 @@ export const UsuariosService = {
         email: true,
         nombre: true,
         rol: true,
+        estado: true,
         permisos: true,
         creadoEn: true,
       },
@@ -44,13 +44,14 @@ export const UsuariosService = {
   },
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async actualizarUsuario(id: number, datos: any) {
+  async actualizarUsuario(id: string, datos: any) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const datosActualizar: any = {}
 
     if (datos.nombre) datosActualizar.nombre = datos.nombre
     if (datos.email) datosActualizar.email = datos.email
     if (datos.rol === 'ADMIN' || datos.rol === 'USUARIO') datosActualizar.rol = datos.rol
+    if (['PENDIENTE', 'ACTIVO', 'SUSPENDIDO'].includes(datos.estado)) datosActualizar.estado = datos.estado
 
 
 
@@ -66,11 +67,11 @@ export const UsuariosService = {
     return await prisma.usuario.update({
       where: { id },
       data: datosActualizar,
-      select: { id: true, email: true, nombre: true, rol: true, permisos: true, creadoEn: true },
+      select: { id: true, email: true, nombre: true, rol: true, estado: true, permisos: true, creadoEn: true },
     })
   },
 
-  async eliminarUsuario(id: number, usuarioLogueadoId: number) {
+  async eliminarUsuario(id: string, usuarioLogueadoId: string) {
     if (usuarioLogueadoId === id) {
       throw new AppError('No puedes eliminar tu propio usuario', 400)
     }

@@ -34,7 +34,7 @@ export default async function PaginaReciboVenta({ params }: Props) {
 
   // Solo admin o quien hizo la venta puede ver el recibo.
   const esAdmin = sesion.user.rol === 'ADMIN'
-  const esVendedor = venta.vendedorId !== null && String(sesion.user.id) === venta.vendedorId.toString()
+  const esVendedor = venta.vendedorId !== null && sesion.user.id === venta.vendedorId
   if (!esAdmin && !esVendedor) redirect('/')
 
   const cantidadTotalItems = venta.items.reduce((s, it) => s + it.cantidad, 0)

@@ -7,10 +7,11 @@ import BotonEliminarUsuario from '@/componentes/BotonEliminarUsuario'
 import { formatearFecha } from '@/lib/fechas'
 
 interface UsuarioFilaProps {
-  id: number
+  id: string
   email: string
   nombre: string
   rol: 'ADMIN' | 'USUARIO'
+  estado: 'PENDIENTE' | 'ACTIVO' | 'SUSPENDIDO'
   creadoEn: string | Date
 }
 
@@ -20,7 +21,7 @@ interface Propiedades {
 }
 
 type RolFiltro = 'todos' | 'ADMIN' | 'USUARIO'
-type CampoOrden = 'nombre' | 'usuario' | 'rol' | 'creado'
+type CampoOrden = 'nombre' | 'usuario' | 'rol' | 'estado' | 'creado'
 type Dir = 'asc' | 'desc'
 
 export default function ListaUsuariosFiltrable({
@@ -71,6 +72,8 @@ export default function ListaUsuariosFiltrable({
           break
         case 'rol':
           av = a.rol; bv = b.rol; break
+        case 'estado':
+          av = a.estado; bv = b.estado; break
         case 'creado':
           av = new Date(a.creadoEn).getTime()
           bv = new Date(b.creadoEn).getTime()
@@ -178,6 +181,12 @@ export default function ListaUsuariosFiltrable({
                       Rol{flecha('rol')}
                     </th>
                     <th
+                      onClick={() => ordenarPor('estado')}
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100"
+                    >
+                      Estado{flecha('estado')}
+                    </th>
+                    <th
                       onClick={() => ordenarPor('creado')}
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100"
                     >
@@ -206,6 +215,17 @@ export default function ListaUsuariosFiltrable({
                           }`}
                         >
                           {u.rol === 'ADMIN' ? 'Administrador' : 'Usuario'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            u.estado === 'ACTIVO' ? 'bg-green-100 text-green-800' :
+                            u.estado === 'PENDIENTE' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {u.estado}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -238,15 +258,26 @@ export default function ListaUsuariosFiltrable({
                       <div className="font-semibold text-gray-900">{u.nombre}</div>
                       <div className="text-sm text-gray-500">@{u.email}</div>
                     </div>
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
-                        u.rol === 'ADMIN'
-                          ? 'bg-purple-100 text-purple-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {u.rol === 'ADMIN' ? 'Administrador' : 'Usuario'}
-                    </span>
+                    <div className="flex gap-2">
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+                          u.rol === 'ADMIN'
+                            ? 'bg-purple-100 text-purple-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        {u.rol === 'ADMIN' ? 'Administrador' : 'Usuario'}
+                      </span>
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+                          u.estado === 'ACTIVO' ? 'bg-green-100 text-green-800' :
+                          u.estado === 'PENDIENTE' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {u.estado}
+                      </span>
+                    </div>
                   </div>
                   <div className="mt-2 text-xs text-gray-500">
                     Creado: {formatearFecha(u.creadoEn)}

@@ -40,7 +40,7 @@ export default async function PaginaAuditoria({ searchParams }: Props) {
 
   const pagina = Math.max(1, parseInt(params.pagina ?? '1') || 1)
   const where: Prisma.AuditoriaWhereInput = {}
-  if (params.usuario) where.usuarioId = parseInt(params.usuario)
+  if (params.usuario) where.usuarioId = params.usuario
   if (params.entidad) where.entidad = params.entidad
   if (params.accion) where.accion = params.accion
   if (params.desde || params.hasta) {

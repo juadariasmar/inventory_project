@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 interface UsuarioLite {
-  id: number
+  id: string
   nombre: string
   email: string
 }

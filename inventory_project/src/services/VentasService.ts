@@ -5,7 +5,7 @@ import { obtenerReservasPorProducto } from '../lib/reservas'
 import { AppError } from '../lib/AppError'
 
 export const VentasService = {
-  async registrarVenta(consolidados: Map<number, number>, vendedorId: number | null, notas: string) {
+  async registrarVenta(consolidados: Map<number, number>, vendedorId: string | null, notas: string) {
     return await prisma.$transaction(async (tx) => {
       const productosIds = Array.from(consolidados.keys())
       const productos = await tx.producto.findMany({ where: { id: { in: productosIds } } })

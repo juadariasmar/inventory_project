@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/db'
 import { esAdmin, obtenerSesion } from '@/lib/permisos'
 import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
@@ -16,8 +15,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
   const { id } = await params
   const usuario = await prisma.usuario.findUnique({
-    where: { id: parseInt(id, 10) },
-    select: { id: true, email: true, nombre: true, rol: true, permisos: true, creadoEn: true },
+    where: { id },
+    select: { id: true, email: true, nombre: true, rol: true, estado: true, permisos: true, creadoEn: true },
   })
   if (!usuario) {
     return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
@@ -34,11 +33,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params
     const datos = await request.json()
-    const usuarioId = parseInt(id, 10)
+    const usuarioId = id
 
     const antes = await prisma.usuario.findUnique({
       where: { id: usuarioId },
-      select: { id: true, email: true, nombre: true, rol: true, permisos: true, creadoEn: true },
+      select: { id: true, email: true, nombre: true, rol: true, estado: true, permisos: true, creadoEn: true },
     })
 
     const usuario = await UsuariosService.actualizarUsuario(usuarioId, datos)
@@ -73,14 +72,14 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
   try {
     const { id } = await params
-    const usuarioId = parseInt(id, 10)
+    const usuarioId = id
     const sesion = await obtenerSesion()
     
-    const usuarioLogueadoId = sesion?.user?.id ? Number(sesion.user.id) : -1
+    const usuarioLogueadoId = sesion?.user?.id ? String(sesion.user.id) : '-1'
 
     const antes = await prisma.usuario.findUnique({
       where: { id: usuarioId },
-      select: { id: true, email: true, nombre: true, rol: true, permisos: true, creadoEn: true },
+      select: { id: true, email: true, nombre: true, rol: true, estado: true, permisos: true, creadoEn: true },
     })
 
     await UsuariosService.eliminarUsuario(usuarioId, usuarioLogueadoId)

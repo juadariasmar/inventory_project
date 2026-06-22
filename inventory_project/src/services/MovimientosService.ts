@@ -24,7 +24,7 @@ export const MovimientosService = {
   },
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async registrarMovimiento(data: any, usuarioId: number, ip: string) {
+  async registrarMovimiento(data: any, usuarioId: string, ip: string) {
     const { productoId: rawProductoId, tipo, cantidad: rawCantidad, notas } = data;
     
     const productoId = parseInt(rawProductoId, 10);
