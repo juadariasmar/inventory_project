@@ -5,10 +5,19 @@ jest.mock('@neondatabase/auth/next/server', () => ({
 import { resolveAuthSecrets } from '../../lib/auth/server'
 
 describe('resolveAuthSecrets', () => {
-  it('lanza en producción si faltan los secretos', () => {
+  it('lanza en producción (runtime) si faltan los secretos', () => {
     expect(() =>
       resolveAuthSecrets({ NODE_ENV: 'production' } as NodeJS.ProcessEnv)
     ).toThrow()
+  })
+
+  it('no lanza durante el build de Next aunque falten secretos en producción', () => {
+    expect(() =>
+      resolveAuthSecrets({
+        NODE_ENV: 'production',
+        NEXT_PHASE: 'phase-production-build',
+      } as NodeJS.ProcessEnv)
+    ).not.toThrow()
   })
 
   it('no lanza en producción si los secretos están presentes', () => {
