@@ -26,7 +26,7 @@ describe('Movimientos API', () => {
     let u = await prisma.usuario.findUnique({ where: { id: 1 } });
     if (!u) {
       u = await prisma.usuario.create({
-        data: { id: 1, nombre: 'Admin', nombreUsuario: 'adminTestMov', contrasena: '1234' }
+        data: { id: 1, nombre: 'Admin', email: 'adminTestMov' }
       });
     }
     usuarioId = u.id;

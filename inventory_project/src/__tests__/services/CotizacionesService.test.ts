@@ -11,7 +11,7 @@ describe('CotizacionesService', () => {
     let u = await prisma.usuario.findUnique({ where: { id: 1 } });
     if (!u) {
       u = await prisma.usuario.create({
-        data: { id: 1, nombre: 'Admin', nombreUsuario: 'adminCotServTest', contrasena: '1234' }
+        data: { id: 1, nombre: 'Admin', email: 'adminCotServTest' }
       });
       usuarioCreado = true;
     }

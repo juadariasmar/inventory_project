@@ -42,7 +42,7 @@ export default async function PaginaCotizaciones({ searchParams }: Props) {
     vendedorId?: number
     estado?: 'PENDIENTE' | 'CONVERTIDA' | 'CANCELADA'
   } = {}
-  if (!esAdmin) where.vendedorId = parseInt(sesion.user.id, 10)
+  if (!esAdmin) where.vendedorId = Number(sesion.user.id)
   if (
     filtroEstado === 'PENDIENTE' ||
     filtroEstado === 'CONVERTIDA' ||
@@ -54,7 +54,7 @@ export default async function PaginaCotizaciones({ searchParams }: Props) {
   const cotizaciones = await prisma.cotizacion.findMany({
     where,
     include: {
-      vendedor: { select: { nombre: true, nombreUsuario: true } },
+      vendedor: { select: { nombre: true, email: true } },
       _count: { select: { items: true } },
     },
     orderBy: { creadoEn: 'desc' },
@@ -166,7 +166,7 @@ export default async function PaginaCotizaciones({ searchParams }: Props) {
                             )}
                             <div className="text-xs text-gray-500">
                               {c.vendedor
-                                ? `${c.vendedor.nombre} (@${c.vendedor.nombreUsuario})`
+                                ? `${c.vendedor.nombre} (@${c.vendedor.email})`
                                 : 'Vendedor eliminado'}
                             </div>
                           </td>

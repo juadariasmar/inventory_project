@@ -18,7 +18,7 @@ export default async function PaginaEditarUsuario({
   const { id } = await params
   const usuario = await prisma.usuario.findUnique({
     where: { id: parseInt(id, 10) },
-    select: { id: true, nombreUsuario: true, nombre: true, rol: true, permisos: true },
+    select: { id: true, email: true, nombre: true, rol: true, permisos: true },
   })
 
   if (!usuario) {
@@ -49,7 +49,7 @@ export default async function PaginaEditarUsuario({
             Usuarios
           </Link>
           <span>/</span>
-          <span>{usuario.nombreUsuario}</span>
+          <span>{usuario.email}</span>
         </div>
 
         <h1 className="text-2xl font-bold text-gray-800">Editar Usuario</h1>

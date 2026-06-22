@@ -1,11 +1,11 @@
 import { prisma } from './lib/db'
 
 async function main() {
-  // CREATE (modelo `Usuario` requiere `nombreUsuario`, `contrasena` y `nombre`)
+  // CREATE (modelo `Usuario` requiere `email`, `contrasena` y `nombre`)
   const newUser = await prisma.usuario.create({
     data: {
-      nombreUsuario: `alice_${Date.now()}`,
-      contrasena: 'test123',
+      neonAuthId: `fake-id-${Date.now()}`,
+      email: `alice_${Date.now()}`,
       nombre: 'Alice',
     },
   })

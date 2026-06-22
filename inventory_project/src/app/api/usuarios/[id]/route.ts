@@ -17,7 +17,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   const { id } = await params
   const usuario = await prisma.usuario.findUnique({
     where: { id: parseInt(id, 10) },
-    select: { id: true, nombreUsuario: true, nombre: true, rol: true, permisos: true, creadoEn: true },
+    select: { id: true, email: true, nombre: true, rol: true, permisos: true, creadoEn: true },
   })
   if (!usuario) {
     return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
@@ -38,7 +38,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const antes = await prisma.usuario.findUnique({
       where: { id: usuarioId },
-      select: { id: true, nombreUsuario: true, nombre: true, rol: true, permisos: true, creadoEn: true },
+      select: { id: true, email: true, nombre: true, rol: true, permisos: true, creadoEn: true },
     })
 
     const usuario = await UsuariosService.actualizarUsuario(usuarioId, datos)
@@ -76,11 +76,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const usuarioId = parseInt(id, 10)
     const sesion = await obtenerSesion()
     
-    const usuarioLogueadoId = sesion?.user?.id ? parseInt(sesion.user.id, 10) : -1
+    const usuarioLogueadoId = sesion?.user?.id ? Number(sesion.user.id) : -1
 
     const antes = await prisma.usuario.findUnique({
       where: { id: usuarioId },
-      select: { id: true, nombreUsuario: true, nombre: true, rol: true, permisos: true, creadoEn: true },
+      select: { id: true, email: true, nombre: true, rol: true, permisos: true, creadoEn: true },
     })
 
     await UsuariosService.eliminarUsuario(usuarioId, usuarioLogueadoId)

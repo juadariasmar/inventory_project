@@ -53,13 +53,13 @@ export default async function PaginaAuditoria({ searchParams }: Props) {
     prisma.auditoria.count({ where }),
     prisma.auditoria.findMany({
       where,
-      include: { usuario: { select: { id: true, nombre: true, nombreUsuario: true } } },
+      include: { usuario: { select: { id: true, nombre: true, email: true } } },
       orderBy: { creadoEn: 'desc' },
       skip: (pagina - 1) * POR_PAGINA,
       take: POR_PAGINA,
     }),
     prisma.usuario.findMany({
-      select: { id: true, nombre: true, nombreUsuario: true },
+      select: { id: true, nombre: true, email: true },
       orderBy: { nombre: 'asc' },
     }),
     tienePermiso('EXPORTAR_REPORTES'),
@@ -128,7 +128,7 @@ export default async function PaginaAuditoria({ searchParams }: Props) {
                           {r.usuario ? (
                             <>
                               <div className="font-medium">{r.usuario.nombre}</div>
-                              <div className="text-xs text-gray-500">@{r.usuario.nombreUsuario}</div>
+                              <div className="text-xs text-gray-500">@{r.usuario.email}</div>
                             </>
                           ) : (
                             <span className="text-gray-400 italic">(usuario eliminado)</span>

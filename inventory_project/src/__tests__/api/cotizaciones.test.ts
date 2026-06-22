@@ -26,7 +26,7 @@ describe('Cotizaciones API', () => {
     let u = await prisma.usuario.findUnique({ where: { id: 1 } });
     if (!u) {
       u = await prisma.usuario.create({
-        data: { id: 1, nombre: 'Admin', nombreUsuario: 'adminTest', contrasena: '1234' }
+        data: { id: 1, nombre: 'Admin', email: 'adminTest' }
       });
     }
     usuarioId = u.id;

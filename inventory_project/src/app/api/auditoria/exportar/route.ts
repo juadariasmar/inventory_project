@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
   const registros = await prisma.auditoria.findMany({
     where,
-    include: { usuario: { select: { nombre: true, nombreUsuario: true } } },
+    include: { usuario: { select: { nombre: true, email: true } } },
     orderBy: { creadoEn: 'desc' },
   })
 
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
         filas: registros.map((r) => ({
           fecha: r.creadoEn,
           usuario: r.usuario?.nombre ?? '(eliminado)',
-          login: r.usuario?.nombreUsuario ?? '',
+          login: r.usuario?.email ?? '',
           accion: r.accion,
           entidad: r.entidad,
           entidadId: r.entidadId ?? '',

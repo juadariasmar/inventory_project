@@ -5,8 +5,8 @@ const prisma = new PrismaClient()
 async function main() {
   const newUser = await prisma.usuario.create({
     data: {
-      nombreUsuario: `alice_local_${Date.now()}`,
-      contrasena: 'test123',
+      neonAuthId: `fake-id-${Date.now()}`,
+      email: `alice_local_${Date.now()}`,
       nombre: 'Alice Local',
     },
   })

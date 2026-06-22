@@ -23,8 +23,8 @@ export default async function PaginaReciboVenta({ params }: Props) {
   const venta = await prisma.venta.findUnique({
     where: { id: ventaId },
     include: {
-      vendedor: { select: { id: true, nombre: true, nombreUsuario: true } },
-      canceladaPor: { select: { id: true, nombre: true, nombreUsuario: true } },
+      vendedor: { select: { id: true, nombre: true, email: true } },
+      canceladaPor: { select: { id: true, nombre: true, email: true } },
       items: {
         include: { producto: { select: { nombre: true, codigo: true } } },
       },
@@ -34,7 +34,7 @@ export default async function PaginaReciboVenta({ params }: Props) {
 
   // Solo admin o quien hizo la venta puede ver el recibo.
   const esAdmin = sesion.user.rol === 'ADMIN'
-  const esVendedor = venta.vendedorId !== null && sesion.user.id === venta.vendedorId.toString()
+  const esVendedor = venta.vendedorId !== null && String(sesion.user.id) === venta.vendedorId.toString()
   if (!esAdmin && !esVendedor) redirect('/')
 
   const cantidadTotalItems = venta.items.reduce((s, it) => s + it.cantidad, 0)
@@ -70,7 +70,7 @@ export default async function PaginaReciboVenta({ params }: Props) {
             <div className="text-xs text-red-700 mt-1">
               Cancelada el {formatearFechaHora(venta.canceladaEn)}
               {venta.canceladaPor
-                ? ` por ${venta.canceladaPor.nombre} (@${venta.canceladaPor.nombreUsuario})`
+                ? ` por ${venta.canceladaPor.nombre} (@${venta.canceladaPor.email})`
                 : ''}
             </div>
             {venta.motivoCancelacion && (
@@ -104,7 +104,7 @@ export default async function PaginaReciboVenta({ params }: Props) {
             <div className="text-xs text-gray-500 uppercase">Vendedor</div>
             <div className="font-medium text-gray-800">
               {venta.vendedor
-                ? `${venta.vendedor.nombre} (@${venta.vendedor.nombreUsuario})`
+                ? `${venta.vendedor.nombre} (@${venta.vendedor.email})`
                 : '(usuario eliminado)'}
             </div>
           </div>

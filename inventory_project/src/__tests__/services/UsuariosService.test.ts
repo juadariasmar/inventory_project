@@ -8,10 +8,10 @@ describe('UsuariosService', () => {
   let testUserId: number;
 
   beforeAll(async () => {
-    let u = await prisma.usuario.findFirst({ where: { nombreUsuario: 'adminUsuariosTest' } });
+    let u = await prisma.usuario.findFirst({ where: { email: 'adminUsuariosTest' } });
     if (!u) {
       u = await prisma.usuario.create({
-        data: { nombre: 'Admin', nombreUsuario: 'adminUsuariosTest', contrasena: '1234' }
+        data: { nombre: 'Admin', email: 'adminUsuariosTest' }
       });
     }
     adminId = u.id;
@@ -34,15 +34,15 @@ describe('UsuariosService', () => {
   });
 
   it('crearUsuario throws error if password is too weak', async () => {
-    const datos = { nombreUsuario: 'testuser', nombre: 'Test', contrasena: 'weak' };
+    const datos = { email: 'testuser', nombre: 'Test' };
     await expect(UsuariosService.crearUsuario(datos)).rejects.toThrow(AppError);
   });
 
   it('crearUsuario succeeds with strong password', async () => {
-    const datos = { nombreUsuario: 'testuser1', nombre: 'Test 1', contrasena: 'StrongPass123' };
+    const datos = { email: 'testuser1', nombre: 'Test 1' };
     const user = await UsuariosService.crearUsuario(datos);
     expect(user).toBeDefined();
-    expect(user.nombreUsuario).toBe('testuser1');
+    expect(user.email).toBe('testuser1');
     testUserId = user.id;
   });
 

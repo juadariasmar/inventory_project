@@ -11,7 +11,7 @@ type PermisoTipo =
 
 interface DatosUsuario {
   id?: number
-  nombreUsuario: string
+  email: string
   nombre: string
   rol: 'ADMIN' | 'USUARIO'
   permisos?: PermisoTipo[]
@@ -49,7 +49,7 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
   const esEdicion = !!usuario?.id
 
   const [datos, setDatos] = useState({
-    nombreUsuario: usuario?.nombreUsuario || '',
+    email: usuario?.email || '',
     nombre: usuario?.nombre || '',
     rol: usuario?.rol || 'USUARIO',
     contrasena: '',
@@ -91,7 +91,7 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
       const metodo = esEdicion ? 'PUT' : 'POST'
 
       const body: Record<string, unknown> = {
-        nombreUsuario: datos.nombreUsuario,
+        email: datos.email,
         nombre: datos.nombre,
         rol: datos.rol,
         permisos,
@@ -147,16 +147,16 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
 
         <div>
           <label
-            htmlFor="nombreUsuario"
+            htmlFor="email"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
             Nombre de usuario *
           </label>
           <input
             type="text"
-            id="nombreUsuario"
-            name="nombreUsuario"
-            value={datos.nombreUsuario}
+            id="email"
+            name="email"
+            value={datos.email}
             onChange={manejarCambio}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             autoComplete="username"

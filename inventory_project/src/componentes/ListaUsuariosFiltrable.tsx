@@ -8,7 +8,7 @@ import { formatearFecha } from '@/lib/fechas'
 
 interface UsuarioFilaProps {
   id: number
-  nombreUsuario: string
+  email: string
   nombre: string
   rol: 'ADMIN' | 'USUARIO'
   creadoEn: string | Date
@@ -55,7 +55,7 @@ export default function ListaUsuariosFiltrable({
     let lista = usuarios.filter((u) => {
       if (busq) {
         const enNombre = u.nombre.toLowerCase().includes(busq)
-        const enUsuario = u.nombreUsuario.toLowerCase().includes(busq)
+        const enUsuario = u.email.toLowerCase().includes(busq)
         if (!enNombre && !enUsuario) return false
       }
       if (rol !== 'todos' && u.rol !== rol) return false
@@ -66,8 +66,8 @@ export default function ListaUsuariosFiltrable({
       let av: string | number, bv: string | number
       switch (campoOrden) {
         case 'usuario':
-          av = a.nombreUsuario.toLowerCase()
-          bv = b.nombreUsuario.toLowerCase()
+          av = a.email.toLowerCase()
+          bv = b.email.toLowerCase()
           break
         case 'rol':
           av = a.rol; bv = b.rol; break
@@ -192,7 +192,7 @@ export default function ListaUsuariosFiltrable({
                   {filtrados.map((u) => (
                     <tr key={u.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {u.nombreUsuario}
+                        {u.email}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {u.nombre}
@@ -220,7 +220,7 @@ export default function ListaUsuariosFiltrable({
                         </Link>
                         <BotonEliminarUsuario
                           id={u.id}
-                          nombreUsuario={u.nombreUsuario}
+                          email={u.email}
                           esActual={usuarioActualId === u.id.toString()}
                         />
                       </td>
@@ -236,7 +236,7 @@ export default function ListaUsuariosFiltrable({
                   <div className="flex justify-between items-start gap-2">
                     <div>
                       <div className="font-semibold text-gray-900">{u.nombre}</div>
-                      <div className="text-sm text-gray-500">@{u.nombreUsuario}</div>
+                      <div className="text-sm text-gray-500">@{u.email}</div>
                     </div>
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
@@ -260,7 +260,7 @@ export default function ListaUsuariosFiltrable({
                     </Link>
                     <BotonEliminarUsuario
                       id={u.id}
-                      nombreUsuario={u.nombreUsuario}
+                      email={u.email}
                       esActual={usuarioActualId === u.id.toString()}
                     />
                   </div>
