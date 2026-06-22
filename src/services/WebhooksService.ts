@@ -3,6 +3,7 @@ import { AppError } from '../lib/AppError'
 import { timingSafeEqual } from 'crypto'
 import { z } from 'zod'
 import { obtenerEmpresaPorDefectoId } from '../lib/empresa'
+import { esEmailAdministrador } from '../lib/adminEmails'
 
 // Esquema estricto del payload de creación de usuario de Neon Auth.
 // Evita procesar datos malformados o inyecciones de campos inesperados.
@@ -65,15 +66,17 @@ export class WebhooksService {
       return
     }
 
-    // Creacion del usuario pendiente, asignado a la empresa por defecto.
+    // Creacion del usuario, asignado a la empresa por defecto. Si el correo está
+    // en ADMIN_EMAILS se crea ya como ADMIN/ACTIVO; si no, queda PENDIENTE/USUARIO.
     const empresaId = await obtenerEmpresaPorDefectoId()
+    const esAdmin = esEmailAdministrador(email)
     await prisma.usuario.create({
       data: {
         neonAuthId: id,
         email: email,
         nombre: name || email,
-        estado: 'PENDIENTE',
-        rol: 'USUARIO',
+        estado: esAdmin ? 'ACTIVO' : 'PENDIENTE',
+        rol: esAdmin ? 'ADMIN' : 'USUARIO',
         empresaId
       }
     })
