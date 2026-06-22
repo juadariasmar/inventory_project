@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import BotonEliminarUsuario from '@/componentes/BotonEliminarUsuario'
+import BotonCambiarEstadoUsuario from '@/componentes/BotonCambiarEstadoUsuario'
 import { formatearFecha } from '@/lib/fechas'
 
 interface UsuarioFilaProps {
@@ -238,6 +239,11 @@ export default function ListaUsuariosFiltrable({
                         >
                           Editar
                         </Link>
+                        <BotonCambiarEstadoUsuario
+                          id={u.id}
+                          estado={u.estado}
+                          esActual={usuarioActualId === u.id.toString()}
+                        />
                         <BotonEliminarUsuario
                           id={u.id}
                           email={u.email}
@@ -289,6 +295,11 @@ export default function ListaUsuariosFiltrable({
                     >
                       Editar
                     </Link>
+                    <BotonCambiarEstadoUsuario
+                      id={u.id}
+                      estado={u.estado}
+                      esActual={usuarioActualId === u.id.toString()}
+                    />
                     <BotonEliminarUsuario
                       id={u.id}
                       email={u.email}
