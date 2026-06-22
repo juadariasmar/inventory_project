@@ -26,7 +26,7 @@ export default async function PaginaDetalleProducto({ params }: Props) {
   if (!productoId || Number.isNaN(productoId)) notFound()
 
   const sesion = await obtenerSesion()
-  if (!sesion?.user?.empresaId) redirect('/login')
+  if (!sesion?.user?.empresaId) redirect('/auth/sign-in')
   const empresaId = sesion.user.empresaId
   const esAdmin = sesion.user.rol === 'ADMIN'
 

@@ -29,7 +29,7 @@ function colorBadge(estado: EstadoMostrado) {
 
 export default async function PaginaDetalleCotizacion({ params }: Props) {
   const sesion = await obtenerSesion()
-  if (!sesion?.user?.empresaId) redirect('/login')
+  if (!sesion?.user?.empresaId) redirect('/auth/sign-in')
   const empresaId = sesion.user.empresaId
   const esAdmin = sesion.user.rol === 'ADMIN'
   const puedeVender = await tienePermiso('REALIZAR_VENTAS')
