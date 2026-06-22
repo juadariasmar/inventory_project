@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function PaginaNuevoProducto() {
   const sesion = await obtenerSesion()
-  if (!sesion?.user?.empresaId) redirect('/login')
+  if (!sesion?.user?.empresaId) redirect('/auth/sign-in')
   const empresaId = sesion.user.empresaId
 
   const categorias = await prisma.categoria.findMany({

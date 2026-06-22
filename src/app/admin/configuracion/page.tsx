@@ -13,16 +13,15 @@ export default async function PaginaConfiguracion() {
     redirect('/')
   }
   const empresaId = sesion.user.empresaId
-  if (!empresaId) redirect('/login')
+  if (!empresaId) redirect('/auth/sign-in')
 
-  const [productos, categorias, movimientos, ventas, cotizaciones, auditorias] =
+  const [productos, categorias, movimientos, ventas, cotizaciones] =
     await Promise.all([
       prisma.producto.count({ where: { empresaId } }),
       prisma.categoria.count({ where: { empresaId } }),
       prisma.movimiento.count({ where: { empresaId } }),
       prisma.venta.count({ where: { empresaId } }),
       prisma.cotizacion.count({ where: { empresaId } }),
-      prisma.auditoria.count({ where: { empresaId } }),
     ])
 
   return (
@@ -50,9 +49,9 @@ export default async function PaginaConfiguracion() {
             </h2>
             <p className="text-sm text-gray-600 mt-1">
               Borra <strong>todos</strong> los productos, categorías, movimientos,
-              ventas, cotizaciones y entradas de auditoría para dejar el aplicativo
-              listo para una nueva simulación. Tus usuarios y permisos se
-              mantienen tal cual. Esta acción es irreversible.
+              ventas y cotizaciones para dejar el aplicativo listo para una nueva
+              simulación. Tus usuarios, permisos y los <strong>registros de
+              auditoría</strong> se conservan. Esta acción es irreversible.
             </p>
           </div>
 
@@ -63,7 +62,6 @@ export default async function PaginaConfiguracion() {
               movimientos,
               ventas,
               cotizaciones,
-              auditorias,
             }}
           />
         </section>
