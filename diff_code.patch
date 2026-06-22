@@ -1,0 +1,1728 @@
+﻿diff --git a/inventory_project/.env.example b/inventory_project/.env.example
+index 06d5952..0c795ba 100644
+--- a/inventory_project/.env.example
++++ b/inventory_project/.env.example
+@@ -3,8 +3,15 @@
+ # El archivo .env nunca debe subirse al repositorio.
+ 
+ DATABASE_URL="postgres://user:password@host/database?sslmode=require"
+-NEXTAUTH_URL="https://tu-proyecto.vercel.app"
+-NEXTAUTH_SECRET="cadena-aleatoria-larga-aqui"
++DATABASE_URL_UNPOOLED="postgres://user:password@host/database?sslmode=require"
++
++# Neon Auth
++NEON_AUTH_BASE_URL="https://ep-xxx.neonauth.us-east-1.aws.neon.tech/neondb/auth"
++NEON_AUTH_COOKIE_SECRET="cadena-aleatoria-de-al-menos-32-caracteres"
++
++# Upstash Redis (rate limiting)
++UPSTASH_REDIS_REST_URL=""
++UPSTASH_REDIS_REST_TOKEN=""
+ 
+ # Configuraci├│n inicial del Seed
+ ADMIN_PASSWORD=Admin2024!
+diff --git a/inventory_project/.superpowers/sdd/progress.md b/inventory_project/.superpowers/sdd/progress.md
+new file mode 100644
+index 0000000..7b86a30
+--- /dev/null
++++ b/inventory_project/.superpowers/sdd/progress.md
+@@ -0,0 +1,5 @@
++Task 1: complete (commits 78d1712..8ac556d, review clean)
++Task 2: complete (commits 8ac556d..49d4350, review clean)
++Task 3: complete (commits 49d4350..72504fb, review clean)
++Task 1: complete (commits 72504fb..1ce119b, review clean)
++Task 2: complete (commits 1ce119b..c535155, review clean)
+diff --git a/inventory_project/package.json b/inventory_project/package.json
+index 58553cb..d5934cd 100644
+--- a/inventory_project/package.json
++++ b/inventory_project/package.json
+@@ -20,6 +20,8 @@
+     "prisma:migrate": "prisma migrate deploy --schema=prisma/schema.prisma"
+   },
+   "dependencies": {
++    "@neondatabase/auth": "^0.4.2-beta",
++    "@neondatabase/auth-ui": "^0.2.1-beta",
+     "@neondatabase/serverless": "^0.10.4",
+     "@prisma/adapter-neon": "^5.22.0",
+     "@prisma/client": "^5.22.0",
+diff --git a/inventory_project/prisma/schema.prisma b/inventory_project/prisma/schema.prisma
+index e3a8635..20b697f 100644
+--- a/inventory_project/prisma/schema.prisma
++++ b/inventory_project/prisma/schema.prisma
+@@ -30,19 +30,26 @@ enum Permiso {
+   DESCONTAR_STOCK
+ }
+ 
++enum EstadoUsuario {
++  PENDIENTE    // registrado, esperando aprobacion del admin
++  ACTIVO       // aprobado, puede operar normalmente
++  SUSPENDIDO   // bloqueado por el admin
++}
++
+ model Usuario {
+-  id                     Int          @id @default(autoincrement())
+-  nombreUsuario          String       @unique
+-  contrasena             String
++  id                     Int              @id @default(autoincrement())
++  neonAuthId             String           @unique    // ID del usuario en neon_auth.user
++  email                  String           @unique    // email sincronizado desde Neon Auth
+   nombre                 String
+-  rol                    Rol          @default(USUARIO)
+-  permisos               Permiso[]    @default([])
+-  creadoEn               DateTime     @default(now())
++  estado                 EstadoUsuario    @default(PENDIENTE)
++  rol                    Rol              @default(USUARIO)
++  permisos               Permiso[]        @default([])
++  creadoEn               DateTime         @default(now())
+   auditorias             Auditoria[]
+-  ventas                 Venta[]      @relation("VentaVendedor")
+-  cancelaciones          Venta[]      @relation("VentaCanceladaPor")
+-  cotizaciones           Cotizacion[] @relation("CotizacionVendedor")
+-  cotizacionesCanceladas Cotizacion[] @relation("CotizacionCanceladaPor")
++  ventas                 Venta[]          @relation("VentaVendedor")
++  cancelaciones          Venta[]          @relation("VentaCanceladaPor")
++  cotizaciones           Cotizacion[]     @relation("CotizacionVendedor")
++  cotizacionesCanceladas Cotizacion[]     @relation("CotizacionCanceladaPor")
+ }
+ 
+ model Categoria {
+diff --git a/inventory_project/prisma/seed.ts b/inventory_project/prisma/seed.ts
+index 53ec9f6..ce6665c 100644
+--- a/inventory_project/prisma/seed.ts
++++ b/inventory_project/prisma/seed.ts
+@@ -1,42 +1,38 @@
+ import { PrismaClient } from '@prisma/client'
+-import bcrypt from 'bcryptjs'
+-
+ const prisma = new PrismaClient()
+ 
+ async function main() {
+   console.log('Iniciando seed...')
+ 
+   // Usuario administrador
+-  const adminPass = process.env.ADMIN_PASSWORD || 'Admin2024!'
+-  const hashAdmin = await bcrypt.hash(adminPass, 10)
+   const admin = await prisma.usuario.upsert({
+-    where: { nombreUsuario: 'admin' },
+-    update: { rol: 'ADMIN', contrasena: hashAdmin },
++    where: { email: 'admin@ejemplo.com' },
++    update: { rol: 'ADMIN', neonAuthId: 'admin-neon-id-placeholder', estado: 'ACTIVO' },
+     create: {
+-      nombreUsuario: 'admin',
+-      contrasena: hashAdmin,
++      neonAuthId: 'admin-neon-id-placeholder',
++      email: 'admin@ejemplo.com',
+       nombre: 'Administrador',
+       rol: 'ADMIN',
++      estado: 'ACTIVO',
+     },
+   })
+ 
+-  console.log('Usuario creado:', admin.nombreUsuario, '(', admin.rol, ')')
++  console.log('Usuario creado:', admin.email, '(', admin.rol, ')')
+ 
+   // Usuario regular de ejemplo
+-  const userPass = process.env.USER_PASSWORD || 'Usuario2024!'
+-  const hashUsuario = await bcrypt.hash(userPass, 10)
+   const usuarioRegular = await prisma.usuario.upsert({
+-    where: { nombreUsuario: 'usuario' },
+-    update: { rol: 'USUARIO', contrasena: hashUsuario },
++    where: { email: 'usuario@ejemplo.com' },
++    update: { rol: 'USUARIO', neonAuthId: 'usuario-neon-id-placeholder', estado: 'ACTIVO' },
+     create: {
+-      nombreUsuario: 'usuario',
+-      contrasena: hashUsuario,
++      neonAuthId: 'usuario-neon-id-placeholder',
++      email: 'usuario@ejemplo.com',
+       nombre: 'Usuario de ejemplo',
+       rol: 'USUARIO',
++      estado: 'ACTIVO',
+     },
+   })
+ 
+-  console.log('Usuario creado:', usuarioRegular.nombreUsuario, '(', usuarioRegular.rol, ')')
++  console.log('Usuario creado:', usuarioRegular.email, '(', usuarioRegular.rol, ')')
+ 
+   // Crear algunas categor├¡as de ejemplo con su prefijo (las 3 primeras letras).
+   const categorias: Array<{ nombre: string; prefijo: string }> = [
+diff --git a/inventory_project/src/__tests__/api/cotizaciones.test.ts b/inventory_project/src/__tests__/api/cotizaciones.test.ts
+index f590c95..081e56b 100644
+--- a/inventory_project/src/__tests__/api/cotizaciones.test.ts
++++ b/inventory_project/src/__tests__/api/cotizaciones.test.ts
+@@ -26,7 +26,7 @@ describe('Cotizaciones API', () => {
+     let u = await prisma.usuario.findUnique({ where: { id: 1 } });
+     if (!u) {
+       u = await prisma.usuario.create({
+-        data: { id: 1, nombre: 'Admin', nombreUsuario: 'adminTest', contrasena: '1234' }
++        data: { id: 1, nombre: 'Admin', email: 'adminTest' }
+       });
+     }
+     usuarioId = u.id;
+diff --git a/inventory_project/src/__tests__/api/movimientos.test.ts b/inventory_project/src/__tests__/api/movimientos.test.ts
+index 24ff7ef..edb1a16 100644
+--- a/inventory_project/src/__tests__/api/movimientos.test.ts
++++ b/inventory_project/src/__tests__/api/movimientos.test.ts
+@@ -26,7 +26,7 @@ describe('Movimientos API', () => {
+     let u = await prisma.usuario.findUnique({ where: { id: 1 } });
+     if (!u) {
+       u = await prisma.usuario.create({
+-        data: { id: 1, nombre: 'Admin', nombreUsuario: 'adminTestMov', contrasena: '1234' }
++        data: { id: 1, nombre: 'Admin', email: 'adminTestMov' }
+       });
+     }
+     usuarioId = u.id;
+diff --git a/inventory_project/src/__tests__/api/productos.test.ts b/inventory_project/src/__tests__/api/productos.test.ts
+index fbc4841..8b27a71 100644
+--- a/inventory_project/src/__tests__/api/productos.test.ts
++++ b/inventory_project/src/__tests__/api/productos.test.ts
+@@ -28,7 +28,7 @@ describe('Productos API', () => {
+     let u = await prisma.usuario.findUnique({ where: { id: 1 } })
+     if (!u) {
+       u = await prisma.usuario.create({
+-        data: { id: 1, nombre: 'Admin', nombreUsuario: 'adminProdTest', contrasena: '1234' }
++        data: { id: 1, nombre: 'Admin', email: 'adminProdTest' }
+       })
+       usuarioCreado = true
+     }
+diff --git a/inventory_project/src/__tests__/services/CotizacionesService.test.ts b/inventory_project/src/__tests__/services/CotizacionesService.test.ts
+index 511c848..954dcd8 100644
+--- a/inventory_project/src/__tests__/services/CotizacionesService.test.ts
++++ b/inventory_project/src/__tests__/services/CotizacionesService.test.ts
+@@ -11,7 +11,7 @@ describe('CotizacionesService', () => {
+     let u = await prisma.usuario.findUnique({ where: { id: 1 } });
+     if (!u) {
+       u = await prisma.usuario.create({
+-        data: { id: 1, nombre: 'Admin', nombreUsuario: 'adminCotServTest', contrasena: '1234' }
++        data: { id: 1, nombre: 'Admin', email: 'adminCotServTest' }
+       });
+       usuarioCreado = true;
+     }
+diff --git a/inventory_project/src/__tests__/services/MovimientosService.test.ts b/inventory_project/src/__tests__/services/MovimientosService.test.ts
+index b03fd81..39974e1 100644
+--- a/inventory_project/src/__tests__/services/MovimientosService.test.ts
++++ b/inventory_project/src/__tests__/services/MovimientosService.test.ts
+@@ -18,7 +18,7 @@ describe('MovimientosService', () => {
+     let u = await prisma.usuario.findUnique({ where: { id: 1 } });
+     if (!u) {
+       u = await prisma.usuario.create({
+-        data: { id: 1, nombre: 'Admin', nombreUsuario: 'adminMovServTest', contrasena: '1234' }
++        data: { id: 1, nombre: 'Admin', email: 'adminMovServTest' }
+       });
+       usuarioCreado = true;
+     }
+diff --git a/inventory_project/src/__tests__/services/UsuariosService.test.ts b/inventory_project/src/__tests__/services/UsuariosService.test.ts
+index 897699d..5596fab 100644
+--- a/inventory_project/src/__tests__/services/UsuariosService.test.ts
++++ b/inventory_project/src/__tests__/services/UsuariosService.test.ts
+@@ -8,10 +8,10 @@ describe('UsuariosService', () => {
+   let testUserId: number;
+ 
+   beforeAll(async () => {
+-    let u = await prisma.usuario.findFirst({ where: { nombreUsuario: 'adminUsuariosTest' } });
++    let u = await prisma.usuario.findFirst({ where: { email: 'adminUsuariosTest' } });
+     if (!u) {
+       u = await prisma.usuario.create({
+-        data: { nombre: 'Admin', nombreUsuario: 'adminUsuariosTest', contrasena: '1234' }
++        data: { nombre: 'Admin', email: 'adminUsuariosTest' }
+       });
+     }
+     adminId = u.id;
+@@ -34,15 +34,15 @@ describe('UsuariosService', () => {
+   });
+ 
+   it('crearUsuario throws error if password is too weak', async () => {
+-    const datos = { nombreUsuario: 'testuser', nombre: 'Test', contrasena: 'weak' };
++    const datos = { email: 'testuser', nombre: 'Test' };
+     await expect(UsuariosService.crearUsuario(datos)).rejects.toThrow(AppError);
+   });
+ 
+   it('crearUsuario succeeds with strong password', async () => {
+-    const datos = { nombreUsuario: 'testuser1', nombre: 'Test 1', contrasena: 'StrongPass123' };
++    const datos = { email: 'testuser1', nombre: 'Test 1' };
+     const user = await UsuariosService.crearUsuario(datos);
+     expect(user).toBeDefined();
+-    expect(user.nombreUsuario).toBe('testuser1');
++    expect(user.email).toBe('testuser1');
+     testUserId = user.id;
+   });
+ 
+diff --git a/inventory_project/src/__tests__/services/VentasService.test.ts b/inventory_project/src/__tests__/services/VentasService.test.ts
+index 45af610..62ba38b 100644
+--- a/inventory_project/src/__tests__/services/VentasService.test.ts
++++ b/inventory_project/src/__tests__/services/VentasService.test.ts
+@@ -18,7 +18,7 @@ describe('VentasService', () => {
+     let u = await prisma.usuario.findUnique({ where: { id: 1 } });
+     if (!u) {
+       u = await prisma.usuario.create({
+-        data: { id: 1, nombre: 'Admin', nombreUsuario: 'adminVentasTest', contrasena: '1234' }
++        data: { id: 1, nombre: 'Admin', email: 'adminVentasTest' }
+       });
+       usuarioCreado = true;
+     }
+diff --git a/inventory_project/src/app/api/auditoria/exportar/route.ts b/inventory_project/src/app/api/auditoria/exportar/route.ts
+index 88c353b..ddf7fff 100644
+--- a/inventory_project/src/app/api/auditoria/exportar/route.ts
++++ b/inventory_project/src/app/api/auditoria/exportar/route.ts
+@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
+ 
+   const registros = await prisma.auditoria.findMany({
+     where,
+-    include: { usuario: { select: { nombre: true, nombreUsuario: true } } },
++    include: { usuario: { select: { nombre: true, email: true } } },
+     orderBy: { creadoEn: 'desc' },
+   })
+ 
+@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
+         filas: registros.map((r) => ({
+           fecha: r.creadoEn,
+           usuario: r.usuario?.nombre ?? '(eliminado)',
+-          login: r.usuario?.nombreUsuario ?? '',
++          login: r.usuario?.email ?? '',
+           accion: r.accion,
+           entidad: r.entidad,
+           entidadId: r.entidadId ?? '',
+diff --git a/inventory_project/src/app/api/auth/[...nextauth]/route.ts b/inventory_project/src/app/api/auth/[...nextauth]/route.ts
+deleted file mode 100644
+index a128bba..0000000
+--- a/inventory_project/src/app/api/auth/[...nextauth]/route.ts
++++ /dev/null
+@@ -1,6 +0,0 @@
+-import NextAuth from 'next-auth'
+-import { opcionesAuth } from '@/lib/auth'
+-
+-const handler = NextAuth(opcionesAuth)
+-
+-export { handler as GET, handler as POST }
+diff --git a/inventory_project/src/app/api/auth/[...path]/route.ts b/inventory_project/src/app/api/auth/[...path]/route.ts
+new file mode 100644
+index 0000000..d0dfefd
+--- /dev/null
++++ b/inventory_project/src/app/api/auth/[...path]/route.ts
+@@ -0,0 +1,3 @@
++import { auth } from '@/lib/auth/server'
++
++export const { GET, POST } = auth.handler()
+diff --git a/inventory_project/src/app/api/cotizaciones/[id]/cancelar/route.ts b/inventory_project/src/app/api/cotizaciones/[id]/cancelar/route.ts
+index 6739779..b15d253 100644
+--- a/inventory_project/src/app/api/cotizaciones/[id]/cancelar/route.ts
++++ b/inventory_project/src/app/api/cotizaciones/[id]/cancelar/route.ts
+@@ -55,7 +55,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
+       )
+     }
+ 
+-    const usuarioId = parseInt(sesion.user.id, 10)
++    const usuarioId = Number(sesion.user.id)
+     if (!esAdmin && cotizacion.vendedorId !== usuarioId) {
+       return NextResponse.json(
+         { error: 'Solo el vendedor original o un administrador puede cancelar esta cotizaci├│n.' },
+diff --git a/inventory_project/src/app/api/cotizaciones/[id]/convertir/route.ts b/inventory_project/src/app/api/cotizaciones/[id]/convertir/route.ts
+index 2a72010..604af57 100644
+--- a/inventory_project/src/app/api/cotizaciones/[id]/convertir/route.ts
++++ b/inventory_project/src/app/api/cotizaciones/[id]/convertir/route.ts
+@@ -57,7 +57,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
+     }
+ 
+     // Solo el vendedor original o admin.
+-    const usuarioId = parseInt(sesion.user.id, 10)
++    const usuarioId = Number(sesion.user.id)
+     if (!esAdmin && cotizacion.vendedorId !== usuarioId) {
+       return NextResponse.json(
+         { error: 'Solo el vendedor original o un administrador puede convertir esta cotizaci├│n.' },
+diff --git a/inventory_project/src/app/api/cotizaciones/route.ts b/inventory_project/src/app/api/cotizaciones/route.ts
+index 3d78c71..5e78997 100644
+--- a/inventory_project/src/app/api/cotizaciones/route.ts
++++ b/inventory_project/src/app/api/cotizaciones/route.ts
+@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
+     vendedorId?: number
+     estado?: 'PENDIENTE' | 'CONVERTIDA' | 'CANCELADA'
+   } = {}
+-  if (!esAdmin) where.vendedorId = parseInt(sesion.user.id, 10)
++  if (!esAdmin) where.vendedorId = Number(sesion.user.id)
+   if (estado === 'PENDIENTE' || estado === 'CONVERTIDA' || estado === 'CANCELADA') {
+     where.estado = estado
+   }
+@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
+   const cotizaciones = await prisma.cotizacion.findMany({
+     where,
+     include: {
+-      vendedor: { select: { id: true, nombre: true, nombreUsuario: true } },
++      vendedor: { select: { id: true, nombre: true, email: true } },
+       _count: { select: { items: true } },
+     },
+     orderBy: { creadoEn: 'desc' },
+@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
+       consolidados.set(productoId, (consolidados.get(productoId) ?? 0) + cantidad)
+     }
+ 
+-    const vendedorId = sesion.user.id ? parseInt(sesion.user.id, 10) : null
++    const vendedorId = sesion.user.id ? Number(sesion.user.id) : null
+     
+     const resultado = await CotizacionesService.crearCotizacion(consolidados, vendedorId, notas, cliente, diasValidez)
+     const cotizacion = resultado.cotizacion
+diff --git a/inventory_project/src/app/api/movimientos/route.ts b/inventory_project/src/app/api/movimientos/route.ts
+index c0d07e5..8c1cef6 100644
+--- a/inventory_project/src/app/api/movimientos/route.ts
++++ b/inventory_project/src/app/api/movimientos/route.ts
+@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
+     }
+ 
+     const ip = extraerIp(request)
+-    const usuarioId = parseInt(session.user.id as string, 10)
++    const usuarioId = Number(session.user.id)
+     
+     const movimiento = await MovimientosService.registrarMovimiento(data, usuarioId, ip || '')
+     
+diff --git a/inventory_project/src/app/api/usuarios/[id]/route.ts b/inventory_project/src/app/api/usuarios/[id]/route.ts
+index 04e88f2..ef680cd 100644
+--- a/inventory_project/src/app/api/usuarios/[id]/route.ts
++++ b/inventory_project/src/app/api/usuarios/[id]/route.ts
+@@ -17,7 +17,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
+   const { id } = await params
+   const usuario = await prisma.usuario.findUnique({
+     where: { id: parseInt(id, 10) },
+-    select: { id: true, nombreUsuario: true, nombre: true, rol: true, permisos: true, creadoEn: true },
++    select: { id: true, email: true, nombre: true, rol: true, permisos: true, creadoEn: true },
+   })
+   if (!usuario) {
+     return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
+@@ -38,7 +38,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{
+ 
+     const antes = await prisma.usuario.findUnique({
+       where: { id: usuarioId },
+-      select: { id: true, nombreUsuario: true, nombre: true, rol: true, permisos: true, creadoEn: true },
++      select: { id: true, email: true, nombre: true, rol: true, permisos: true, creadoEn: true },
+     })
+ 
+     const usuario = await UsuariosService.actualizarUsuario(usuarioId, datos)
+@@ -76,11 +76,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
+     const usuarioId = parseInt(id, 10)
+     const sesion = await obtenerSesion()
+     
+-    const usuarioLogueadoId = sesion?.user?.id ? parseInt(sesion.user.id, 10) : -1
++    const usuarioLogueadoId = sesion?.user?.id ? Number(sesion.user.id) : -1
+ 
+     const antes = await prisma.usuario.findUnique({
+       where: { id: usuarioId },
+-      select: { id: true, nombreUsuario: true, nombre: true, rol: true, permisos: true, creadoEn: true },
++      select: { id: true, email: true, nombre: true, rol: true, permisos: true, creadoEn: true },
+     })
+ 
+     await UsuariosService.eliminarUsuario(usuarioId, usuarioLogueadoId)
+diff --git a/inventory_project/src/app/api/usuarios/route.ts b/inventory_project/src/app/api/usuarios/route.ts
+index c4ff77f..187fdd7 100644
+--- a/inventory_project/src/app/api/usuarios/route.ts
++++ b/inventory_project/src/app/api/usuarios/route.ts
+@@ -18,7 +18,7 @@ export async function GET() {
+     const usuarios = await prisma.usuario.findMany({
+       select: {
+         id: true,
+-        nombreUsuario: true,
++        email: true,
+         nombre: true,
+         rol: true,
+         creadoEn: true,
+diff --git a/inventory_project/src/app/api/ventas/[id]/cancelar/route.ts b/inventory_project/src/app/api/ventas/[id]/cancelar/route.ts
+index 6074888..48750e5 100644
+--- a/inventory_project/src/app/api/ventas/[id]/cancelar/route.ts
++++ b/inventory_project/src/app/api/ventas/[id]/cancelar/route.ts
+@@ -74,7 +74,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
+       )
+     }
+ 
+-    const adminId = sesion.user.id ? parseInt(sesion.user.id, 10) : null
++    const adminId = sesion.user.id ? Number(sesion.user.id) : null
+ 
+     const cancelada = await prisma.$transaction(async (tx) => {
+       // Devolver stock + registrar movimiento por cada item.
+@@ -103,7 +103,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
+         },
+         include: {
+           items: { include: { producto: { select: { nombre: true, codigo: true } } } },
+-          canceladaPor: { select: { id: true, nombre: true, nombreUsuario: true } },
++          canceladaPor: { select: { id: true, nombre: true, email: true } },
+         },
+       })
+     })
+diff --git a/inventory_project/src/app/api/ventas/route.ts b/inventory_project/src/app/api/ventas/route.ts
+index 4491003..3df6aa6 100644
+--- a/inventory_project/src/app/api/ventas/route.ts
++++ b/inventory_project/src/app/api/ventas/route.ts
+@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
+       consolidados.set(productoId, (consolidados.get(productoId) ?? 0) + cantidad)
+     }
+ 
+-    const vendedorId = sesion.user.id ? parseInt(sesion.user.id, 10) : null
++    const vendedorId = sesion.user.id ? Number(sesion.user.id) : null
+ 
+     const resultado = await VentasService.registrarVenta(consolidados, vendedorId, notas)
+ 
+diff --git a/inventory_project/src/app/auditoria/page.tsx b/inventory_project/src/app/auditoria/page.tsx
+index b4f3313..a642055 100644
+--- a/inventory_project/src/app/auditoria/page.tsx
++++ b/inventory_project/src/app/auditoria/page.tsx
+@@ -53,13 +53,13 @@ export default async function PaginaAuditoria({ searchParams }: Props) {
+     prisma.auditoria.count({ where }),
+     prisma.auditoria.findMany({
+       where,
+-      include: { usuario: { select: { id: true, nombre: true, nombreUsuario: true } } },
++      include: { usuario: { select: { id: true, nombre: true, email: true } } },
+       orderBy: { creadoEn: 'desc' },
+       skip: (pagina - 1) * POR_PAGINA,
+       take: POR_PAGINA,
+     }),
+     prisma.usuario.findMany({
+-      select: { id: true, nombre: true, nombreUsuario: true },
++      select: { id: true, nombre: true, email: true },
+       orderBy: { nombre: 'asc' },
+     }),
+     tienePermiso('EXPORTAR_REPORTES'),
+@@ -128,7 +128,7 @@ export default async function PaginaAuditoria({ searchParams }: Props) {
+                           {r.usuario ? (
+                             <>
+                               <div className="font-medium">{r.usuario.nombre}</div>
+-                              <div className="text-xs text-gray-500">@{r.usuario.nombreUsuario}</div>
++                              <div className="text-xs text-gray-500">@{r.usuario.email}</div>
+                             </>
+                           ) : (
+                             <span className="text-gray-400 italic">(usuario eliminado)</span>
+diff --git a/inventory_project/src/app/auth/[path]/page.tsx b/inventory_project/src/app/auth/[path]/page.tsx
+new file mode 100644
+index 0000000..0685969
+--- /dev/null
++++ b/inventory_project/src/app/auth/[path]/page.tsx
+@@ -0,0 +1,11 @@
++import { AuthView } from '@neondatabase/auth-ui'
++import { authViewPaths } from '@neondatabase/auth-ui/server'
++
++export function generateStaticParams() {
++  return Object.values(authViewPaths).map((path) => ({ path }))
++}
++
++export default async function AuthPage({ params }: { params: Promise<{ path: string }> }) {
++  const { path } = await params
++  return <AuthView path={path} />
++}
+diff --git a/inventory_project/src/app/auth/layout.tsx b/inventory_project/src/app/auth/layout.tsx
+new file mode 100644
+index 0000000..7f5c3b1
+--- /dev/null
++++ b/inventory_project/src/app/auth/layout.tsx
+@@ -0,0 +1,11 @@
++export default function AuthLayout({
++  children,
++}: {
++  children: React.ReactNode
++}) {
++  return (
++    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
++      {children}
++    </div>
++  )
++}
+diff --git a/inventory_project/src/app/cotizaciones/[id]/page.tsx b/inventory_project/src/app/cotizaciones/[id]/page.tsx
+index d99ba82..d622942 100644
+--- a/inventory_project/src/app/cotizaciones/[id]/page.tsx
++++ b/inventory_project/src/app/cotizaciones/[id]/page.tsx
+@@ -41,8 +41,8 @@ export default async function PaginaDetalleCotizacion({ params }: Props) {
+   const cotizacion = await prisma.cotizacion.findUnique({
+     where: { id: cotizacionId },
+     include: {
+-      vendedor: { select: { id: true, nombre: true, nombreUsuario: true } },
+-      canceladaPor: { select: { id: true, nombre: true, nombreUsuario: true } },
++      vendedor: { select: { id: true, nombre: true, email: true } },
++      canceladaPor: { select: { id: true, nombre: true, email: true } },
+       items: { include: { producto: { select: { nombre: true, codigo: true } } } },
+       venta: { select: { id: true } },
+     },
+@@ -50,7 +50,7 @@ export default async function PaginaDetalleCotizacion({ params }: Props) {
+   if (!cotizacion) notFound()
+ 
+   // Solo el vendedor original o admin pueden ver el detalle.
+-  const usuarioId = parseInt(sesion.user.id, 10)
++  const usuarioId = Number(sesion.user.id)
+   if (!esAdmin && cotizacion.vendedorId !== usuarioId) redirect('/cotizaciones')
+ 
+   const ahora = new Date()
+@@ -87,7 +87,7 @@ export default async function PaginaDetalleCotizacion({ params }: Props) {
+             <p className="text-sm text-gray-500 mt-1">
+               Creada {formatearFechaHora(cotizacion.creadoEn)}
+               {cotizacion.vendedor &&
+-                ` por ${cotizacion.vendedor.nombre} (@${cotizacion.vendedor.nombreUsuario})`}
++                ` por ${cotizacion.vendedor.nombre} (@${cotizacion.vendedor.email})`}
+             </p>
+           </div>
+           <BotonesCotizacion
+@@ -124,7 +124,7 @@ export default async function PaginaDetalleCotizacion({ params }: Props) {
+             <div>
+               Cancelada el {cotizacion.canceladaEn ? formatearFechaHora(cotizacion.canceladaEn) : ''}
+               {cotizacion.canceladaPor &&
+-                ` por ${cotizacion.canceladaPor.nombre} (@${cotizacion.canceladaPor.nombreUsuario})`}
++                ` por ${cotizacion.canceladaPor.nombre} (@${cotizacion.canceladaPor.email})`}
+               .
+             </div>
+             {cotizacion.motivoCancelacion && (
+diff --git a/inventory_project/src/app/cotizaciones/page.tsx b/inventory_project/src/app/cotizaciones/page.tsx
+index a21a184..f8daad2 100644
+--- a/inventory_project/src/app/cotizaciones/page.tsx
++++ b/inventory_project/src/app/cotizaciones/page.tsx
+@@ -42,7 +42,7 @@ export default async function PaginaCotizaciones({ searchParams }: Props) {
+     vendedorId?: number
+     estado?: 'PENDIENTE' | 'CONVERTIDA' | 'CANCELADA'
+   } = {}
+-  if (!esAdmin) where.vendedorId = parseInt(sesion.user.id, 10)
++  if (!esAdmin) where.vendedorId = Number(sesion.user.id)
+   if (
+     filtroEstado === 'PENDIENTE' ||
+     filtroEstado === 'CONVERTIDA' ||
+@@ -54,7 +54,7 @@ export default async function PaginaCotizaciones({ searchParams }: Props) {
+   const cotizaciones = await prisma.cotizacion.findMany({
+     where,
+     include: {
+-      vendedor: { select: { nombre: true, nombreUsuario: true } },
++      vendedor: { select: { nombre: true, email: true } },
+       _count: { select: { items: true } },
+     },
+     orderBy: { creadoEn: 'desc' },
+@@ -166,7 +166,7 @@ export default async function PaginaCotizaciones({ searchParams }: Props) {
+                             )}
+                             <div className="text-xs text-gray-500">
+                               {c.vendedor
+-                                ? `${c.vendedor.nombre} (@${c.vendedor.nombreUsuario})`
++                                ? `${c.vendedor.nombre} (@${c.vendedor.email})`
+                                 : 'Vendedor eliminado'}
+                             </div>
+                           </td>
+diff --git a/inventory_project/src/app/layout.tsx b/inventory_project/src/app/layout.tsx
+index 92e2747..c4b4562 100644
+--- a/inventory_project/src/app/layout.tsx
++++ b/inventory_project/src/app/layout.tsx
+@@ -1,6 +1,7 @@
+ import type { Metadata } from "next";
+ import { Geist, Geist_Mono } from "next/font/google";
+ import "./globals.css";
++import "@neondatabase/auth-ui/css";
+ import ProveedorSesion from "@/componentes/ProveedorSesion";
+ import { Analytics } from '@vercel/analytics/next';
+ import { SpeedInsights } from '@vercel/speed-insights/next';
+diff --git a/inventory_project/src/app/login/page.tsx b/inventory_project/src/app/login/page.tsx
+deleted file mode 100644
+index c0ba647..0000000
+--- a/inventory_project/src/app/login/page.tsx
++++ /dev/null
+@@ -1,124 +0,0 @@
+-'use client'
+-
+-import { signIn } from 'next-auth/react'
+-import { useRouter } from 'next/navigation'
+-import { useState } from 'react'
+-
+-export default function PaginaLogin() {
+-  const router = useRouter()
+-  const [nombreUsuario, setNombreUsuario] = useState('')
+-  const [contrasena, setContrasena] = useState('')
+-  const [verContrasena, setVerContrasena] = useState(false)
+-  const [error, setError] = useState('')
+-  const [cargando, setCargando] = useState(false)
+-
+-  const manejarEnvio = async (e: React.FormEvent) => {
+-    e.preventDefault()
+-    setError('')
+-    setCargando(true)
+-
+-    const resultado = await signIn('credentials', {
+-      nombreUsuario,
+-      contrasena,
+-      redirect: false,
+-    })
+-
+-    setCargando(false)
+-
+-    if (resultado?.error) {
+-      setError('Usuario o contrase├▒a incorrectos')
+-    } else {
+-      router.push('/')
+-      router.refresh()
+-    }
+-  }
+-
+-  return (
+-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-8">
+-      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6 sm:p-8">
+-        <div className="text-center mb-8">
+-          <h1 className="text-2xl font-bold text-gray-800">
+-            Sistema de Inventarios
+-          </h1>
+-          <p className="text-gray-600 mt-2">Inicia sesi├│n para continuar</p>
+-        </div>
+-
+-        <form onSubmit={manejarEnvio} className="space-y-6">
+-          {error && (
+-            <div className="bg-red-50 text-red-500 p-3 rounded-md text-sm">
+-              {error}
+-            </div>
+-          )}
+-
+-          <div>
+-            <label
+-              htmlFor="nombreUsuario"
+-              className="block text-sm font-medium text-gray-700 mb-1"
+-            >
+-              Usuario
+-            </label>
+-            <input
+-              type="text"
+-              id="nombreUsuario"
+-              value={nombreUsuario}
+-              onChange={(e) => setNombreUsuario(e.target.value)}
+-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+-              placeholder="Ingresa tu usuario"
+-              autoComplete="username"
+-              autoCapitalize="none"
+-              required
+-            />
+-          </div>
+-
+-          <div>
+-            <label
+-              htmlFor="contrasena"
+-              className="block text-sm font-medium text-gray-700 mb-1"
+-            >
+-              Contrase├▒a
+-            </label>
+-            <div className="relative">
+-              <input
+-                type={verContrasena ? 'text' : 'password'}
+-                id="contrasena"
+-                value={contrasena}
+-                onChange={(e) => setContrasena(e.target.value)}
+-                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+-                placeholder="Ingresa tu contrase├▒a"
+-                autoComplete="current-password"
+-                required
+-              />
+-              <button
+-                type="button"
+-                onClick={() => setVerContrasena((v) => !v)}
+-                aria-label={verContrasena ? 'Ocultar contrase├▒a' : 'Mostrar contrase├▒a'}
+-                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700 focus:outline-none"
+-              >
+-                {verContrasena ? (
+-                  /* ojo tachado */
+-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+-                  </svg>
+-                ) : (
+-                  /* ojo */
+-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+-                  </svg>
+-                )}
+-              </button>
+-            </div>
+-          </div>
+-
+-          <button
+-            type="submit"
+-            disabled={cargando}
+-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+-          >
+-            {cargando ? 'Iniciando sesi├│n...' : 'Iniciar Sesi├│n'}
+-          </button>
+-        </form>
+-      </div>
+-    </div>
+-  )
+-}
+diff --git a/inventory_project/src/app/usuarios/[id]/page.tsx b/inventory_project/src/app/usuarios/[id]/page.tsx
+index 1c22699..bfbb768 100644
+--- a/inventory_project/src/app/usuarios/[id]/page.tsx
++++ b/inventory_project/src/app/usuarios/[id]/page.tsx
+@@ -18,7 +18,7 @@ export default async function PaginaEditarUsuario({
+   const { id } = await params
+   const usuario = await prisma.usuario.findUnique({
+     where: { id: parseInt(id, 10) },
+-    select: { id: true, nombreUsuario: true, nombre: true, rol: true, permisos: true },
++    select: { id: true, email: true, nombre: true, rol: true, permisos: true },
+   })
+ 
+   if (!usuario) {
+@@ -49,7 +49,7 @@ export default async function PaginaEditarUsuario({
+             Usuarios
+           </Link>
+           <span>/</span>
+-          <span>{usuario.nombreUsuario}</span>
++          <span>{usuario.email}</span>
+         </div>
+ 
+         <h1 className="text-2xl font-bold text-gray-800">Editar Usuario</h1>
+diff --git a/inventory_project/src/app/usuarios/page.tsx b/inventory_project/src/app/usuarios/page.tsx
+index 0595344..f651e68 100644
+--- a/inventory_project/src/app/usuarios/page.tsx
++++ b/inventory_project/src/app/usuarios/page.tsx
+@@ -16,7 +16,7 @@ export default async function PaginaUsuarios() {
+   const usuarios = await prisma.usuario.findMany({
+     select: {
+       id: true,
+-      nombreUsuario: true,
++      email: true,
+       nombre: true,
+       rol: true,
+       creadoEn: true,
+@@ -39,7 +39,7 @@ export default async function PaginaUsuarios() {
+ 
+         <ListaUsuariosFiltrable
+           usuarios={usuarios}
+-          usuarioActualId={sesion.user.id}
++          usuarioActualId={String(sesion.user.id)}
+         />
+       </div>
+     </LayoutProtegido>
+diff --git a/inventory_project/src/app/venta-rapida/page.tsx b/inventory_project/src/app/venta-rapida/page.tsx
+index b464e70..055b7b9 100644
+--- a/inventory_project/src/app/venta-rapida/page.tsx
++++ b/inventory_project/src/app/venta-rapida/page.tsx
+@@ -17,7 +17,7 @@ export default async function PaginaVentaRapida() {
+     redirect('/')
+   }
+ 
+-  const vendedorId = parseInt(sesion.user.id, 10)
++  const vendedorId = Number(sesion.user.id)
+   // Rango de "hoy" en hora local Colombia: desde 00:00 hasta 23:59:59.
+   const hoyDesde = new Date()
+   hoyDesde.setHours(0, 0, 0, 0)
+diff --git a/inventory_project/src/app/ventas/[id]/recibo/page.tsx b/inventory_project/src/app/ventas/[id]/recibo/page.tsx
+index 3a27c77..26f74ab 100644
+--- a/inventory_project/src/app/ventas/[id]/recibo/page.tsx
++++ b/inventory_project/src/app/ventas/[id]/recibo/page.tsx
+@@ -23,8 +23,8 @@ export default async function PaginaReciboVenta({ params }: Props) {
+   const venta = await prisma.venta.findUnique({
+     where: { id: ventaId },
+     include: {
+-      vendedor: { select: { id: true, nombre: true, nombreUsuario: true } },
+-      canceladaPor: { select: { id: true, nombre: true, nombreUsuario: true } },
++      vendedor: { select: { id: true, nombre: true, email: true } },
++      canceladaPor: { select: { id: true, nombre: true, email: true } },
+       items: {
+         include: { producto: { select: { nombre: true, codigo: true } } },
+       },
+@@ -34,7 +34,7 @@ export default async function PaginaReciboVenta({ params }: Props) {
+ 
+   // Solo admin o quien hizo la venta puede ver el recibo.
+   const esAdmin = sesion.user.rol === 'ADMIN'
+-  const esVendedor = venta.vendedorId !== null && sesion.user.id === venta.vendedorId.toString()
++  const esVendedor = venta.vendedorId !== null && String(sesion.user.id) === venta.vendedorId.toString()
+   if (!esAdmin && !esVendedor) redirect('/')
+ 
+   const cantidadTotalItems = venta.items.reduce((s, it) => s + it.cantidad, 0)
+@@ -70,7 +70,7 @@ export default async function PaginaReciboVenta({ params }: Props) {
+             <div className="text-xs text-red-700 mt-1">
+               Cancelada el {formatearFechaHora(venta.canceladaEn)}
+               {venta.canceladaPor
+-                ? ` por ${venta.canceladaPor.nombre} (@${venta.canceladaPor.nombreUsuario})`
++                ? ` por ${venta.canceladaPor.nombre} (@${venta.canceladaPor.email})`
+                 : ''}
+             </div>
+             {venta.motivoCancelacion && (
+@@ -104,7 +104,7 @@ export default async function PaginaReciboVenta({ params }: Props) {
+             <div className="text-xs text-gray-500 uppercase">Vendedor</div>
+             <div className="font-medium text-gray-800">
+               {venta.vendedor
+-                ? `${venta.vendedor.nombre} (@${venta.vendedor.nombreUsuario})`
++                ? `${venta.vendedor.nombre} (@${venta.vendedor.email})`
+                 : '(usuario eliminado)'}
+             </div>
+           </div>
+diff --git a/inventory_project/src/app/ventas/page.tsx b/inventory_project/src/app/ventas/page.tsx
+index d42bcba..1847339 100644
+--- a/inventory_project/src/app/ventas/page.tsx
++++ b/inventory_project/src/app/ventas/page.tsx
+@@ -44,7 +44,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
+   const where: Prisma.VentaWhereInput = {}
+   // Usuario regular solo ve sus propias ventas.
+   if (!esAdmin) {
+-    where.vendedorId = parseInt(sesion.user.id, 10)
++    where.vendedorId = Number(sesion.user.id)
+   } else if (params.vendedor) {
+     where.vendedorId = parseInt(params.vendedor)
+   }
+@@ -59,7 +59,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
+     prisma.venta.findMany({
+       where,
+       include: {
+-        vendedor: { select: { id: true, nombre: true, nombreUsuario: true } },
++        vendedor: { select: { id: true, nombre: true, email: true } },
+         _count: { select: { items: true } },
+       },
+       orderBy: { creadoEn: 'desc' },
+@@ -69,7 +69,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
+     esAdmin
+       ? prisma.usuario.findMany({
+           where: { ventas: { some: {} } },
+-          select: { id: true, nombre: true, nombreUsuario: true },
++          select: { id: true, nombre: true, email: true },
+           orderBy: { nombre: 'asc' },
+         })
+       : Promise.resolve([]),
+@@ -171,7 +171,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
+                           {v.vendedor ? (
+                             <>
+                               <div className="font-medium">{v.vendedor.nombre}</div>
+-                              <div className="text-xs text-gray-500">@{v.vendedor.nombreUsuario}</div>
++                              <div className="text-xs text-gray-500">@{v.vendedor.email}</div>
+                             </>
+                           ) : (
+                             <span className="italic text-gray-400">(usuario eliminado)</span>
+@@ -231,7 +231,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
+                       Vendedor:{' '}
+                       {v.vendedor ? (
+                         <span className="font-medium">
+-                          {v.vendedor.nombre} (@{v.vendedor.nombreUsuario})
++                          {v.vendedor.nombre} (@{v.vendedor.email})
+                         </span>
+                       ) : (
+                         <span className="italic text-gray-400">(eliminado)</span>
+diff --git a/inventory_project/src/componentes/BarraNavegacion.tsx b/inventory_project/src/componentes/BarraNavegacion.tsx
+index 86a87ec..89c3ad5 100644
+--- a/inventory_project/src/componentes/BarraNavegacion.tsx
++++ b/inventory_project/src/componentes/BarraNavegacion.tsx
+@@ -2,8 +2,9 @@
+ 
+ import Link from 'next/link'
+ import { usePathname } from 'next/navigation'
+-import { signOut, useSession } from 'next-auth/react'
+ import { useEffect, useRef, useState } from 'react'
++import { UserButton } from '@neondatabase/auth-ui'
++import { authClient } from '@/lib/auth/client'
+ 
+ interface SubEnlace {
+   href: string
+@@ -28,9 +29,8 @@ interface Dropdown {
+ 
+ type Item = EnlaceSimple | Dropdown
+ 
+-export default function BarraNavegacion() {
++export default function BarraNavegacion({ sesion }: { sesion: any }) {
+   const pathname = usePathname()
+-  const { data: sesion } = useSession()
+   const [menuAbierto, setMenuAbierto] = useState(false)
+   const [dropdownAbierto, setDropdownAbierto] = useState<string | null>(null)
+   const contenedorRef = useRef<HTMLDivElement>(null)
+@@ -191,38 +191,7 @@ export default function BarraNavegacion() {
+           {/* Mi cuenta (escritorio) */}
+           <div className="hidden lg:flex items-center">
+             {sesion?.user && (
+-              <div className="relative">
+-                <button
+-                  type="button"
+-                  onClick={() => setDropdownAbierto(dropdownAbierto === 'cuenta' ? null : 'cuenta')}
+-                  aria-expanded={dropdownAbierto === 'cuenta'}
+-                  className="px-3 py-2 rounded-md text-sm font-medium text-blue-100 hover:bg-blue-500 inline-flex items-center gap-1"
+-                >
+-                  Mi cuenta
+-                  <span className={`text-xs transition-transform ${dropdownAbierto === 'cuenta' ? 'rotate-180' : ''}`}>
+-                    Ôû¥
+-                  </span>
+-                </button>
+-                {dropdownAbierto === 'cuenta' && (
+-                  <div className="absolute right-0 top-full mt-1 min-w-[220px] bg-white text-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50 overflow-hidden">
+-                    <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+-                      <div className="text-sm font-medium text-gray-900 truncate">{sesion.user.name}</div>
+-                      <div className="text-xs text-gray-500 truncate">
+-                        {esAdmin ? 'Administrador' : 'Usuario'}
+-                      </div>
+-                    </div>
+-                    <button
+-                      onClick={() => {
+-                        setDropdownAbierto(null)
+-                        signOut({ callbackUrl: '/login' })
+-                      }}
+-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+-                    >
+-                      Cerrar sesi├│n
+-                    </button>
+-                  </div>
+-                )}
+-              </div>
++              <UserButton />
+             )}
+           </div>
+ 
+@@ -295,20 +264,8 @@ export default function BarraNavegacion() {
+             })}
+           </div>
+           {sesion?.user && (
+-            <div className="border-t border-blue-500 pt-3 pb-3 px-4 space-y-2">
+-              <div>
+-                <div className="text-sm font-medium text-white">{sesion.user.name}</div>
+-                <div className="text-xs text-blue-200">{esAdmin ? 'Administrador' : 'Usuario'}</div>
+-              </div>
+-              <button
+-                onClick={() => {
+-                  cerrarMenu()
+-                  signOut({ callbackUrl: '/login' })
+-                }}
+-                className="w-full px-3 py-2 rounded-md text-sm font-medium bg-blue-700 hover:bg-blue-800 transition-colors text-left"
+-              >
+-                Cerrar sesi├│n
+-              </button>
++            <div className="border-t border-blue-500 pt-3 pb-3 px-4 flex justify-center">
++              <UserButton />
+             </div>
+           )}
+         </div>
+diff --git a/inventory_project/src/componentes/BotonEliminarUsuario.tsx b/inventory_project/src/componentes/BotonEliminarUsuario.tsx
+index cca5719..3b77320 100644
+--- a/inventory_project/src/componentes/BotonEliminarUsuario.tsx
++++ b/inventory_project/src/componentes/BotonEliminarUsuario.tsx
+@@ -5,13 +5,13 @@ import { useState } from 'react'
+ 
+ interface PropiedadesBoton {
+   id: number
+-  nombreUsuario: string
++  email: string
+   esActual: boolean
+ }
+ 
+ export default function BotonEliminarUsuario({
+   id,
+-  nombreUsuario,
++  email,
+   esActual,
+ }: PropiedadesBoton) {
+   const router = useRouter()
+@@ -22,7 +22,7 @@ export default function BotonEliminarUsuario({
+       alert('No puedes eliminar tu propio usuario.')
+       return
+     }
+-    if (!confirm(`┬┐Est├ís seguro de eliminar el usuario "${nombreUsuario}"?`)) {
++    if (!confirm(`┬┐Est├ís seguro de eliminar el usuario "${email}"?`)) {
+       return
+     }
+ 
+diff --git a/inventory_project/src/componentes/FiltrosAuditoria.tsx b/inventory_project/src/componentes/FiltrosAuditoria.tsx
+index 73067a0..1654654 100644
+--- a/inventory_project/src/componentes/FiltrosAuditoria.tsx
++++ b/inventory_project/src/componentes/FiltrosAuditoria.tsx
+@@ -7,7 +7,7 @@ import { ACCIONES, ENTIDADES } from '@/lib/auditoria'
+ interface UsuarioLite {
+   id: number
+   nombre: string
+-  nombreUsuario: string
++  email: string
+ }
+ 
+ interface Propiedades {
+@@ -65,7 +65,7 @@ export default function FiltrosAuditoria({ usuarios, permiteExportar }: Propieda
+           >
+             <option value="">Todos</option>
+             {usuarios.map((u) => (
+-              <option key={u.id} value={u.id}>{u.nombre} (@{u.nombreUsuario})</option>
++              <option key={u.id} value={u.id}>{u.nombre} (@{u.email})</option>
+             ))}
+           </select>
+         </div>
+diff --git a/inventory_project/src/componentes/FiltrosVentas.tsx b/inventory_project/src/componentes/FiltrosVentas.tsx
+index e5874a0..29819d8 100644
+--- a/inventory_project/src/componentes/FiltrosVentas.tsx
++++ b/inventory_project/src/componentes/FiltrosVentas.tsx
+@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
+ interface UsuarioLite {
+   id: number
+   nombre: string
+-  nombreUsuario: string
++  email: string
+ }
+ 
+ interface Propiedades {
+@@ -54,7 +54,7 @@ export default function FiltrosVentas({ esAdmin, vendedores }: Propiedades) {
+               <option value="">Todos</option>
+               {vendedores.map((v) => (
+                 <option key={v.id} value={v.id}>
+-                  {v.nombre} (@{v.nombreUsuario})
++                  {v.nombre} (@{v.email})
+                 </option>
+               ))}
+             </select>
+diff --git a/inventory_project/src/componentes/FormularioUsuario.tsx b/inventory_project/src/componentes/FormularioUsuario.tsx
+index 9da3496..4f11c09 100644
+--- a/inventory_project/src/componentes/FormularioUsuario.tsx
++++ b/inventory_project/src/componentes/FormularioUsuario.tsx
+@@ -11,7 +11,7 @@ type PermisoTipo =
+ 
+ interface DatosUsuario {
+   id?: number
+-  nombreUsuario: string
++  email: string
+   nombre: string
+   rol: 'ADMIN' | 'USUARIO'
+   permisos?: PermisoTipo[]
+@@ -49,7 +49,7 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
+   const esEdicion = !!usuario?.id
+ 
+   const [datos, setDatos] = useState({
+-    nombreUsuario: usuario?.nombreUsuario || '',
++    email: usuario?.email || '',
+     nombre: usuario?.nombre || '',
+     rol: usuario?.rol || 'USUARIO',
+     contrasena: '',
+@@ -91,7 +91,7 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
+       const metodo = esEdicion ? 'PUT' : 'POST'
+ 
+       const body: Record<string, unknown> = {
+-        nombreUsuario: datos.nombreUsuario,
++        email: datos.email,
+         nombre: datos.nombre,
+         rol: datos.rol,
+         permisos,
+@@ -147,16 +147,16 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
+ 
+         <div>
+           <label
+-            htmlFor="nombreUsuario"
++            htmlFor="email"
+             className="block text-sm font-medium text-gray-700 mb-1"
+           >
+             Nombre de usuario *
+           </label>
+           <input
+             type="text"
+-            id="nombreUsuario"
+-            name="nombreUsuario"
+-            value={datos.nombreUsuario}
++            id="email"
++            name="email"
++            value={datos.email}
+             onChange={manejarCambio}
+             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+             autoComplete="username"
+diff --git a/inventory_project/src/componentes/LayoutProtegido.tsx b/inventory_project/src/componentes/LayoutProtegido.tsx
+index 1d86417..20f17fc 100644
+--- a/inventory_project/src/componentes/LayoutProtegido.tsx
++++ b/inventory_project/src/componentes/LayoutProtegido.tsx
+@@ -1,39 +1,31 @@
+-'use client'
+-
+-import { useSession } from 'next-auth/react'
+-import { useRouter } from 'next/navigation'
+-import { useEffect } from 'react'
++import { redirect } from 'next/navigation'
++import { obtenerSesion } from '@/lib/permisos'
+ import BarraNavegacion from './BarraNavegacion'
++import PendienteAprobacion from './PendienteAprobacion'
+ 
+ interface PropiedadesLayout {
+   children: React.ReactNode
+ }
+ 
+-export default function LayoutProtegido({ children }: PropiedadesLayout) {
+-  const { data: sesion, status } = useSession()
+-  const router = useRouter()
++export default async function LayoutProtegido({ children }: PropiedadesLayout) {
++  const sesion = await obtenerSesion()
+ 
+-  useEffect(() => {
+-    if (status === 'unauthenticated') {
+-      router.push('/login')
+-    }
+-  }, [status, router])
++  if (!sesion) {
++    redirect('/login')
++  }
+ 
+-  if (status === 'loading') {
++  if (sesion.user.estado === 'PENDIENTE') {
+     return (
+-      <div className="min-h-screen flex items-center justify-center">
+-        <div className="text-lg text-gray-600">Cargando...</div>
++      <div className="min-h-screen bg-gray-50 flex flex-col">
++        <BarraNavegacion sesion={sesion} />
++        <PendienteAprobacion />
+       </div>
+     )
+   }
+ 
+-  if (!sesion) {
+-    return null
+-  }
+-
+   return (
+     <div className="min-h-screen bg-gray-50">
+-      <BarraNavegacion />
++      <BarraNavegacion sesion={sesion} />
+       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+         {children}
+       </main>
+diff --git a/inventory_project/src/componentes/ListaUsuariosFiltrable.tsx b/inventory_project/src/componentes/ListaUsuariosFiltrable.tsx
+index 3f078be..0a0492b 100644
+--- a/inventory_project/src/componentes/ListaUsuariosFiltrable.tsx
++++ b/inventory_project/src/componentes/ListaUsuariosFiltrable.tsx
+@@ -8,7 +8,7 @@ import { formatearFecha } from '@/lib/fechas'
+ 
+ interface UsuarioFilaProps {
+   id: number
+-  nombreUsuario: string
++  email: string
+   nombre: string
+   rol: 'ADMIN' | 'USUARIO'
+   creadoEn: string | Date
+@@ -55,7 +55,7 @@ export default function ListaUsuariosFiltrable({
+     let lista = usuarios.filter((u) => {
+       if (busq) {
+         const enNombre = u.nombre.toLowerCase().includes(busq)
+-        const enUsuario = u.nombreUsuario.toLowerCase().includes(busq)
++        const enUsuario = u.email.toLowerCase().includes(busq)
+         if (!enNombre && !enUsuario) return false
+       }
+       if (rol !== 'todos' && u.rol !== rol) return false
+@@ -66,8 +66,8 @@ export default function ListaUsuariosFiltrable({
+       let av: string | number, bv: string | number
+       switch (campoOrden) {
+         case 'usuario':
+-          av = a.nombreUsuario.toLowerCase()
+-          bv = b.nombreUsuario.toLowerCase()
++          av = a.email.toLowerCase()
++          bv = b.email.toLowerCase()
+           break
+         case 'rol':
+           av = a.rol; bv = b.rol; break
+@@ -192,7 +192,7 @@ export default function ListaUsuariosFiltrable({
+                   {filtrados.map((u) => (
+                     <tr key={u.id} className="hover:bg-gray-50">
+                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+-                        {u.nombreUsuario}
++                        {u.email}
+                       </td>
+                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                         {u.nombre}
+@@ -220,7 +220,7 @@ export default function ListaUsuariosFiltrable({
+                         </Link>
+                         <BotonEliminarUsuario
+                           id={u.id}
+-                          nombreUsuario={u.nombreUsuario}
++                          email={u.email}
+                           esActual={usuarioActualId === u.id.toString()}
+                         />
+                       </td>
+@@ -236,7 +236,7 @@ export default function ListaUsuariosFiltrable({
+                   <div className="flex justify-between items-start gap-2">
+                     <div>
+                       <div className="font-semibold text-gray-900">{u.nombre}</div>
+-                      <div className="text-sm text-gray-500">@{u.nombreUsuario}</div>
++                      <div className="text-sm text-gray-500">@{u.email}</div>
+                     </div>
+                     <span
+                       className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+@@ -260,7 +260,7 @@ export default function ListaUsuariosFiltrable({
+                     </Link>
+                     <BotonEliminarUsuario
+                       id={u.id}
+-                      nombreUsuario={u.nombreUsuario}
++                      email={u.email}
+                       esActual={usuarioActualId === u.id.toString()}
+                     />
+                   </div>
+diff --git a/inventory_project/src/componentes/PendienteAprobacion.tsx b/inventory_project/src/componentes/PendienteAprobacion.tsx
+new file mode 100644
+index 0000000..c9c99b0
+--- /dev/null
++++ b/inventory_project/src/componentes/PendienteAprobacion.tsx
+@@ -0,0 +1,17 @@
++export default function PendienteAprobacion() {
++  return (
++    <div className="min-h-[80vh] bg-gray-50 flex items-center justify-center p-4">
++      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
++        <h2 className="text-2xl font-bold text-gray-900 mb-4">
++          Cuenta Pendiente de Aprobaci├│n
++        </h2>
++        <p className="text-gray-600 mb-6">
++          Tu cuenta ha sido creada exitosamente pero requiere aprobaci├│n de un administrador para acceder al sistema.
++        </p>
++        <div className="p-4 bg-blue-50 text-blue-700 rounded-md text-sm">
++          Por favor, contacta a tu administrador para que active tu cuenta.
++        </div>
++      </div>
++    </div>
++  )
++}
+diff --git a/inventory_project/src/componentes/ProveedorSesion.tsx b/inventory_project/src/componentes/ProveedorSesion.tsx
+index 6748454..c7dd3fa 100644
+--- a/inventory_project/src/componentes/ProveedorSesion.tsx
++++ b/inventory_project/src/componentes/ProveedorSesion.tsx
+@@ -1,6 +1,7 @@
+ 'use client'
+ 
+-import { SessionProvider } from 'next-auth/react'
++import { NeonAuthUIProvider } from '@neondatabase/auth-ui'
++import { authClient } from '@/lib/auth/client'
+ import { ReactNode } from 'react'
+ 
+ interface PropiedadesProveedor {
+@@ -8,5 +9,16 @@ interface PropiedadesProveedor {
+ }
+ 
+ export default function ProveedorSesion({ children }: PropiedadesProveedor) {
+-  return <SessionProvider>{children}</SessionProvider>
++  return (
++    <NeonAuthUIProvider
++      authClient={authClient}
++      social={{ providers: ['google'] }}
++      localization={{
++        SIGN_IN: "Iniciar sesi├│n",
++        SIGN_UP: "Registrarse",
++      }}
++    >
++      {children}
++    </NeonAuthUIProvider>
++  )
+ }
+diff --git a/inventory_project/src/lib/auditoria.ts b/inventory_project/src/lib/auditoria.ts
+index 2905c07..8f0ff6f 100644
+--- a/inventory_project/src/lib/auditoria.ts
++++ b/inventory_project/src/lib/auditoria.ts
+@@ -55,8 +55,8 @@ export async function registrarAuditoria(params: ParametrosAuditoria): Promise<v
+     let usuarioId: number | null | undefined = params.usuarioId
+     if (usuarioId === undefined) {
+       const sesion = await obtenerSesion()
+-      const idStr = sesion?.user?.id
+-      usuarioId = idStr ? parseInt(idStr, 10) : null
++      const idVal = sesion?.user?.id
++      usuarioId = typeof idVal === 'number' ? idVal : (idVal ? parseInt(String(idVal), 10) : null)
+     }
+     await prisma.auditoria.create({
+       data: {
+diff --git a/inventory_project/src/lib/auditoriaDescripcion.ts b/inventory_project/src/lib/auditoriaDescripcion.ts
+index a1ce112..16e3b8e 100644
+--- a/inventory_project/src/lib/auditoriaDescripcion.ts
++++ b/inventory_project/src/lib/auditoriaDescripcion.ts
+@@ -15,7 +15,7 @@ interface Datos {
+   // campos especificos de algunas acciones:
+   productoNuevaCantidad?: number
+   contrasenaCambiada?: boolean
+-  nombreUsuario?: string
++  email?: string
+   motivo?: string
+ }
+ 
+@@ -51,7 +51,7 @@ const ETIQUETAS_CAMPO: Record<string, string> = {
+   cantidad: 'cantidad',
+   stockMinimo: 'stock m├¡nimo',
+   categoriaId: 'categor├¡a',
+-  nombreUsuario: 'usuario',
++  email: 'usuario',
+   rol: 'rol',
+ }
+ 
+@@ -81,7 +81,7 @@ export function describirAuditoria(r: RegistroParaDescribir): string {
+ 
+   // ----- SESION (LOGIN / LOGIN_FALLIDO) -----
+   if (r.entidad === 'Sesion') {
+-    const usuario = asString(d.nombreUsuario || despues.nombreUsuario || antes.nombreUsuario)
++    const usuario = asString(d.email || despues.email || antes.email)
+     if (r.accion === 'LOGIN') {
+       return usuario
+         ? `Inici├│ sesi├│n como '${usuario}'.`
+@@ -150,7 +150,7 @@ export function describirAuditoria(r: RegistroParaDescribir): string {
+   // ----- USUARIO -----
+   if (r.entidad === 'Usuario') {
+     const usuario =
+-      asString(despues.nombreUsuario || antes.nombreUsuario) ||
++      asString(despues.email || antes.email) ||
+       `usuario #${r.entidadId ?? ''}`
+     const rol = asString(despues.rol || antes.rol)
+     const rolTexto = rol === 'ADMIN' ? 'Administrador' : rol === 'USUARIO' ? 'Usuario' : rol
+@@ -162,7 +162,7 @@ export function describirAuditoria(r: RegistroParaDescribir): string {
+       return rolTexto ? `${base} con rol ${rolTexto}.` : `${base}.`
+     }
+     if (r.accion === 'ACTUALIZAR') {
+-      const cambios = listarCambios(antes, despues, ['nombre', 'nombreUsuario', 'rol'])
++      const cambios = listarCambios(antes, despues, ['nombre', 'email', 'rol'])
+       // permisos: comparar arrays
+       const permAntes = arr(antes.permisos)
+       const permDespues = arr(despues.permisos)
+diff --git a/inventory_project/src/lib/auth.ts b/inventory_project/src/lib/auth.ts
+deleted file mode 100644
+index ed90b2c..0000000
+--- a/inventory_project/src/lib/auth.ts
++++ /dev/null
+@@ -1,109 +0,0 @@
+-import { NextAuthOptions } from 'next-auth'
+-import CredentialsProvider from 'next-auth/providers/credentials'
+-import bcrypt from 'bcryptjs'
+-import { prisma } from './db'
+-import { registrarAuditoria } from './auditoria'
+-
+-function extraerIpDeHeaders(headers: Record<string, string> | undefined): string | null {
+-  if (!headers) return null
+-  const fwd = headers['x-forwarded-for']
+-  if (fwd) return fwd.split(',')[0].trim()
+-  return headers['x-real-ip'] || null
+-}
+-
+-export const opcionesAuth: NextAuthOptions = {
+-  providers: [
+-    CredentialsProvider({
+-      name: 'Credenciales',
+-      credentials: {
+-        nombreUsuario: { label: 'Usuario', type: 'text' },
+-        contrasena: { label: 'Contrase├▒a', type: 'password' }
+-      },
+-      async authorize(credenciales, req) {
+-        const ip = extraerIpDeHeaders(req?.headers as Record<string, string> | undefined)
+-        const nombreUsuario = credenciales?.nombreUsuario
+-
+-        if (!nombreUsuario || !credenciales?.contrasena) {
+-          return null
+-        }
+-
+-        const usuario = await prisma.usuario.findUnique({
+-          where: { nombreUsuario }
+-        })
+-
+-        if (!usuario) {
+-          await registrarAuditoria({
+-            accion: 'LOGIN_FALLIDO',
+-            entidad: 'Sesion',
+-            usuarioId: null,
+-            datos: { nombreUsuario, motivo: 'USUARIO_NO_EXISTE' },
+-            ip,
+-          })
+-          return null
+-        }
+-
+-        const contrasenaValida = await bcrypt.compare(
+-          credenciales.contrasena,
+-          usuario.contrasena
+-        )
+-
+-        if (!contrasenaValida) {
+-          await registrarAuditoria({
+-            accion: 'LOGIN_FALLIDO',
+-            entidad: 'Sesion',
+-            usuarioId: usuario.id,
+-            datos: { nombreUsuario, motivo: 'CONTRASENA_INCORRECTA' },
+-            ip,
+-          })
+-          return null
+-        }
+-
+-        await registrarAuditoria({
+-          accion: 'LOGIN',
+-          entidad: 'Sesion',
+-          usuarioId: usuario.id,
+-          datos: { nombreUsuario },
+-          ip,
+-        })
+-
+-        return {
+-          id: usuario.id.toString(),
+-          name: usuario.nombre,
+-          email: usuario.nombreUsuario,
+-          rol: usuario.rol,
+-          permisos: usuario.permisos,
+-        }
+-      }
+-    })
+-  ],
+-  session: {
+-    strategy: 'jwt',
+-    // 8 horas (una jornada laboral). Pasado este tiempo el usuario debe
+-    // volver a iniciar sesion.
+-    maxAge: 8 * 60 * 60,
+-  },
+-  jwt: {
+-    maxAge: 8 * 60 * 60,
+-  },
+-  pages: {
+-    signIn: '/login'
+-  },
+-  callbacks: {
+-    async jwt({ token, user }) {
+-      if (user) {
+-        token.id = user.id
+-        token.rol = user.rol
+-        token.permisos = user.permisos
+-      }
+-      return token
+-    },
+-    async session({ session, token }) {
+-      if (session.user) {
+-        session.user.id = token.id
+-        session.user.rol = token.rol
+-        session.user.permisos = token.permisos
+-      }
+-      return session
+-    }
+-  }
+-}
+diff --git a/inventory_project/src/lib/auth/client.ts b/inventory_project/src/lib/auth/client.ts
+new file mode 100644
+index 0000000..1168ebb
+--- /dev/null
++++ b/inventory_project/src/lib/auth/client.ts
+@@ -0,0 +1,5 @@
++'use client'
++
++import { createAuthClient } from '@neondatabase/auth/next'
++
++export const authClient = createAuthClient()
+diff --git a/inventory_project/src/lib/auth/server.ts b/inventory_project/src/lib/auth/server.ts
+new file mode 100644
+index 0000000..1c0ff53
+--- /dev/null
++++ b/inventory_project/src/lib/auth/server.ts
+@@ -0,0 +1,8 @@
++import { createNeonAuth } from '@neondatabase/auth/next/server'
++
++export const auth = createNeonAuth({
++  baseUrl: process.env.NEON_AUTH_BASE_URL!,
++  cookies: {
++    secret: process.env.NEON_AUTH_COOKIE_SECRET || 'secret-for-build-only-change-in-prod',
++  },
++})
+diff --git a/inventory_project/src/lib/permisos.ts b/inventory_project/src/lib/permisos.ts
+index 47655f8..882f4b6 100644
+--- a/inventory_project/src/lib/permisos.ts
++++ b/inventory_project/src/lib/permisos.ts
+@@ -1,12 +1,30 @@
+-import { getServerSession } from 'next-auth'
+-import { opcionesAuth } from './auth'
++import { auth } from '@/lib/auth/server'
+ import { Permiso } from '@prisma/client'
+ import { prisma } from './db'
+ import { cache } from 'react'
+ 
+-export async function obtenerSesion() {
+-  return await getServerSession(opcionesAuth)
+-}
++export const obtenerSesion = cache(async () => {
++  const { data } = await auth.getSession()
++  if (!data?.user?.id) return null
++
++  let usuario = await prisma.usuario.findUnique({
++    where: { neonAuthId: data.user.id },
++  })
++
++  if (!usuario) {
++    usuario = await prisma.usuario.create({
++      data: {
++        neonAuthId: data.user.id,
++        email: data.user.email || '',
++        nombre: data.user.name || data.user.email || 'Usuario',
++        estado: 'PENDIENTE',
++        rol: 'USUARIO',
++      },
++    })
++  }
++
++  return { ...data, user: { ...data.user, ...usuario } }
++})
+ 
+ export async function esAdmin() {
+   const sesion = await obtenerSesion()
+@@ -26,6 +44,7 @@ export async function tienePermiso(permiso: Permiso): Promise<boolean> {
+   if (!sesion?.user) return false
+   if (sesion.user.rol === 'ADMIN') return true
+ 
+-  const permisos = await obtenerPermisosUsuario(parseInt(sesion.user.id, 10))
++  const idParaBuscar = typeof sesion.user.id === 'number' ? sesion.user.id : Number(sesion.user.id)
++  const permisos = await obtenerPermisosUsuario(idParaBuscar)
+   return permisos.includes(permiso)
+ }
+diff --git a/inventory_project/src/main-local.ts b/inventory_project/src/main-local.ts
+index 1824b4e..d5b8a0f 100644
+--- a/inventory_project/src/main-local.ts
++++ b/inventory_project/src/main-local.ts
+@@ -5,8 +5,8 @@ const prisma = new PrismaClient()
+ async function main() {
+   const newUser = await prisma.usuario.create({
+     data: {
+-      nombreUsuario: `alice_local_${Date.now()}`,
+-      contrasena: 'test123',
++      neonAuthId: `fake-id-${Date.now()}`,
++      email: `alice_local_${Date.now()}`,
+       nombre: 'Alice Local',
+     },
+   })
+diff --git a/inventory_project/src/main.ts b/inventory_project/src/main.ts
+index 3978781..f87afca 100644
+--- a/inventory_project/src/main.ts
++++ b/inventory_project/src/main.ts
+@@ -1,11 +1,11 @@
+ import { prisma } from './lib/db'
+ 
+ async function main() {
+-  // CREATE (modelo `Usuario` requiere `nombreUsuario`, `contrasena` y `nombre`)
++  // CREATE (modelo `Usuario` requiere `email`, `contrasena` y `nombre`)
+   const newUser = await prisma.usuario.create({
+     data: {
+-      nombreUsuario: `alice_${Date.now()}`,
+-      contrasena: 'test123',
++      neonAuthId: `fake-id-${Date.now()}`,
++      email: `alice_${Date.now()}`,
+       nombre: 'Alice',
+     },
+   })
+diff --git a/inventory_project/src/proxy.ts b/inventory_project/src/proxy.ts
+index c9c57f5..acc561e 100644
+--- a/inventory_project/src/proxy.ts
++++ b/inventory_project/src/proxy.ts
+@@ -1,6 +1,7 @@
+ import { NextRequest, NextResponse } from 'next/server'
+ import { Ratelimit } from '@upstash/ratelimit'
+ import { Redis } from '@upstash/redis'
++import { auth } from '@/lib/auth/server'
+ 
+ // Fallback en memoria por si Upstash no est├í configurado (ej. desarrollo local)
+ const intentosFallidosFallback = new Map<string, { count: number; resetAt: number }>()
+@@ -18,9 +19,9 @@ const ratelimit = redisUrl && redisToken ? new Ratelimit({
+ }) : null;
+ 
+ export async function proxy(request: NextRequest) {
+-  // Aplicar rate limiting solo al endpoint de credenciales de NextAuth.
++  // Aplicar rate limiting solo al endpoint de credenciales.
+   if (
+-    request.nextUrl.pathname === '/api/auth/callback/credentials' &&
++    request.nextUrl.pathname.includes('/api/auth/') &&
+     request.method === 'POST'
+   ) {
+     const ip =
+@@ -63,9 +64,11 @@ export async function proxy(request: NextRequest) {
+     }
+   }
+ 
+-  return NextResponse.next()
++  return auth.middleware({ loginUrl: '/auth/sign-in' })(request)
+ }
+ 
+ export const config = {
+-  matcher: ['/api/auth/callback/credentials'],
++  matcher: [
++    '/((?!_next/static|_next/image|favicon.ico).*)',
++  ],
+ }
+diff --git a/inventory_project/src/services/UsuariosService.ts b/inventory_project/src/services/UsuariosService.ts
+index a51ba3b..67e6b63 100644
+--- a/inventory_project/src/services/UsuariosService.ts
++++ b/inventory_project/src/services/UsuariosService.ts
+@@ -2,51 +2,39 @@ import { prisma } from '../lib/db'
+ import bcrypt from 'bcryptjs'
+ import { AppError } from '../lib/AppError'
+ 
+-function validarContrasena(contrasena: string): string | null {
+-  if (contrasena.length < 8) return 'La contrase├▒a debe tener al menos 8 caracteres.'
+-  if (!/[A-Z]/.test(contrasena)) return 'La contrase├▒a debe incluir al menos una letra may├║scula.'
+-  if (!/[0-9]/.test(contrasena)) return 'La contrase├▒a debe incluir al menos un n├║mero.'
+-  return null
+-}
++// Removed manual password validation since Neon Auth manages credentials
+ 
+ const permisosValidos = ['VER_ANALISIS', 'EXPORTAR_REPORTES', 'REGISTRAR_MOVIMIENTOS', 'REALIZAR_VENTAS'] as const
+ 
+ export const UsuariosService = {
+   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   async crearUsuario(datos: any) {
+-    if (!datos.nombreUsuario || !datos.contrasena || !datos.nombre) {
++    if (!datos.email || !datos.nombre) {
+       throw new AppError('Campos requeridos faltantes', 400)
+     }
+ 
+-    const errorContrasena = validarContrasena(datos.contrasena)
+-    if (errorContrasena) {
+-      throw new AppError(errorContrasena, 400)
+-    }
+-
+     const existente = await prisma.usuario.findUnique({
+-      where: { nombreUsuario: datos.nombreUsuario },
++      where: { email: datos.email },
+     })
+     if (existente) {
+       throw new AppError('El nombre de usuario ya existe', 409)
+     }
+ 
+-    const hash = await bcrypt.hash(datos.contrasena, 10)
+-
+     const permisos = Array.isArray(datos.permisos)
+       ? datos.permisos.filter((p: string) => permisosValidos.includes(p as typeof permisosValidos[number]))
+       : []
+ 
+     return await prisma.usuario.create({
+       data: {
+-        nombreUsuario: datos.nombreUsuario,
+-        contrasena: hash,
++        neonAuthId: `pending-${Date.now()}`,
++        email: datos.email,
+         nombre: datos.nombre,
+         rol: datos.rol === 'ADMIN' ? 'ADMIN' : 'USUARIO',
+         permisos,
+       },
+       select: {
+         id: true,
+-        nombreUsuario: true,
++        email: true,
+         nombre: true,
+         rol: true,
+         permisos: true,
+@@ -61,16 +49,10 @@ export const UsuariosService = {
+     const datosActualizar: any = {}
+ 
+     if (datos.nombre) datosActualizar.nombre = datos.nombre
+-    if (datos.nombreUsuario) datosActualizar.nombreUsuario = datos.nombreUsuario
++    if (datos.email) datosActualizar.email = datos.email
+     if (datos.rol === 'ADMIN' || datos.rol === 'USUARIO') datosActualizar.rol = datos.rol
+ 
+-    if (datos.contrasena && datos.contrasena.length > 0) {
+-      const errorContrasena = validarContrasena(datos.contrasena)
+-      if (errorContrasena) {
+-        throw new AppError(errorContrasena, 400)
+-      }
+-      datosActualizar.contrasena = await bcrypt.hash(datos.contrasena, 10)
+-    }
++
+ 
+     if (Array.isArray(datos.permisos)) {
+       datosActualizar.permisos = datos.permisos.filter((p: string) =>
+@@ -84,7 +66,7 @@ export const UsuariosService = {
+     return await prisma.usuario.update({
+       where: { id },
+       data: datosActualizar,
+-      select: { id: true, nombreUsuario: true, nombre: true, rol: true, permisos: true, creadoEn: true },
++      select: { id: true, email: true, nombre: true, rol: true, permisos: true, creadoEn: true },
+     })
+   },
+ 
+diff --git a/inventory_project/src/types/next-auth.d.ts b/inventory_project/src/types/next-auth.d.ts
+deleted file mode 100644
+index 7189e46..0000000
+--- a/inventory_project/src/types/next-auth.d.ts
++++ /dev/null
+@@ -1,30 +0,0 @@
+-import 'next-auth'
+-import { Rol, Permiso } from '@prisma/client'
+-
+-declare module 'next-auth' {
+-  interface Session {
+-    user: {
+-      id: string
+-      name?: string | null
+-      email?: string | null
+-      rol: Rol
+-      permisos: Permiso[]
+-    }
+-  }
+-
+-  interface User {
+-    id: string
+-    name?: string | null
+-    email?: string | null
+-    rol: Rol
+-    permisos: Permiso[]
+-  }
+-}
+-
+-declare module 'next-auth/jwt' {
+-  interface JWT {
+-    id: string
+-    rol: Rol
+-    permisos: Permiso[]
+-  }
+-}
