@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import LayoutProtegido from '@/componentes/LayoutProtegido'
-import FormularioUsuario from '@/componentes/FormularioUsuario'
+import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
+import FormularioUsuario from '@/componentes/usuarios/FormularioUsuario'
 import { obtenerSesion } from '@/lib/permisos'
 
 export default async function PaginaNuevoUsuario() {

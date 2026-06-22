@@ -9,7 +9,7 @@ export default function BotonExportarAnalisis() {
   return (
     <a
       href="/api/analisis/exportar"
-      className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors text-center inline-block"
+      className="px-4 py-2 bg-success text-white rounded-md hover:bg-success-hover transition-colors text-center inline-block"
     >
       ⬇ Exportar a Excel
     </a>

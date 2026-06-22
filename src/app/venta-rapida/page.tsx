@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
-import LayoutProtegido from '@/componentes/LayoutProtegido'
-import TerminalVentaRapida from '@/componentes/TerminalVentaRapida'
+import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
+import TerminalVentaRapida from '@/componentes/ventas/TerminalVentaRapida'
 import { redirect } from 'next/navigation'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 

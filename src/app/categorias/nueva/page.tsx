@@ -1,5 +1,5 @@
-import LayoutProtegido from '@/componentes/LayoutProtegido'
-import FormularioCategoria from '@/componentes/FormularioCategoria'
+import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
+import FormularioCategoria from '@/componentes/productos/FormularioCategoria'
 import Link from 'next/link'
 
 export default function PaginaNuevaCategoria() {
