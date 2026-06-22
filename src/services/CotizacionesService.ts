@@ -1,4 +1,5 @@
 import { prisma } from '../lib/db'
+import { Prisma } from '@prisma/client'
 import { AppError } from '../lib/AppError'
 
 const DIAS_VALIDEZ_DEFECTO = 7
@@ -27,6 +28,13 @@ export const CotizacionesService = {
     const ahora = new Date()
 
     return await prisma.$transaction(async (tx) => {
+      // Bloqueo pesimista de filas de Producto (ordenadas por id) antes de leer
+      // stock/reservas y crear la cotización, evitando que cotizaciones
+      // concurrentes sobre-comprometan el inventario.
+      const idsBloqueo = [...productosIds].sort((a, b) => a - b)
+      if (idsBloqueo.length > 0) {
+        await tx.$queryRaw`SELECT id FROM "Producto" WHERE id IN (${Prisma.join(idsBloqueo)}) AND "empresaId" = ${empresaId} ORDER BY id FOR UPDATE`
+      }
       for (const it of itemsValidados) {
         const prod = await tx.producto.findUnique({
           where: { id: it.productoId },
