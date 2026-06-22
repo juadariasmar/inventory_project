@@ -20,7 +20,7 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock de NeonAuthUIProvider para inspeccionar las props que recibe
-const mockNeonAuthUIProvider = jest.fn(({ children }: { children: React.ReactNode }) => <div data-testid="provider">{children}</div>);
+const mockNeonAuthUIProvider = jest.fn((props: any) => <div data-testid="provider">{props.children}</div>);
 
 jest.mock('@neondatabase/auth-ui', () => ({
   NeonAuthUIProvider: mockNeonAuthUIProvider,
