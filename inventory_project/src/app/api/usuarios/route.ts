@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/db'
 import { esAdmin } from '@/lib/permisos'
 import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
@@ -21,6 +20,7 @@ export async function GET() {
         email: true,
         nombre: true,
         rol: true,
+        estado: true,
         creadoEn: true,
       },
       orderBy: { creadoEn: 'desc' },

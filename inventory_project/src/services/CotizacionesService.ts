@@ -5,7 +5,7 @@ import { AppError } from '../lib/AppError'
 const DIAS_VALIDEZ_DEFECTO = 7
 
 export const CotizacionesService = {
-  async crearCotizacion(consolidados: Map<number, number>, vendedorId: number | null, notas: string, cliente: string, diasValidezInput?: number) {
+  async crearCotizacion(consolidados: Map<number, number>, vendedorId: string | null, notas: string, cliente: string, diasValidezInput?: number) {
     const productosIds = Array.from(consolidados.keys())
     const productos = await prisma.producto.findMany({ where: { id: { in: productosIds } } })
     const mapaProductos = new Map(productos.map((p) => [p.id, p]))

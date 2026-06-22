@@ -15,10 +15,10 @@ describe('VentasService', () => {
   let usuarioCreado = false;
 
   beforeAll(async () => {
-    let u = await prisma.usuario.findUnique({ where: { id: 1 } });
+    let u = await prisma.usuario.findUnique({ where: { id: '1' } });
     if (!u) {
       u = await prisma.usuario.create({
-        data: { id: 1, nombre: 'Admin', email: 'adminVentasTest' }
+        data: { id: '1', neonAuthId: 'test-neon-auth-1', nombre: 'Admin', email: 'adminVentasTest' }
       });
       usuarioCreado = true;
     }
@@ -51,7 +51,7 @@ describe('VentasService', () => {
       await prisma.categoria.delete({ where: { id: categoriaId } });
     }
     if (usuarioCreado) {
-      await prisma.usuario.delete({ where: { id: 1 } });
+      await prisma.usuario.delete({ where: { id: '1' } });
     }
   });
 
@@ -61,12 +61,12 @@ describe('VentasService', () => {
 
   it('throws error if product not found', async () => {
     const consolidados = new Map<number, number>([[-999, 1]]);
-    await expect(VentasService.registrarVenta(consolidados, 1, 'test')).rejects.toThrow(AppError);
+    await expect(VentasService.registrarVenta(consolidados, '1', 'test')).rejects.toThrow(AppError);
   });
 
   it('registers a sale successfully', async () => {
     const consolidados = new Map<number, number>([[productoId, 5]]);
-    const resultado = await VentasService.registrarVenta(consolidados, 1, 'Venta de test');
+    const resultado = await VentasService.registrarVenta(consolidados, '1', 'Venta de test');
     
     expect(resultado).toBeDefined();
     expect(resultado.venta).toBeDefined();

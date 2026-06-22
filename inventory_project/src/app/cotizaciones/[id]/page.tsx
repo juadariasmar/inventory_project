@@ -50,7 +50,7 @@ export default async function PaginaDetalleCotizacion({ params }: Props) {
   if (!cotizacion) notFound()
 
   // Solo el vendedor original o admin pueden ver el detalle.
-  const usuarioId = Number(sesion.user.id)
+  const usuarioId = sesion.user.id
   if (!esAdmin && cotizacion.vendedorId !== usuarioId) redirect('/cotizaciones')
 
   const ahora = new Date()

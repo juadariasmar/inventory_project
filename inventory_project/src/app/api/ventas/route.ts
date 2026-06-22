@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       consolidados.set(productoId, (consolidados.get(productoId) ?? 0) + cantidad)
     }
 
-    const vendedorId = sesion.user.id ? Number(sesion.user.id) : null
+    const vendedorId = sesion.user.id ? sesion.user.id : null
 
     const resultado = await VentasService.registrarVenta(consolidados, vendedorId, notas)
 
