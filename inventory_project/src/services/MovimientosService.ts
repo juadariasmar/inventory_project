@@ -4,8 +4,10 @@ import { AppError } from '../lib/AppError';
 import { StockService } from './StockService';
 
 export const MovimientosService = {
-  async obtenerMovimientos(cursor?: number, limite: number = 50) {
+  async obtenerMovimientos(empresaId: string, cursor?: number, limite: number = 50) {
+    if (!empresaId) throw new AppError('empresaId es requerido', 400);
     const movimientos = await prisma.movimiento.findMany({
+      where: { empresaId },
       include: { producto: true },
       orderBy: { creadoEn: 'desc' },
       take: limite + 1,
@@ -24,7 +26,8 @@ export const MovimientosService = {
   },
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async registrarMovimiento(data: any, usuarioId: string, ip: string) {
+  async registrarMovimiento(data: any, usuarioId: string, ip: string, empresaId: string) {
+    if (!empresaId) throw new AppError('empresaId es requerido', 400);
     const { productoId: rawProductoId, tipo, cantidad: rawCantidad, notas } = data;
     
     const productoId = parseInt(rawProductoId, 10);
@@ -40,28 +43,28 @@ export const MovimientosService = {
 
     return await prisma.$transaction(async (tx) => {
       // Bloqueo pesimista de fila
-      await tx.$queryRaw`SELECT id FROM "Producto" WHERE id = ${productoId} FOR UPDATE`;
+      await tx.$queryRaw`SELECT id FROM "Producto" WHERE id = ${productoId} AND "empresaId" = ${empresaId} FOR UPDATE`;
 
       const producto = await tx.producto.findUnique({
         where: { id: productoId },
-        select: { id: true, cantidad: true, nombre: true }
+        select: { id: true, cantidad: true, nombre: true, empresaId: true }
       });
 
-      if (!producto) {
-        throw new AppError('Producto no encontrado', 404);
+      if (!producto || producto.empresaId !== empresaId) {
+        throw new AppError('Producto no encontrado o no pertenece a la empresa', 404);
       }
 
       if (tipo === 'salida') {
         const reservas = await tx.itemCotizacion.aggregate({
           where: {
             productoId: producto.id,
-            cotizacion: { estado: 'PENDIENTE' }
+            cotizacion: { estado: 'PENDIENTE', empresaId }
           },
           _sum: { cantidad: true }
         });
         const stockReservado = reservas._sum.cantidad || 0;
         
-        StockService.validarDisponibilidad(producto, cantidad, stockReservado);
+        StockService.validarDisponibilidad(producto as any, cantidad, stockReservado);
       }
 
       const movimiento = await tx.movimiento.create({
@@ -69,7 +72,7 @@ export const MovimientosService = {
           productoId, 
           tipo, 
           cantidad, 
-          notas: notas || null 
+          notas: notas || null
         },
         include: { producto: true }
       });
@@ -84,9 +87,10 @@ export const MovimientosService = {
       await tx.auditoria.create({
         data: {
           usuarioId,
+          empresaId,
           accion: 'CREAR',
           entidad: 'Movimiento',
-          entidadId: movimiento.id,
+          entidadId: String(movimiento.id),
           datos: { despues: movimiento } as unknown as Prisma.InputJsonObject,
           ip
         }

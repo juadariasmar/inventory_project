@@ -4,8 +4,11 @@ import Link from 'next/link'
 import BotonEliminarCategoria from '@/componentes/BotonEliminarCategoria'
 import { obtenerSesion } from '@/lib/permisos'
 
-async function obtenerCategorias() {
+import { redirect } from 'next/navigation'
+
+async function obtenerCategorias(empresaId: string) {
   return await prisma.categoria.findMany({
+    where: { empresaId },
     include: {
       _count: {
         select: { productos: true },
@@ -16,9 +19,12 @@ async function obtenerCategorias() {
 }
 
 export default async function PaginaCategorias() {
-  const categorias = await obtenerCategorias()
   const sesion = await obtenerSesion()
-  const esAdmin = sesion?.user?.rol === 'ADMIN'
+  if (!sesion?.user?.empresaId) redirect('/login')
+  const empresaId = sesion.user.empresaId
+
+  const categorias = await obtenerCategorias(empresaId)
+  const esAdmin = sesion.user.rol === 'ADMIN'
 
   return (
     <LayoutProtegido>

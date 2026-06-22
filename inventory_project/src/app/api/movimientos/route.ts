@@ -11,6 +11,10 @@ export async function GET(request: NextRequest) {
   if (!sesion?.user || sesion.user.estado !== 'ACTIVO') {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
   }
+  const empresaId = sesion.user.empresaId
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
+  }
   try {
     const cursorStr = request.nextUrl.searchParams.get('cursor')
     const limiteStr = request.nextUrl.searchParams.get('limite')
@@ -18,7 +22,7 @@ export async function GET(request: NextRequest) {
     const limite = Math.min(parseInt(limiteStr ?? '50', 10), 100)
     const cursor = cursorStr && !isNaN(parseInt(cursorStr, 10)) ? parseInt(cursorStr, 10) : undefined
 
-    const resultado = await MovimientosService.obtenerMovimientos(cursor, limite)
+    const resultado = await MovimientosService.obtenerMovimientos(empresaId, cursor, limite)
 
     return NextResponse.json(resultado)
   } catch (error) {
@@ -37,6 +41,10 @@ export async function POST(request: NextRequest) {
     if (!session || !session.user) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
+    const empresaId = session.user.empresaId
+    if (!empresaId) {
+      return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
+    }
 
     const data = await request.json()
     const tipo = data.tipo
@@ -54,7 +62,7 @@ export async function POST(request: NextRequest) {
     const ip = extraerIp(request)
     const usuarioId = String(session.user.id)
     
-    const movimiento = await MovimientosService.registrarMovimiento(data, usuarioId, ip || '')
+    const movimiento = await MovimientosService.registrarMovimiento(data, usuarioId, ip || '', empresaId)
     
     revalidatePath('/movimientos')
     revalidatePath('/movimientos/nuevo')

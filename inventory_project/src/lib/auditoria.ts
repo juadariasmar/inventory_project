@@ -48,19 +48,27 @@ interface ParametrosAuditoria {
   // Si no se pasa, se intenta obtener de la sesion actual.
   usuarioId?: string | null
   ip?: string | null
+  empresaId?: string | null
 }
 
 export async function registrarAuditoria(params: ParametrosAuditoria): Promise<void> {
   try {
     let usuarioId: string | null | undefined = params.usuarioId
-    if (usuarioId === undefined) {
+    let empresaId: string | null | undefined = params.empresaId
+    if (usuarioId === undefined || empresaId === undefined) {
       const sesion = await obtenerSesion()
-      const idVal = sesion?.user?.id
-      usuarioId = typeof idVal === 'string' ? idVal : (idVal ? String(idVal) : null)
+      if (usuarioId === undefined) {
+        const idVal = sesion?.user?.id
+        usuarioId = typeof idVal === 'string' ? idVal : (idVal ? String(idVal) : null)
+      }
+      if (empresaId === undefined) {
+        empresaId = sesion?.user?.empresaId || null
+      }
     }
     await prisma.auditoria.create({
       data: {
         usuarioId: usuarioId ?? null,
+        empresaId: empresaId ?? null,
         accion: params.accion,
         entidad: params.entidad,
         entidadId: params.entidadId != null ? String(params.entidadId) : null,

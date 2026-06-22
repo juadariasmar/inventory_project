@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '../../lib/db';
 
 jest.mock('../../lib/permisos', () => ({
-  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 'test-user-cot-1', role: 'admin' } }),
+  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 'test-user-cot-1', role: 'admin', empresaId: 'test-empresa-cot-api' } }),
   tienePermiso: jest.fn().mockResolvedValue(true)
 }));
 
@@ -17,13 +17,20 @@ describe('Cotizaciones API', () => {
   let productoId: number;
   let categoriaId: number;
   let usuarioId: string;
+  let empresaId: string;
 
   beforeAll(async () => {
+    let emp = await prisma.empresa.findUnique({ where: { id: 'test-empresa-cot-api' } });
+    if (!emp) {
+      emp = await prisma.empresa.create({ data: { id: 'test-empresa-cot-api', nombre: 'Test Empresa Cot API' } });
+    }
+    empresaId = emp.id;
+
     // Check if user 1 exists, if not create it
     let u = await prisma.usuario.findUnique({ where: { id: 'test-user-cot-1' } });
     if (!u) {
       u = await prisma.usuario.create({
-        data: { id: 'test-user-cot-1', neonAuthId: 'test-neon-auth-cot', nombre: 'Admin Cot', email: 'adminCotTest@example.com' }
+        data: { id: 'test-user-cot-1', neonAuthId: 'test-neon-auth-cot', nombre: 'Admin Cot', email: 'adminCotTest@example.com', empresaId }
       });
     }
     usuarioId = u.id;
@@ -31,7 +38,7 @@ describe('Cotizaciones API', () => {
     let c = await prisma.categoria.findFirst({ where: { nombre: 'Test Cat Cot' } });
     if (!c) {
       c = await prisma.categoria.create({
-        data: { nombre: 'Test Cat Cot', prefijo: 'TCC' }
+        data: { nombre: 'Test Cat Cot', prefijo: 'TCC', empresaId }
       });
     }
     categoriaId = c.id;
@@ -39,7 +46,7 @@ describe('Cotizaciones API', () => {
     let p = await prisma.producto.findFirst({ where: { codigo: 'COT-123' } });
     if (!p) {
       p = await prisma.producto.create({
-        data: { nombre: 'Test Cotiz', codigo: 'COT-123', cantidad: 5, precio: 100, categoriaId }
+        data: { nombre: 'Test Cotiz', codigo: 'COT-123', cantidad: 5, precio: 100, categoriaId, empresaId }
       });
     }
     productoId = p.id;
@@ -58,6 +65,7 @@ describe('Cotizaciones API', () => {
       await prisma.auditoria.deleteMany({ where: { usuarioId } });
       await prisma.usuario.deleteMany({ where: { id: usuarioId } });
     }
+    await prisma.empresa.delete({ where: { id: 'test-empresa-cot-api' } });
   });
 
   it('prevents quote creation if existing active quotes reserve all stock', async () => {

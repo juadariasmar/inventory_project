@@ -30,7 +30,8 @@ function colorBadge(estado: EstadoMostrado) {
 
 export default async function PaginaCotizaciones({ searchParams }: Props) {
   const sesion = await obtenerSesion()
-  if (!sesion?.user) redirect('/login')
+  if (!sesion?.user?.empresaId) redirect('/login')
+  const empresaId = sesion.user.empresaId
   const esAdmin = sesion.user.rol === 'ADMIN'
   const puedeVender = await tienePermiso('REALIZAR_VENTAS')
   if (!esAdmin && !puedeVender) redirect('/')
@@ -39,9 +40,10 @@ export default async function PaginaCotizaciones({ searchParams }: Props) {
   const filtroEstado = params.estado
 
   const where: {
+    empresaId: string
     vendedorId?: string
     estado?: 'PENDIENTE' | 'CONVERTIDA' | 'CANCELADA'
-  } = {}
+  } = { empresaId }
   if (!esAdmin) where.vendedorId = sesion.user.id
   if (
     filtroEstado === 'PENDIENTE' ||

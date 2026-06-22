@@ -5,13 +5,20 @@ import { AppError } from '../../lib/AppError';
 describe('CotizacionesService', () => {
   let productoId: number;
   let categoriaId: number;
+  let empresaId: string;
   let usuarioCreado = false;
 
   beforeAll(async () => {
+    let emp = await prisma.empresa.findUnique({ where: { id: 'test-empresa-cot-1' } });
+    if (!emp) {
+      emp = await prisma.empresa.create({ data: { id: 'test-empresa-cot-1', nombre: 'Test Empresa Cot' } });
+    }
+    empresaId = emp.id;
+
     let u = await prisma.usuario.findUnique({ where: { id: '1' } });
     if (!u) {
       u = await prisma.usuario.create({
-        data: { id: '1', neonAuthId: 'test-neon-auth-1', nombre: 'Admin', email: 'adminCotServTest' }
+        data: { id: '1', neonAuthId: 'test-neon-auth-1', nombre: 'Admin', email: 'adminCotServTest', empresaId }
       });
       usuarioCreado = true;
     }
@@ -19,7 +26,7 @@ describe('CotizacionesService', () => {
     let c = await prisma.categoria.findFirst({ where: { nombre: 'Test Cat Cot' } });
     if (!c) {
       c = await prisma.categoria.create({
-        data: { nombre: 'Test Cat Cot', prefijo: 'TCC' }
+        data: { nombre: 'Test Cat Cot', prefijo: 'TCC', empresaId }
       });
     }
     categoriaId = c.id;
@@ -27,7 +34,7 @@ describe('CotizacionesService', () => {
     let p = await prisma.producto.findFirst({ where: { codigo: 'TEST-COT' } });
     if (!p) {
       p = await prisma.producto.create({
-        data: { nombre: 'Test Prod Cot', codigo: 'TEST-COT', cantidad: 50, precio: 100, categoriaId }
+        data: { nombre: 'Test Prod Cot', codigo: 'TEST-COT', cantidad: 50, precio: 100, categoriaId, empresaId }
       });
     }
     productoId = p.id;
@@ -45,6 +52,7 @@ describe('CotizacionesService', () => {
     if (usuarioCreado) {
       await prisma.usuario.delete({ where: { id: '1' } });
     }
+    await prisma.empresa.delete({ where: { id: 'test-empresa-cot-1' } });
   });
 
   afterEach(() => {
@@ -53,12 +61,12 @@ describe('CotizacionesService', () => {
 
   it('throws error if product not found', async () => {
     const consolidados = new Map<number, number>([[-999, 1]]);
-    await expect(CotizacionesService.crearCotizacion(consolidados, '1', 'test', 'Test Cliente')).rejects.toThrow(AppError);
+    await expect(CotizacionesService.crearCotizacion(consolidados, '1', 'test', 'Test Cliente', empresaId)).rejects.toThrow(AppError);
   });
 
   it('creates a quotation successfully', async () => {
     const consolidados = new Map<number, number>([[productoId, 5]]);
-    const resultado = await CotizacionesService.crearCotizacion(consolidados, '1', 'Cot de test', 'Test Cliente', 7);
+    const resultado = await CotizacionesService.crearCotizacion(consolidados, '1', 'Cot de test', 'Test Cliente', empresaId, 7);
     
     expect(resultado).toBeDefined();
     expect(resultado.cotizacion).toBeDefined();
@@ -69,6 +77,6 @@ describe('CotizacionesService', () => {
 
   it('throws error if stock is insufficient', async () => {
     const consolidados = new Map<number, number>([[productoId, 100]]);
-    await expect(CotizacionesService.crearCotizacion(consolidados, '1', 'Cot de test', 'Test Cliente', 7)).rejects.toThrow(AppError);
+    await expect(CotizacionesService.crearCotizacion(consolidados, '1', 'Cot de test', 'Test Cliente', empresaId, 7)).rejects.toThrow(AppError);
   });
 });

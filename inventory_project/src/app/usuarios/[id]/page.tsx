@@ -11,13 +11,14 @@ export default async function PaginaEditarUsuario({
   params: Promise<{ id: string }>
 }) {
   const sesion = await obtenerSesion()
-  if (!sesion?.user || sesion.user.rol !== 'ADMIN') {
+  if (!sesion?.user?.empresaId || sesion.user.rol !== 'ADMIN') {
     redirect('/')
   }
+  const empresaId = sesion.user.empresaId
 
   const { id } = await params
   const usuario = await prisma.usuario.findUnique({
-    where: { id },
+    where: { id, empresaId },
     select: { id: true, email: true, nombre: true, rol: true, permisos: true },
   })
 

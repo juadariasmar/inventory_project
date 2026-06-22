@@ -17,6 +17,10 @@ export async function POST(request: NextRequest) {
   if (!sesion?.user) {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
   }
+  const empresaId = sesion.user.empresaId
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
+  }
   if (!(await esAdmin())) {
     return NextResponse.json({ error: 'Solo un administrador puede restablecer.' }, { status: 403 })
   }
@@ -42,28 +46,28 @@ export async function POST(request: NextRequest) {
     // Conteo previo para reportar al usuario.
     const [productos, categorias, movimientos, ventas, cotizaciones, auditorias] =
       await Promise.all([
-        prisma.producto.count(),
-        prisma.categoria.count(),
-        prisma.movimiento.count(),
-        prisma.venta.count(),
-        prisma.cotizacion.count(),
-        prisma.auditoria.count(),
+        prisma.producto.count({ where: { empresaId } }),
+        prisma.categoria.count({ where: { empresaId } }),
+        prisma.movimiento.count({ where: { empresaId } }),
+        prisma.venta.count({ where: { empresaId } }),
+        prisma.cotizacion.count({ where: { empresaId } }),
+        prisma.auditoria.count({ where: { empresaId } }),
       ])
 
     // Orden: hijos antes que padres por las FK.
     await prisma.$transaction(async (tx) => {
-      await tx.itemCotizacion.deleteMany({})
-      await tx.cotizacion.deleteMany({})
-      await tx.itemVenta.deleteMany({})
+      await tx.itemCotizacion.deleteMany({ where: { cotizacion: { empresaId } } })
+      await tx.cotizacion.deleteMany({ where: { empresaId } })
+      await tx.itemVenta.deleteMany({ where: { venta: { empresaId } } })
       // Movimientos antes de ventas: tienen FK opcional a venta pero el
       // cascade es SetNull; igual los borramos para limpieza total.
-      await tx.movimiento.deleteMany({})
-      await tx.venta.deleteMany({})
-      await tx.producto.deleteMany({})
-      await tx.categoria.deleteMany({})
+      await tx.movimiento.deleteMany({ where: { empresaId } })
+      await tx.venta.deleteMany({ where: { empresaId } })
+      await tx.producto.deleteMany({ where: { empresaId } })
+      await tx.categoria.deleteMany({ where: { empresaId } })
       // Auditoria al final: si algun paso anterior falla, el registro
       // historico se conserva.
-      await tx.auditoria.deleteMany({})
+      await tx.auditoria.deleteMany({ where: { empresaId } })
     })
 
     // Invalidar todas las paginas que dependen de estos datos.

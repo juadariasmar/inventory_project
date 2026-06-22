@@ -14,14 +14,15 @@ interface Props {
 
 export default async function PaginaReciboVenta({ params }: Props) {
   const sesion = await obtenerSesion()
-  if (!sesion?.user) redirect('/login')
+  if (!sesion?.user?.empresaId) redirect('/login')
+  const empresaId = sesion.user.empresaId
 
   const { id } = await params
   const ventaId = parseInt(id, 10)
   if (!ventaId || Number.isNaN(ventaId)) notFound()
 
   const venta = await prisma.venta.findUnique({
-    where: { id: ventaId },
+    where: { id: ventaId, empresaId },
     include: {
       vendedor: { select: { id: true, nombre: true, email: true } },
       canceladaPor: { select: { id: true, nombre: true, email: true } },

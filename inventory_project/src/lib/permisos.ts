@@ -24,6 +24,7 @@ export const obtenerSesion = cache(async () => {
   }
 
   if (!usuario) {
+    console.warn(`[Auth Fallback] Creando usuario ${data.user.email} en obtenerSesion. El webhook de Neon Auth no llegó a tiempo o falló.`)
     usuario = await prisma.usuario.create({
       data: {
         neonAuthId: data.user.id,

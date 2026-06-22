@@ -12,13 +12,20 @@ jest.mock('../../services/StockService', () => ({
 describe('MovimientosService', () => {
   let productoId: number;
   let categoriaId: number;
+  let empresaId: string;
   let usuarioCreado = false;
 
   beforeAll(async () => {
+    let emp = await prisma.empresa.findUnique({ where: { id: 'test-empresa-mov-1' } });
+    if (!emp) {
+      emp = await prisma.empresa.create({ data: { id: 'test-empresa-mov-1', nombre: 'Test Empresa Mov' } });
+    }
+    empresaId = emp.id;
+
     let u = await prisma.usuario.findUnique({ where: { id: '1' } });
     if (!u) {
       u = await prisma.usuario.create({
-        data: { id: '1', neonAuthId: 'test-neon-auth-1', nombre: 'Admin', email: 'adminMovServTest' }
+        data: { id: '1', neonAuthId: 'test-neon-auth-1', nombre: 'Admin', email: 'adminMovServTest', empresaId }
       });
       usuarioCreado = true;
     }
@@ -26,7 +33,7 @@ describe('MovimientosService', () => {
     let c = await prisma.categoria.findFirst({ where: { nombre: 'Test Cat Serv' } });
     if (!c) {
       c = await prisma.categoria.create({
-        data: { nombre: 'Test Cat Serv', prefijo: 'TCS' }
+        data: { nombre: 'Test Cat Serv', prefijo: 'TCS', empresaId }
       });
     }
     categoriaId = c.id;
@@ -34,7 +41,7 @@ describe('MovimientosService', () => {
     let p = await prisma.producto.findFirst({ where: { codigo: 'TEST-SERV' } });
     if (!p) {
       p = await prisma.producto.create({
-        data: { nombre: 'Test Prod Serv', codigo: 'TEST-SERV', cantidad: 10, precio: 100, categoriaId }
+        data: { nombre: 'Test Prod Serv', codigo: 'TEST-SERV', cantidad: 10, precio: 100, categoriaId, empresaId }
       });
     }
     productoId = p.id;
@@ -43,7 +50,7 @@ describe('MovimientosService', () => {
   afterAll(async () => {
     if (productoId) {
       await prisma.movimiento.deleteMany({ where: { productoId } });
-      await prisma.auditoria.deleteMany({ where: { entidadId: { not: 0 } } });
+      await prisma.auditoria.deleteMany({ where: { entidadId: { not: "0" } } });
       await prisma.producto.delete({ where: { id: productoId } });
     }
     if (categoriaId) {
@@ -52,6 +59,7 @@ describe('MovimientosService', () => {
     if (usuarioCreado) {
       await prisma.usuario.delete({ where: { id: '1' } });
     }
+    await prisma.empresa.delete({ where: { id: 'test-empresa-mov-1' } });
   });
 
   afterEach(() => {
@@ -62,7 +70,8 @@ describe('MovimientosService', () => {
     await expect(MovimientosService.registrarMovimiento(
       { productoId, tipo: 'invalido', cantidad: 5 },
       '1',
-      '127.0.0.1'
+      '127.0.0.1',
+      empresaId
     )).rejects.toThrow(AppError);
   });
 
@@ -70,7 +79,8 @@ describe('MovimientosService', () => {
     await expect(MovimientosService.registrarMovimiento(
       { tipo: 'entrada', cantidad: 5 },
       '1',
-      '127.0.0.1'
+      '127.0.0.1',
+      empresaId
     )).rejects.toThrow(AppError);
   });
 
@@ -78,7 +88,8 @@ describe('MovimientosService', () => {
     const mov = await MovimientosService.registrarMovimiento(
       { productoId, tipo: 'entrada', cantidad: 5 },
       '1',
-      '127.0.0.1'
+      '127.0.0.1',
+      empresaId
     );
     expect(mov).toBeDefined();
     expect(mov.tipo).toBe('entrada');
@@ -94,7 +105,8 @@ describe('MovimientosService', () => {
     await MovimientosService.registrarMovimiento(
       { productoId, tipo: 'salida', cantidad: 2 },
       '1',
-      '127.0.0.1'
+      '127.0.0.1',
+      empresaId
     );
     expect(StockService.validarDisponibilidad).toHaveBeenCalled();
   });

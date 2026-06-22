@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '../../lib/db';
 
 jest.mock('../../lib/permisos', () => ({
-  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 'test-user-mov-1', role: 'admin' } }),
+  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 'test-user-mov-1', role: 'admin', empresaId: 'test-empresa-mov-api' } }),
   tienePermiso: jest.fn().mockResolvedValue(true)
 }));
 
@@ -18,12 +18,19 @@ describe('Movimientos API', () => {
   let productoId: number;
   let categoriaId: number;
   let usuarioId: string;
+  let empresaId: string;
 
   beforeAll(async () => {
+    let emp = await prisma.empresa.findUnique({ where: { id: 'test-empresa-mov-api' } });
+    if (!emp) {
+      emp = await prisma.empresa.create({ data: { id: 'test-empresa-mov-api', nombre: 'Test Empresa Mov API' } });
+    }
+    empresaId = emp.id;
+
     let u = await prisma.usuario.findUnique({ where: { id: 'test-user-mov-1' } });
     if (!u) {
       u = await prisma.usuario.create({
-        data: { id: 'test-user-mov-1', neonAuthId: 'test-neon-auth-mov', nombre: 'Admin Mov', email: 'adminMovTest@example.com' }
+        data: { id: 'test-user-mov-1', neonAuthId: 'test-neon-auth-mov', nombre: 'Admin Mov', email: 'adminMovTest@example.com', empresaId }
       });
     }
     usuarioId = u.id;
@@ -31,7 +38,7 @@ describe('Movimientos API', () => {
     let c = await prisma.categoria.findFirst({ where: { nombre: 'Test Cat Mov' } });
     if (!c) {
       c = await prisma.categoria.create({
-        data: { nombre: 'Test Cat Mov', prefijo: 'TCM' }
+        data: { nombre: 'Test Cat Mov', prefijo: 'TCM', empresaId }
       });
     }
     categoriaId = c.id;
@@ -39,7 +46,7 @@ describe('Movimientos API', () => {
     let p = await prisma.producto.findFirst({ where: { codigo: 'TEST-MOV' } });
     if (!p) {
       p = await prisma.producto.create({
-        data: { nombre: 'Test Prod Mov', codigo: 'TEST-MOV', cantidad: 10, precio: 100, categoriaId }
+        data: { nombre: 'Test Prod Mov', codigo: 'TEST-MOV', cantidad: 10, precio: 100, categoriaId, empresaId }
       });
     }
     productoId = p.id;
@@ -57,6 +64,7 @@ describe('Movimientos API', () => {
       await prisma.auditoria.deleteMany({ where: { usuarioId } });
       await prisma.usuario.deleteMany({ where: { id: usuarioId } });
     }
+    await prisma.empresa.delete({ where: { id: 'test-empresa-mov-api' } });
   });
 
   it('prevents exit movement if stock is insufficient', async () => {

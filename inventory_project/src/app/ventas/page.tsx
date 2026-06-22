@@ -31,7 +31,8 @@ interface Props {
 
 export default async function PaginaVentas({ searchParams }: Props) {
   const sesion = await obtenerSesion()
-  if (!sesion?.user) redirect('/login')
+  if (!sesion?.user?.empresaId) redirect('/login')
+  const empresaId = sesion.user.empresaId
 
   const esAdmin = sesion.user.rol === 'ADMIN'
   const puedeRealizarVentas = await tienePermiso('REALIZAR_VENTAS')
@@ -41,7 +42,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
   const params = await searchParams
   const pagina = Math.max(1, parseInt(params.pagina ?? '1') || 1)
 
-  const where: Prisma.VentaWhereInput = {}
+  const where: Prisma.VentaWhereInput = { empresaId }
   // Usuario regular solo ve sus propias ventas.
   if (!esAdmin) {
     where.vendedorId = sesion.user.id
@@ -59,7 +60,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
     prisma.venta.findMany({
       where,
       include: {
-      vendedor: { select: { id: true, nombre: true, email: true } },
+        vendedor: { select: { id: true, nombre: true, email: true } },
         _count: { select: { items: true } },
       },
       orderBy: { creadoEn: 'desc' },
@@ -68,7 +69,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
     }),
     esAdmin
       ? prisma.usuario.findMany({
-          where: { ventas: { some: {} } },
+          where: { ventas: { some: {} }, empresaId },
           select: { id: true, nombre: true, email: true },
           orderBy: { nombre: 'asc' },
         })

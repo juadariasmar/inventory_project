@@ -29,7 +29,8 @@ function colorBadge(estado: EstadoMostrado) {
 
 export default async function PaginaDetalleCotizacion({ params }: Props) {
   const sesion = await obtenerSesion()
-  if (!sesion?.user) redirect('/login')
+  if (!sesion?.user?.empresaId) redirect('/login')
+  const empresaId = sesion.user.empresaId
   const esAdmin = sesion.user.rol === 'ADMIN'
   const puedeVender = await tienePermiso('REALIZAR_VENTAS')
   if (!esAdmin && !puedeVender) redirect('/')
@@ -39,12 +40,14 @@ export default async function PaginaDetalleCotizacion({ params }: Props) {
   if (!cotizacionId || Number.isNaN(cotizacionId)) notFound()
 
   const cotizacion = await prisma.cotizacion.findUnique({
-    where: { id: cotizacionId },
+    where: { id: cotizacionId, empresaId },
     include: {
       vendedor: { select: { id: true, nombre: true, email: true } },
       canceladaPor: { select: { id: true, nombre: true, email: true } },
-      items: { include: { producto: { select: { nombre: true, codigo: true } } } },
       venta: { select: { id: true } },
+      items: {
+        include: { producto: { select: { nombre: true, codigo: true } } },
+      },
     },
   })
   if (!cotizacion) notFound()

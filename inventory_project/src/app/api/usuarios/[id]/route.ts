@@ -12,10 +12,15 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   if (!(await esAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
+  const sesion = await obtenerSesion()
+  const empresaId = sesion?.user?.empresaId
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
+  }
 
   const { id } = await params
   const usuario = await prisma.usuario.findUnique({
-    where: { id },
+    where: { id, empresaId },
     select: { id: true, email: true, nombre: true, rol: true, estado: true, permisos: true, creadoEn: true },
   })
   if (!usuario) {
@@ -29,6 +34,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   if (!(await esAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
+  const sesion = await obtenerSesion()
+  const empresaId = sesion?.user?.empresaId
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
+  }
 
   try {
     const { id } = await params
@@ -36,16 +46,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const usuarioId = id
 
     const antes = await prisma.usuario.findUnique({
-      where: { id: usuarioId },
+      where: { id: usuarioId, empresaId },
       select: { id: true, email: true, nombre: true, rol: true, estado: true, permisos: true, creadoEn: true },
     })
 
-    const usuario = await UsuariosService.actualizarUsuario(usuarioId, datos)
+    const usuario = await UsuariosService.actualizarUsuario(usuarioId, datos, empresaId)
 
     await registrarAuditoria({
       accion: 'ACTUALIZAR',
       entidad: 'Usuario',
       entidadId: usuario.id,
+      empresaId,
       datos: {
         antes,
         despues: usuario,
@@ -69,25 +80,30 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   if (!(await esAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
+  const sesion = await obtenerSesion()
+  const empresaId = sesion?.user?.empresaId
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
+  }
 
   try {
     const { id } = await params
     const usuarioId = id
-    const sesion = await obtenerSesion()
     
     const usuarioLogueadoId = sesion?.user?.id ? String(sesion.user.id) : '-1'
 
     const antes = await prisma.usuario.findUnique({
-      where: { id: usuarioId },
+      where: { id: usuarioId, empresaId },
       select: { id: true, email: true, nombre: true, rol: true, estado: true, permisos: true, creadoEn: true },
     })
 
-    await UsuariosService.eliminarUsuario(usuarioId, usuarioLogueadoId)
+    await UsuariosService.eliminarUsuario(usuarioId, usuarioLogueadoId, empresaId)
 
     await registrarAuditoria({
       accion: 'ELIMINAR',
       entidad: 'Usuario',
       entidadId: usuarioId,
+      empresaId,
       datos: { antes },
       ip: extraerIp(request),
     })

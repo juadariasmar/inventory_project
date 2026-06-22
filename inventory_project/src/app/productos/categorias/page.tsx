@@ -12,8 +12,11 @@ export default async function PaginaGestionarCategorias() {
   if (!sesion?.user || sesion.user.rol !== 'ADMIN') {
     redirect('/')
   }
+  const empresaId = sesion.user.empresaId
+  if (!empresaId) redirect('/login')
 
   const categorias = await prisma.categoria.findMany({
+    where: { empresaId },
     include: {
       _count: { select: { productos: true } },
       productos: {
