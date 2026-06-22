@@ -65,8 +65,8 @@ model Usuario {
   cotizaciones           Cotizacion[]  @relation("CotizacionVendedor")
   cotizacionesCanceladas Cotizacion[]  @relation("CotizacionCanceladaPor")
 
-  empresaId String?
-  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
   @@index([empresaId])
 }
@@ -80,8 +80,8 @@ model Categoria {
   prefijo   String     @unique
   productos Producto[]
 
-  empresaId String?
-  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
   @@index([empresaId])
 }
@@ -103,8 +103,8 @@ model Producto {
   itemsCotizacion ItemCotizacion[]
   creadoEn        DateTime         @default(now())
 
-  empresaId String?
-  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
   @@index([empresaId])
 }
@@ -125,8 +125,8 @@ model Movimiento {
   venta      Venta?         @relation(fields: [ventaId], references: [id], onDelete: SetNull)
   creadoEn   DateTime       @default(now())
 
-  empresaId String?
-  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
   @@index([empresaId])
   @@index([ventaId])
@@ -148,8 +148,8 @@ model Venta {
   // Si esta venta nacio de convertir una cotizacion, la cotizacion la apunta.
   cotizacionOrigen  Cotizacion?  @relation("CotizacionConvertida")
 
-  empresaId String?
-  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
   @@index([empresaId])
   @@index([creadoEn(sort: Desc)])
@@ -198,8 +198,8 @@ model Cotizacion {
   canceladaPor      Usuario?         @relation("CotizacionCanceladaPor", fields: [canceladaPorId], references: [id], onDelete: SetNull)
   motivoCancelacion String?
 
-  empresaId String?
-  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
   @@index([empresaId])
   @@index([estado])

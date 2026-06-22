@@ -142,6 +142,7 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
             tipo: 'entrada',
             cantidad: delta,
             notas: 'Ajuste por edición',
+            empresaId: actual.empresaId,
           },
         })
       }
