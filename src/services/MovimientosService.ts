@@ -68,11 +68,12 @@ export const MovimientosService = {
       }
 
       const movimiento = await tx.movimiento.create({
-        data: { 
-          productoId, 
-          tipo, 
-          cantidad, 
-          notas: notas || null
+        data: {
+          productoId,
+          tipo,
+          cantidad,
+          notas: notas || null,
+          empresaId
         },
         include: { producto: true }
       });

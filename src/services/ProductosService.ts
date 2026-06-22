@@ -80,7 +80,8 @@ export const ProductosService = {
               productoId: nuevo.id,
               tipo: 'entrada',
               cantidad: cantidadInicial,
-              notas: 'Stock inicial'
+              notas: 'Stock inicial',
+              empresaId
             },
           })
         }
