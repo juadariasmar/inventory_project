@@ -21,7 +21,7 @@ async function ContenidoAnalisis() {
   }
 
   const sesion = await obtenerSesion()
-  if (!sesion?.user?.empresaId) redirect('/login')
+  if (!sesion?.user?.empresaId) redirect('/auth/sign-in')
   const empresaId = sesion.user.empresaId
 
   const [analisis, puedeExportar] = await Promise.all([
