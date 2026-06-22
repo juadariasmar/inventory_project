@@ -190,7 +190,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
           {/* Mi cuenta (escritorio) */}
           <div className="hidden lg:flex items-center">
             {sesion?.user && (
-              <UserButton />
+              <UserButton size="icon" />
             )}
           </div>
 
@@ -264,7 +264,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
           </div>
           {sesion?.user && (
             <div className="border-t border-blue-500 pt-3 pb-3 px-4 flex justify-center">
-              <UserButton />
+              <UserButton size="icon" />
             </div>
           )}
         </div>
