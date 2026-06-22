@@ -31,22 +31,20 @@
 }
 
 @layer base {
-  a, button, input, select, textarea {
-    transition: all 200ms ease-in-out;
-    min-height: 44px;
-    min-width: 44px;
+  * {
+    @apply border-border;
   }
-  
-  *:focus-visible {
-    outline: 2px solid var(--color-focus);
-    outline-offset: 2px;
+  body {
+    @apply bg-background text-foreground antialiased;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* Estilos globales para mejorar la accesibilidad del foco */
+  a:focus-visible, 
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background transition-shadow duration-200;
+  }
 }
 
 /* Forzar color oscuro en campos editables para evitar texto gris claro
