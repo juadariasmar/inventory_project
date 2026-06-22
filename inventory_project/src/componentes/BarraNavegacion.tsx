@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { signOut, useSession } from 'next-auth/react'
 import { useEffect, useRef, useState } from 'react'
+import { UserButton } from '@neondatabase/auth-ui'
+import { authClient } from '@/lib/auth/client'
 
 interface SubEnlace {
   href: string
@@ -28,9 +29,8 @@ interface Dropdown {
 
 type Item = EnlaceSimple | Dropdown
 
-export default function BarraNavegacion() {
+export default function BarraNavegacion({ sesion }: { sesion: any }) {
   const pathname = usePathname()
-  const { data: sesion } = useSession()
   const [menuAbierto, setMenuAbierto] = useState(false)
   const [dropdownAbierto, setDropdownAbierto] = useState<string | null>(null)
   const contenedorRef = useRef<HTMLDivElement>(null)
@@ -191,38 +191,7 @@ export default function BarraNavegacion() {
           {/* Mi cuenta (escritorio) */}
           <div className="hidden lg:flex items-center">
             {sesion?.user && (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setDropdownAbierto(dropdownAbierto === 'cuenta' ? null : 'cuenta')}
-                  aria-expanded={dropdownAbierto === 'cuenta'}
-                  className="px-3 py-2 rounded-md text-sm font-medium text-blue-100 hover:bg-blue-500 inline-flex items-center gap-1"
-                >
-                  Mi cuenta
-                  <span className={`text-xs transition-transform ${dropdownAbierto === 'cuenta' ? 'rotate-180' : ''}`}>
-                    ▾
-                  </span>
-                </button>
-                {dropdownAbierto === 'cuenta' && (
-                  <div className="absolute right-0 top-full mt-1 min-w-[220px] bg-white text-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50 overflow-hidden">
-                    <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                      <div className="text-sm font-medium text-gray-900 truncate">{sesion.user.name}</div>
-                      <div className="text-xs text-gray-500 truncate">
-                        {esAdmin ? 'Administrador' : 'Usuario'}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setDropdownAbierto(null)
-                        signOut({ callbackUrl: '/login' })
-                      }}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Cerrar sesión
-                    </button>
-                  </div>
-                )}
-              </div>
+              <UserButton authClient={authClient} />
             )}
           </div>
 
@@ -295,20 +264,8 @@ export default function BarraNavegacion() {
             })}
           </div>
           {sesion?.user && (
-            <div className="border-t border-blue-500 pt-3 pb-3 px-4 space-y-2">
-              <div>
-                <div className="text-sm font-medium text-white">{sesion.user.name}</div>
-                <div className="text-xs text-blue-200">{esAdmin ? 'Administrador' : 'Usuario'}</div>
-              </div>
-              <button
-                onClick={() => {
-                  cerrarMenu()
-                  signOut({ callbackUrl: '/login' })
-                }}
-                className="w-full px-3 py-2 rounded-md text-sm font-medium bg-blue-700 hover:bg-blue-800 transition-colors text-left"
-              >
-                Cerrar sesión
-              </button>
+            <div className="border-t border-blue-500 pt-3 pb-3 px-4 flex justify-center">
+              <UserButton authClient={authClient} />
             </div>
           )}
         </div>

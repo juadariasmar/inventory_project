@@ -30,19 +30,26 @@ enum Permiso {
   DESCONTAR_STOCK
 }
 
+enum EstadoUsuario {
+  PENDIENTE    // registrado, esperando aprobacion del admin
+  ACTIVO       // aprobado, puede operar normalmente
+  SUSPENDIDO   // bloqueado por el admin
+}
+
 model Usuario {
-  id                     Int          @id @default(autoincrement())
-  nombreUsuario          String       @unique
-  contrasena             String
+  id                     Int              @id @default(autoincrement())
+  neonAuthId             String           @unique    // ID del usuario en neon_auth.user
+  email                  String           @unique    // email sincronizado desde Neon Auth
   nombre                 String
-  rol                    Rol          @default(USUARIO)
-  permisos               Permiso[]    @default([])
-  creadoEn               DateTime     @default(now())
+  estado                 EstadoUsuario    @default(PENDIENTE)
+  rol                    Rol              @default(USUARIO)
+  permisos               Permiso[]        @default([])
+  creadoEn               DateTime         @default(now())
   auditorias             Auditoria[]
-  ventas                 Venta[]      @relation("VentaVendedor")
-  cancelaciones          Venta[]      @relation("VentaCanceladaPor")
-  cotizaciones           Cotizacion[] @relation("CotizacionVendedor")
-  cotizacionesCanceladas Cotizacion[] @relation("CotizacionCanceladaPor")
+  ventas                 Venta[]          @relation("VentaVendedor")
+  cancelaciones          Venta[]          @relation("VentaCanceladaPor")
+  cotizaciones           Cotizacion[]     @relation("CotizacionVendedor")
+  cotizacionesCanceladas Cotizacion[]     @relation("CotizacionCanceladaPor")
 }
 
 model Categoria {

@@ -1,12 +1,30 @@
-import { getServerSession } from 'next-auth'
-import { opcionesAuth } from './auth'
+import { auth } from '@/lib/auth/server'
 import { Permiso } from '@prisma/client'
 import { prisma } from './db'
 import { cache } from 'react'
 
-export async function obtenerSesion() {
-  return await getServerSession(opcionesAuth)
-}
+export const obtenerSesion = cache(async () => {
+  const sesionNeon = await auth.getSession()
+  if (!sesionNeon?.user?.id) return null
+
+  let usuario = await prisma.usuario.findUnique({
+    where: { neonAuthId: sesionNeon.user.id },
+  })
+
+  if (!usuario) {
+    usuario = await prisma.usuario.create({
+      data: {
+        neonAuthId: sesionNeon.user.id,
+        email: sesionNeon.user.email || '',
+        nombre: sesionNeon.user.name || sesionNeon.user.email || 'Usuario',
+        estado: 'PENDIENTE',
+        rol: 'USUARIO',
+      },
+    })
+  }
+
+  return { ...sesionNeon, user: { ...sesionNeon.user, ...usuario } }
+})
 
 export async function esAdmin() {
   const sesion = await obtenerSesion()
@@ -26,6 +44,7 @@ export async function tienePermiso(permiso: Permiso): Promise<boolean> {
   if (!sesion?.user) return false
   if (sesion.user.rol === 'ADMIN') return true
 
-  const permisos = await obtenerPermisosUsuario(parseInt(sesion.user.id, 10))
+  const idParaBuscar = typeof sesion.user.id === 'number' ? sesion.user.id : parseInt(String(sesion.user.id), 10)
+  const permisos = await obtenerPermisosUsuario(idParaBuscar)
   return permisos.includes(permiso)
 }

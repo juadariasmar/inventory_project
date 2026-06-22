@@ -1,42 +1,38 @@
 import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcryptjs'
-
 const prisma = new PrismaClient()
 
 async function main() {
   console.log('Iniciando seed...')
 
   // Usuario administrador
-  const adminPass = process.env.ADMIN_PASSWORD || 'Admin2024!'
-  const hashAdmin = await bcrypt.hash(adminPass, 10)
   const admin = await prisma.usuario.upsert({
-    where: { nombreUsuario: 'admin' },
-    update: { rol: 'ADMIN', contrasena: hashAdmin },
+    where: { email: 'admin@ejemplo.com' },
+    update: { rol: 'ADMIN', neonAuthId: 'admin-neon-id-placeholder', estado: 'ACTIVO' },
     create: {
-      nombreUsuario: 'admin',
-      contrasena: hashAdmin,
+      neonAuthId: 'admin-neon-id-placeholder',
+      email: 'admin@ejemplo.com',
       nombre: 'Administrador',
       rol: 'ADMIN',
+      estado: 'ACTIVO',
     },
   })
 
-  console.log('Usuario creado:', admin.nombreUsuario, '(', admin.rol, ')')
+  console.log('Usuario creado:', admin.email, '(', admin.rol, ')')
 
   // Usuario regular de ejemplo
-  const userPass = process.env.USER_PASSWORD || 'Usuario2024!'
-  const hashUsuario = await bcrypt.hash(userPass, 10)
   const usuarioRegular = await prisma.usuario.upsert({
-    where: { nombreUsuario: 'usuario' },
-    update: { rol: 'USUARIO', contrasena: hashUsuario },
+    where: { email: 'usuario@ejemplo.com' },
+    update: { rol: 'USUARIO', neonAuthId: 'usuario-neon-id-placeholder', estado: 'ACTIVO' },
     create: {
-      nombreUsuario: 'usuario',
-      contrasena: hashUsuario,
+      neonAuthId: 'usuario-neon-id-placeholder',
+      email: 'usuario@ejemplo.com',
       nombre: 'Usuario de ejemplo',
       rol: 'USUARIO',
+      estado: 'ACTIVO',
     },
   })
 
-  console.log('Usuario creado:', usuarioRegular.nombreUsuario, '(', usuarioRegular.rol, ')')
+  console.log('Usuario creado:', usuarioRegular.email, '(', usuarioRegular.rol, ')')
 
   // Crear algunas categorías de ejemplo con su prefijo (las 3 primeras letras).
   const categorias: Array<{ nombre: string; prefijo: string }> = [

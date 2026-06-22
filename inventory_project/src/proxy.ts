@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
+import { auth } from '@/lib/auth/server'
 
 // Fallback en memoria por si Upstash no está configurado (ej. desarrollo local)
 const intentosFallidosFallback = new Map<string, { count: number; resetAt: number }>()
@@ -18,9 +19,9 @@ const ratelimit = redisUrl && redisToken ? new Ratelimit({
 }) : null;
 
 export async function proxy(request: NextRequest) {
-  // Aplicar rate limiting solo al endpoint de credenciales de NextAuth.
+  // Aplicar rate limiting solo al endpoint de credenciales.
   if (
-    request.nextUrl.pathname === '/api/auth/callback/credentials' &&
+    request.nextUrl.pathname.includes('/api/auth/') &&
     request.method === 'POST'
   ) {
     const ip =
@@ -63,9 +64,11 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  return NextResponse.next()
+  return auth.middleware({ loginUrl: '/auth/sign-in' })(request)
 }
 
 export const config = {
-  matcher: ['/api/auth/callback/credentials'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ],
 }
