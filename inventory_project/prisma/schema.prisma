@@ -37,7 +37,7 @@ enum EstadoUsuario {
 }
 
 model Usuario {
-  id                     Int              @id @default(autoincrement())
+  id                     String           @id @default(cuid())
   neonAuthId             String           @unique    // ID del usuario en neon_auth.user
   email                  String           @unique    // email sincronizado desde Neon Auth
   nombre                 String
@@ -101,7 +101,7 @@ model Movimiento {
 
 model Venta {
   id                 Int          @id @default(autoincrement())
-  vendedorId         Int?
+  vendedorId         String?
   vendedor           Usuario?     @relation("VentaVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
   total              Float
   notas              String?
@@ -109,7 +109,7 @@ model Venta {
   movimientos        Movimiento[]
   creadoEn           DateTime     @default(now())
   canceladaEn        DateTime?
-  canceladaPorId     Int?
+  canceladaPorId     String?
   canceladaPor       Usuario?     @relation("VentaCanceladaPor", fields: [canceladaPorId], references: [id], onDelete: SetNull)
   motivoCancelacion  String?
   // Si esta venta nacio de convertir una cotizacion, la cotizacion la apunta.
@@ -142,7 +142,7 @@ enum EstadoCotizacion {
 
 model Cotizacion {
   id                Int              @id @default(autoincrement())
-  vendedorId        Int?
+  vendedorId        String?
   vendedor          Usuario?         @relation("CotizacionVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
   cliente           String?
   total             Float
@@ -157,7 +157,7 @@ model Cotizacion {
   convertidaEn      DateTime?
   // Cuando se cancela.
   canceladaEn       DateTime?
-  canceladaPorId    Int?
+  canceladaPorId    String?
   canceladaPor      Usuario?         @relation("CotizacionCanceladaPor", fields: [canceladaPorId], references: [id], onDelete: SetNull)
   motivoCancelacion String?
 
@@ -183,7 +183,7 @@ model ItemCotizacion {
 
 model Auditoria {
   id        Int      @id @default(autoincrement())
-  usuarioId Int?
+  usuarioId String?
   usuario   Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
   accion    String   // CREAR | ACTUALIZAR | ELIMINAR | LOGIN | LOGIN_FALLIDO
   entidad   String   // Producto | Categoria | Movimiento | Usuario | Sesion
