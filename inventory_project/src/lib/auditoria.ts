@@ -55,8 +55,8 @@ export async function registrarAuditoria(params: ParametrosAuditoria): Promise<v
     let usuarioId: number | null | undefined = params.usuarioId
     if (usuarioId === undefined) {
       const sesion = await obtenerSesion()
-      const idStr = sesion?.user?.id
-      usuarioId = idStr ? parseInt(idStr, 10) : null
+      const idVal = sesion?.user?.id
+      usuarioId = typeof idVal === 'number' ? idVal : (idVal ? parseInt(String(idVal), 10) : null)
     }
     await prisma.auditoria.create({
       data: {
