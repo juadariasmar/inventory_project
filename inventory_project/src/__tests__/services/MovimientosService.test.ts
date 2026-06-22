@@ -15,10 +15,10 @@ describe('MovimientosService', () => {
   let usuarioCreado = false;
 
   beforeAll(async () => {
-    let u = await prisma.usuario.findUnique({ where: { id: 1 } });
+    let u = await prisma.usuario.findUnique({ where: { id: '1' } });
     if (!u) {
       u = await prisma.usuario.create({
-        data: { id: 1, nombre: 'Admin', email: 'adminMovServTest' }
+        data: { id: '1', neonAuthId: 'test-neon-auth-1', nombre: 'Admin', email: 'adminMovServTest' }
       });
       usuarioCreado = true;
     }
@@ -50,7 +50,7 @@ describe('MovimientosService', () => {
       await prisma.categoria.delete({ where: { id: categoriaId } });
     }
     if (usuarioCreado) {
-      await prisma.usuario.delete({ where: { id: 1 } });
+      await prisma.usuario.delete({ where: { id: '1' } });
     }
   });
 
@@ -61,7 +61,7 @@ describe('MovimientosService', () => {
   it('throws error if type is invalid', async () => {
     await expect(MovimientosService.registrarMovimiento(
       { productoId, tipo: 'invalido', cantidad: 5 },
-      1,
+      '1',
       '127.0.0.1'
     )).rejects.toThrow(AppError);
   });
@@ -69,7 +69,7 @@ describe('MovimientosService', () => {
   it('throws error if required fields are missing', async () => {
     await expect(MovimientosService.registrarMovimiento(
       { tipo: 'entrada', cantidad: 5 },
-      1,
+      '1',
       '127.0.0.1'
     )).rejects.toThrow(AppError);
   });
@@ -77,7 +77,7 @@ describe('MovimientosService', () => {
   it('registers an entry movement successfully', async () => {
     const mov = await MovimientosService.registrarMovimiento(
       { productoId, tipo: 'entrada', cantidad: 5 },
-      1,
+      '1',
       '127.0.0.1'
     );
     expect(mov).toBeDefined();
@@ -93,7 +93,7 @@ describe('MovimientosService', () => {
     // We mock StockService.validarDisponibilidad to ensure it gets called
     await MovimientosService.registrarMovimiento(
       { productoId, tipo: 'salida', cantidad: 2 },
-      1,
+      '1',
       '127.0.0.1'
     );
     expect(StockService.validarDisponibilidad).toHaveBeenCalled();

@@ -39,10 +39,10 @@ export default async function PaginaCotizaciones({ searchParams }: Props) {
   const filtroEstado = params.estado
 
   const where: {
-    vendedorId?: number
+    vendedorId?: string
     estado?: 'PENDIENTE' | 'CONVERTIDA' | 'CANCELADA'
   } = {}
-  if (!esAdmin) where.vendedorId = Number(sesion.user.id)
+  if (!esAdmin) where.vendedorId = sesion.user.id
   if (
     filtroEstado === 'PENDIENTE' ||
     filtroEstado === 'CONVERTIDA' ||

@@ -4,14 +4,11 @@ import { NextRequest } from 'next/server';
 import { prisma } from '../../lib/db';
 
 jest.mock('../../lib/permisos', () => ({
-  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 1, role: 'admin' } }),
+  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 'test-user-mov-1', role: 'admin' } }),
   tienePermiso: jest.fn().mockResolvedValue(true)
 }));
 
-// Mock NextAuth to avoid the error 'jose' package issues or edge runtime issues in tests
-jest.mock('next-auth/jwt', () => ({
-  getToken: jest.fn().mockResolvedValue({ id: 1, role: 'admin' })
-}));
+
 
 jest.mock('next/cache', () => ({
   revalidatePath: jest.fn()
@@ -20,13 +17,13 @@ jest.mock('next/cache', () => ({
 describe('Movimientos API', () => {
   let productoId: number;
   let categoriaId: number;
-  let usuarioId: number;
+  let usuarioId: string;
 
   beforeAll(async () => {
-    let u = await prisma.usuario.findUnique({ where: { id: 1 } });
+    let u = await prisma.usuario.findUnique({ where: { id: 'test-user-mov-1' } });
     if (!u) {
       u = await prisma.usuario.create({
-        data: { id: 1, nombre: 'Admin', email: 'adminTestMov' }
+        data: { id: 'test-user-mov-1', neonAuthId: 'test-neon-auth-mov', nombre: 'Admin Mov', email: 'adminMovTest@example.com' }
       });
     }
     usuarioId = u.id;
@@ -58,7 +55,7 @@ describe('Movimientos API', () => {
     }
     if (usuarioId) {
       await prisma.auditoria.deleteMany({ where: { usuarioId } });
-      await prisma.usuario.delete({ where: { id: usuarioId } });
+      await prisma.usuario.deleteMany({ where: { id: usuarioId } });
     }
   });
 

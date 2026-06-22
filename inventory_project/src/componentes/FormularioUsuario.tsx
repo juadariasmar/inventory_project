@@ -10,11 +10,12 @@ type PermisoTipo =
   | 'REALIZAR_VENTAS'
 
 interface DatosUsuario {
-  id?: number
+  id?: string
   email: string
   nombre: string
   rol: 'ADMIN' | 'USUARIO'
   permisos?: PermisoTipo[]
+  estado?: 'PENDIENTE' | 'ACTIVO' | 'SUSPENDIDO'
 }
 
 interface PropiedadesFormulario {
@@ -52,6 +53,7 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
     email: usuario?.email || '',
     nombre: usuario?.nombre || '',
     rol: usuario?.rol || 'USUARIO',
+    estado: usuario?.estado || 'PENDIENTE',
     contrasena: '',
   })
   const [permisos, setPermisos] = useState<PermisoTipo[]>(usuario?.permisos ?? [])
@@ -94,6 +96,7 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
         email: datos.email,
         nombre: datos.nombre,
         rol: datos.rol,
+        estado: datos.estado,
         permisos,
       }
       if (datos.contrasena) {
@@ -177,6 +180,23 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
           >
             <option value="USUARIO">Usuario (lectura por defecto)</option>
             <option value="ADMIN">Administrador (acceso total)</option>
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="estado" className="block text-sm font-medium text-gray-700 mb-1">
+            Estado *
+          </label>
+          <select
+            id="estado"
+            name="estado"
+            value={datos.estado}
+            onChange={manejarCambio}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="PENDIENTE">Pendiente (Sin acceso)</option>
+            <option value="ACTIVO">Activo</option>
+            <option value="SUSPENDIDO">Suspendido</option>
           </select>
         </div>
 

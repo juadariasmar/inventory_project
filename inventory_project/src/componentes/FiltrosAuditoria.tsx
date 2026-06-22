@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { ACCIONES, ENTIDADES } from '@/lib/auditoria'
 
 interface UsuarioLite {
-  id: number
+  id: string
   nombre: string
   email: string
 }

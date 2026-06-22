@@ -17,7 +17,7 @@ export default async function PaginaVentaRapida() {
     redirect('/')
   }
 
-  const vendedorId = Number(sesion.user.id)
+  const vendedorId = sesion.user.id
   // Rango de "hoy" en hora local Colombia: desde 00:00 hasta 23:59:59.
   const hoyDesde = new Date()
   hoyDesde.setHours(0, 0, 0, 0)

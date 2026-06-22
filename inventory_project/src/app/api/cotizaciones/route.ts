@@ -28,10 +28,10 @@ export async function GET(request: NextRequest) {
 
   const estado = request.nextUrl.searchParams.get('estado')
   const where: {
-    vendedorId?: number
+    vendedorId?: string
     estado?: 'PENDIENTE' | 'CONVERTIDA' | 'CANCELADA'
   } = {}
-  if (!esAdmin) where.vendedorId = Number(sesion.user.id)
+  if (!esAdmin) where.vendedorId = sesion.user.id
   if (estado === 'PENDIENTE' || estado === 'CONVERTIDA' || estado === 'CANCELADA') {
     where.estado = estado
   }
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       consolidados.set(productoId, (consolidados.get(productoId) ?? 0) + cantidad)
     }
 
-    const vendedorId = sesion.user.id ? Number(sesion.user.id) : null
+    const vendedorId = sesion.user.id ? sesion.user.id : null
     
     const resultado = await CotizacionesService.crearCotizacion(consolidados, vendedorId, notas, cliente, diasValidez)
     const cotizacion = resultado.cotizacion

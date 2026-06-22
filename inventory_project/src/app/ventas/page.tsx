@@ -44,9 +44,9 @@ export default async function PaginaVentas({ searchParams }: Props) {
   const where: Prisma.VentaWhereInput = {}
   // Usuario regular solo ve sus propias ventas.
   if (!esAdmin) {
-    where.vendedorId = Number(sesion.user.id)
+    where.vendedorId = sesion.user.id
   } else if (params.vendedor) {
-    where.vendedorId = parseInt(params.vendedor)
+    where.vendedorId = params.vendedor
   }
   if (params.desde || params.hasta) {
     where.creadoEn = {}
@@ -59,7 +59,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
     prisma.venta.findMany({
       where,
       include: {
-        vendedor: { select: { id: true, nombre: true, email: true } },
+      vendedor: { select: { id: true, nombre: true, email: true } },
         _count: { select: { items: true } },
       },
       orderBy: { creadoEn: 'desc' },

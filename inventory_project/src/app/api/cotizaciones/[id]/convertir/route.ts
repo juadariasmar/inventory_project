@@ -57,7 +57,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
     }
 
     // Solo el vendedor original o admin.
-    const usuarioId = Number(sesion.user.id)
+    const usuarioId = sesion.user.id
     if (!esAdmin && cotizacion.vendedorId !== usuarioId) {
       return NextResponse.json(
         { error: 'Solo el vendedor original o un administrador puede convertir esta cotización.' },

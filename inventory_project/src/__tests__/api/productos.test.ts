@@ -4,13 +4,10 @@ import { NextRequest } from 'next/server'
 import { prisma } from '../../lib/db'
 
 jest.mock('../../lib/permisos', () => ({
-  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 1, role: 'admin' } }),
+  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 'test-user-prod-1', role: 'admin' } }),
   esAdmin: jest.fn().mockResolvedValue(true)
 }))
 
-jest.mock('next-auth/jwt', () => ({
-  getToken: jest.fn().mockResolvedValue({ id: 1, role: 'admin' })
-}))
 
 jest.mock('next/cache', () => ({
   revalidatePath: jest.fn()
@@ -25,10 +22,10 @@ describe('Productos API', () => {
 
   beforeAll(async () => {
     // Check if user 1 exists, if not create it
-    let u = await prisma.usuario.findUnique({ where: { id: 1 } })
+    let u = await prisma.usuario.findUnique({ where: { id: 'test-user-prod-1' } })
     if (!u) {
       u = await prisma.usuario.create({
-        data: { id: 1, nombre: 'Admin', email: 'adminProdTest' }
+        data: { id: 'test-user-prod-1', neonAuthId: 'test-neon-auth-prod-1', nombre: 'Admin Prod', email: 'adminProdTest@example.com' }
       })
       usuarioCreado = true
     }
@@ -53,7 +50,7 @@ describe('Productos API', () => {
       await prisma.categoria.delete({ where: { id: categoriaId } })
     }
     if (usuarioCreado) {
-      await prisma.usuario.delete({ where: { id: 1 } })
+      await prisma.usuario.deleteMany({ where: { id: 'test-user-prod-1' } })
     }
   })
 

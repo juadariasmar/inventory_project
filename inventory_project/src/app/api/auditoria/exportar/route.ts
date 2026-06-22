@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
   const sp = request.nextUrl.searchParams
   const where: Prisma.AuditoriaWhereInput = {}
-  if (sp.get('usuario')) where.usuarioId = parseInt(sp.get('usuario')!)
+  if (sp.get('usuario')) where.usuarioId = sp.get('usuario')!
   if (sp.get('entidad')) where.entidad = sp.get('entidad')!
   if (sp.get('accion')) where.accion = sp.get('accion')!
   if (sp.get('desde') || sp.get('hasta')) {

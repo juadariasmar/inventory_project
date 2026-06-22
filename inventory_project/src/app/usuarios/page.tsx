@@ -19,6 +19,7 @@ export default async function PaginaUsuarios() {
       email: true,
       nombre: true,
       rol: true,
+      estado: true,
       creadoEn: true,
     },
     orderBy: { nombre: 'asc' },
@@ -39,7 +40,7 @@ export default async function PaginaUsuarios() {
 
         <ListaUsuariosFiltrable
           usuarios={usuarios}
-          usuarioActualId={String(sesion.user.id)}
+          usuarioActualId={sesion.user.id}
         />
       </div>
     </LayoutProtegido>

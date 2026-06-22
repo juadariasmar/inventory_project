@@ -8,10 +8,10 @@ describe('CotizacionesService', () => {
   let usuarioCreado = false;
 
   beforeAll(async () => {
-    let u = await prisma.usuario.findUnique({ where: { id: 1 } });
+    let u = await prisma.usuario.findUnique({ where: { id: '1' } });
     if (!u) {
       u = await prisma.usuario.create({
-        data: { id: 1, nombre: 'Admin', email: 'adminCotServTest' }
+        data: { id: '1', neonAuthId: 'test-neon-auth-1', nombre: 'Admin', email: 'adminCotServTest' }
       });
       usuarioCreado = true;
     }
@@ -43,7 +43,7 @@ describe('CotizacionesService', () => {
       await prisma.categoria.delete({ where: { id: categoriaId } });
     }
     if (usuarioCreado) {
-      await prisma.usuario.delete({ where: { id: 1 } });
+      await prisma.usuario.delete({ where: { id: '1' } });
     }
   });
 
@@ -53,12 +53,12 @@ describe('CotizacionesService', () => {
 
   it('throws error if product not found', async () => {
     const consolidados = new Map<number, number>([[-999, 1]]);
-    await expect(CotizacionesService.crearCotizacion(consolidados, 1, 'test', 'Test Cliente')).rejects.toThrow(AppError);
+    await expect(CotizacionesService.crearCotizacion(consolidados, '1', 'test', 'Test Cliente')).rejects.toThrow(AppError);
   });
 
   it('creates a quotation successfully', async () => {
     const consolidados = new Map<number, number>([[productoId, 5]]);
-    const resultado = await CotizacionesService.crearCotizacion(consolidados, 1, 'Cot de test', 'Test Cliente', 7);
+    const resultado = await CotizacionesService.crearCotizacion(consolidados, '1', 'Cot de test', 'Test Cliente', 7);
     
     expect(resultado).toBeDefined();
     expect(resultado.cotizacion).toBeDefined();
@@ -69,6 +69,6 @@ describe('CotizacionesService', () => {
 
   it('throws error if stock is insufficient', async () => {
     const consolidados = new Map<number, number>([[productoId, 100]]);
-    await expect(CotizacionesService.crearCotizacion(consolidados, 1, 'Cot de test', 'Test Cliente', 7)).rejects.toThrow(AppError);
+    await expect(CotizacionesService.crearCotizacion(consolidados, '1', 'Cot de test', 'Test Cliente', 7)).rejects.toThrow(AppError);
   });
 });

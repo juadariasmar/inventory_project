@@ -11,7 +11,7 @@ export default async function LayoutProtegido({ children }: PropiedadesLayout) {
   const sesion = await obtenerSesion()
 
   if (!sesion) {
-    redirect('/login')
+    redirect('/auth/sign-in')
   }
 
   if (sesion.user.estado === 'PENDIENTE') {

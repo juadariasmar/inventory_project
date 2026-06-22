@@ -74,7 +74,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
       )
     }
 
-    const adminId = sesion.user.id ? Number(sesion.user.id) : null
+    const adminId = sesion.user.id ? sesion.user.id : null
 
     const cancelada = await prisma.$transaction(async (tx) => {
       // Devolver stock + registrar movimiento por cada item.
