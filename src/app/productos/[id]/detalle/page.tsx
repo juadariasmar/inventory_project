@@ -47,20 +47,20 @@ export default async function PaginaDetalleProducto({ params }: Props) {
     prisma.movimiento.aggregate({
       where: { productoId, empresaId, tipo: 'salida', creadoEn: { gte: desde } },
       _sum: { cantidad: true },
-      _count: { _all: true },
+      _count: true,
     }),
     prisma.movimiento.aggregate({
       where: { productoId, empresaId, tipo: 'entrada', creadoEn: { gte: desde } },
       _sum: { cantidad: true },
-      _count: { _all: true },
+      _count: true,
     }),
   ])
 
   if (!producto) notFound()
 
   const puedeExportar = await tienePermiso('EXPORTAR_REPORTES')
-  const totalSalidas = salidasVentana._sum.cantidad ?? 0
-  const totalEntradas = entradasVentana._sum.cantidad ?? 0
+  const totalSalidas = salidasVentana._sum?.cantidad ?? 0
+  const totalEntradas = entradasVentana._sum?.cantidad ?? 0
   const consumoDiario = totalSalidas / DIAS_VENTANA
   const diasParaAgotarse =
     consumoDiario > 0 ? Math.round((producto.cantidad / consumoDiario) * 10) / 10 : null
@@ -132,13 +132,13 @@ export default async function PaginaDetalleProducto({ params }: Props) {
             <Metrica
               titulo="Unidades vendidas"
               valor={totalSalidas.toString()}
-              detalle={`${salidasVentana._count._all} movimientos`}
+              detalle={`${salidasVentana._count ?? 0} movimientos`}
               color="text-red-700"
             />
             <Metrica
               titulo="Unidades ingresadas"
               valor={totalEntradas.toString()}
-              detalle={`${entradasVentana._count._all} movimientos`}
+              detalle={`${entradasVentana._count ?? 0} movimientos`}
               color="text-green-700"
             />
             <Metrica
