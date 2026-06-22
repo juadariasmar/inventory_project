@@ -127,7 +127,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
           </Link>
 
           {/* Enlaces escritorio */}
-          <div className="hidden lg:flex items-center space-x-1">
+          <div className="hidden md:flex items-center space-x-1">
             {items.map((item) => {
               if (item.tipo === 'enlace') {
                 return (
@@ -188,7 +188,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
           </div>
 
           {/* Mi cuenta (escritorio) */}
-          <div className="hidden lg:flex items-center">
+          <div className="hidden md:flex items-center">
             {sesion?.user && (
               <UserButton size="icon" />
             )}
@@ -198,7 +198,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
           <button
             type="button"
             onClick={() => setMenuAbierto((v) => !v)}
-            className="lg:hidden inline-flex items-center justify-center p-2 rounded-md text-blue-100 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-white"
+            className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-blue-100 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-white"
             aria-controls="menu-movil"
             aria-expanded={menuAbierto}
             aria-label="Abrir menú"
@@ -218,7 +218,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
 
       {/* Menú móvil colapsable */}
       {menuAbierto && (
-        <div id="menu-movil" className="lg:hidden border-t border-blue-500">
+        <div id="menu-movil" className="md:hidden border-t border-blue-500">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {items.map((item) => {
               if (item.tipo === 'enlace') {
