@@ -1,0 +1,9 @@
+{
+  "mcp": {
+    "Neon": {
+      "type": "remote",
+      "url": "https://mcp.neon.tech/mcp?projectId=old-star-43501331",
+      "enabled": true
+    }
+  }
+}
