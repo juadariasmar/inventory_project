@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import LayoutProtegido from '@/componentes/LayoutProtegido'
-import ListaUsuariosFiltrable from '@/componentes/ListaUsuariosFiltrable'
+import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
+import ListaUsuariosFiltrable from '@/componentes/usuarios/ListaUsuariosFiltrable'
 import { prisma } from '@/lib/db'
 import { obtenerSesion } from '@/lib/permisos'
 

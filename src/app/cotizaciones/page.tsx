@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import LayoutProtegido from '@/componentes/LayoutProtegido'
+import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
 import { prisma } from '@/lib/db'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 import { formatearFechaHora } from '@/lib/fechas'

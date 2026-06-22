@@ -1,5 +1,5 @@
-import LayoutProtegido from '@/componentes/LayoutProtegido'
-import FormularioOrdenCompra from '@/componentes/FormularioOrdenCompra'
+import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
+import FormularioOrdenCompra from '@/componentes/compras/FormularioOrdenCompra'
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { obtenerSesion } from '@/lib/permisos'
