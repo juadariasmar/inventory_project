@@ -39,6 +39,9 @@ export const MovimientosService = {
     }
 
     return await prisma.$transaction(async (tx) => {
+      // Bloqueo pesimista de fila
+      await tx.$queryRaw`SELECT id FROM "Producto" WHERE id = ${productoId} FOR UPDATE`;
+
       const producto = await tx.producto.findUnique({
         where: { id: productoId },
         select: { id: true, cantidad: true, nombre: true }
