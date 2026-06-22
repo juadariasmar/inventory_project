@@ -6,6 +6,9 @@ jest.mock('../../lib/db', () => ({
     usuario: {
       findUnique: jest.fn(),
       create: jest.fn()
+    },
+    empresa: {
+      findFirst: jest.fn()
     }
   }
 }))
@@ -13,6 +16,7 @@ jest.mock('../../lib/db', () => ({
 describe('WebhooksService', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    ;(prisma.empresa.findFirst as jest.Mock).mockResolvedValue({ id: 'empresa-default-id' })
   })
 
   describe('validarFirma', () => {
@@ -71,7 +75,7 @@ describe('WebhooksService', () => {
       expect(prisma.usuario.create).not.toHaveBeenCalled()
     })
 
-    it('debe crear el usuario en estado PENDIENTE si no existe', async () => {
+    it('debe crear el usuario en estado PENDIENTE (con empresa por defecto) si no existe', async () => {
       const payload = {
         id: 'neon-123',
         email: 'test@ejemplo.com',
@@ -87,7 +91,8 @@ describe('WebhooksService', () => {
           email: 'test@ejemplo.com',
           nombre: 'Test Name',
           estado: 'PENDIENTE',
-          rol: 'USUARIO'
+          rol: 'USUARIO',
+          empresaId: 'empresa-default-id'
         }
       })
     })

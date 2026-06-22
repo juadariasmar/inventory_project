@@ -2,6 +2,7 @@ import { prisma } from '../lib/db'
 import { AppError } from '../lib/AppError'
 import { timingSafeEqual } from 'crypto'
 import { z } from 'zod'
+import { obtenerEmpresaPorDefectoId } from '../lib/empresa'
 
 // Esquema estricto del payload de creación de usuario de Neon Auth.
 // Evita procesar datos malformados o inyecciones de campos inesperados.
@@ -64,14 +65,16 @@ export class WebhooksService {
       return
     }
 
-    // Creacion del usuario pendiente
+    // Creacion del usuario pendiente, asignado a la empresa por defecto.
+    const empresaId = await obtenerEmpresaPorDefectoId()
     await prisma.usuario.create({
       data: {
         neonAuthId: id,
         email: email,
         nombre: name || email,
         estado: 'PENDIENTE',
-        rol: 'USUARIO'
+        rol: 'USUARIO',
+        empresaId
       }
     })
 

@@ -88,6 +88,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
       const venta = await tx.venta.create({
         data: {
           vendedorId: vendedorIdVenta,
+          empresaId: cotizacion.empresaId,
           total: cotizacion.total,
           notas: notasVenta,
           items: {
@@ -109,6 +110,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
             cantidad: it.cantidad,
             notas: `Venta #${venta.id} (cotización #${cotizacion.id})`,
             ventaId: venta.id,
+            empresaId: cotizacion.empresaId,
           },
         })
         await tx.producto.update({
