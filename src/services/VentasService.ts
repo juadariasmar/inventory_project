@@ -9,6 +9,13 @@ export const VentasService = {
     if (!empresaId) throw new AppError('empresaId es requerido', 400);
     return await prisma.$transaction(async (tx) => {
       const productosIds = Array.from(consolidados.keys())
+      // Bloqueo pesimista: bloquea las filas de Producto (ordenadas por id para
+      // evitar deadlocks) antes de validar stock y decrementar, evitando
+      // sobreventa por condiciones de carrera entre ventas concurrentes.
+      const idsBloqueo = [...productosIds].sort((a, b) => a - b)
+      if (idsBloqueo.length > 0) {
+        await tx.$queryRaw`SELECT id FROM "Producto" WHERE id IN (${Prisma.join(idsBloqueo)}) AND "empresaId" = ${empresaId} ORDER BY id FOR UPDATE`
+      }
       const productos = await tx.producto.findMany({ where: { id: { in: productosIds }, empresaId } })
       const mapaProductos = new Map(productos.map((p) => [p.id, p]))
       const reservas = await obtenerReservasPorProducto(productosIds, tx as Prisma.TransactionClient, empresaId)
