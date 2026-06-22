@@ -1,21 +1,50 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f3f4f6; /* gray-100 */
+  --foreground: #111827; /* gray-900 */
+  --color-primary: #2563eb; /* blue-600 */
+  --color-primary-hover: #1d4ed8; /* blue-700 */
+  --color-surface: #ffffff;
+  --color-error: #b91c1c; /* red-700 */
+  --color-error-hover: #991b1b; /* red-800 */
+  --color-success: #047857; /* emerald-700 */
+  --color-success-hover: #065f46; /* emerald-800 */
+  --color-border: #e5e7eb; /* gray-200 */
+  --color-focus: var(--color-primary);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-surface: var(--color-surface);
+  --color-error: var(--color-error);
+  --color-error-hover: var(--color-error-hover);
+  --color-success: var(--color-success);
+  --color-success-hover: var(--color-success-hover);
+  --color-border: var(--color-border);
+  --color-focus: var(--color-focus);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  /* Estilos globales para mejorar la accesibilidad del foco */
+  a:focus-visible, 
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background transition-shadow duration-200;
+  }
 }
 
 /* Forzar color oscuro en campos editables para evitar texto gris claro

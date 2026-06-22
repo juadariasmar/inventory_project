@@ -17,10 +17,10 @@ export default function TarjetaEstadisticaDoble({
   cifras,
 }: Propiedades) {
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 sm:p-5">
+    <div className="bg-surface p-6 rounded-xl shadow-sm border border-border flex flex-col gap-3 hover:shadow-md transition-shadow duration-300">
       <div className="flex items-center gap-3 mb-3">
         <div className={`p-2.5 rounded-full ${colorFondo} flex-shrink-0`}>{icono}</div>
-        <p className="text-sm font-semibold text-gray-700 truncate">{titulo}</p>
+        <p className="text-gray-500 text-sm font-medium uppercase tracking-wider truncate">{titulo}</p>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {cifras.map((c, i) => (
@@ -28,7 +28,7 @@ export default function TarjetaEstadisticaDoble({
             <p className="text-xs text-gray-500 uppercase tracking-wide truncate">
               {c.etiqueta}
             </p>
-            <p className="text-xl md:text-2xl font-bold text-gray-800 mt-1 break-words leading-tight">
+            <p className="text-2xl font-black text-foreground tracking-tight mt-1 break-words leading-tight">
               {c.valor}
             </p>
           </div>

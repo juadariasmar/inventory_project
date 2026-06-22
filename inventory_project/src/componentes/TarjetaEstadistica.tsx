@@ -12,14 +12,14 @@ export default function TarjetaEstadistica({
   colorFondo,
 }: PropiedadesTarjeta) {
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 sm:p-5">
+    <div className="bg-surface p-6 rounded-xl shadow-sm border border-border flex flex-col gap-2 hover:shadow-md transition-shadow duration-300">
       <div className="flex items-start gap-3">
         <div className={`p-2.5 rounded-full ${colorFondo} flex-shrink-0`}>
           {icono}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs sm:text-sm font-medium text-gray-500">{titulo}</p>
-          <p className="text-base sm:text-lg md:text-xl xl:text-2xl font-bold text-gray-800 break-words leading-tight mt-1">
+          <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">{titulo}</p>
+          <p className="text-3xl font-black text-foreground tracking-tight mt-1 break-words leading-tight">
             {valor}
           </p>
         </div>

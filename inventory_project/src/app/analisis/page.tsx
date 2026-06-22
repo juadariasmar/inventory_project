@@ -10,6 +10,7 @@ import InventarioGeneralAgrupado from '@/componentes/InventarioGeneralAgrupado'
 import { obtenerTodoAnalisis } from '@/lib/analisis'
 import { tienePermiso } from '@/lib/permisos'
 import { Suspense } from 'react'
+import { AutoScroller } from './AutoScroller'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,6 +47,7 @@ async function ContenidoAnalisis() {
 
   return (
     <div className="space-y-6">
+        <AutoScroller />
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Análisis e informes</h1>
