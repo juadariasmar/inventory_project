@@ -2,12 +2,12 @@
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"] 
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   // Only use directUrl for Prisma migrate - uses unpooled for full SQL support
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
@@ -31,25 +31,43 @@ enum Permiso {
 }
 
 enum EstadoUsuario {
-  PENDIENTE    // registrado, esperando aprobacion del admin
-  ACTIVO       // aprobado, puede operar normalmente
-  SUSPENDIDO   // bloqueado por el admin
+  PENDIENTE // registrado, esperando aprobacion del admin
+  ACTIVO // aprobado, puede operar normalmente
+  SUSPENDIDO // bloqueado por el admin
+}
+
+model Empresa {
+  id       String   @id @default(cuid())
+  nombre   String
+  creadoEn DateTime @default(now())
+
+  usuarios     Usuario[]
+  categorias   Categoria[]
+  productos    Producto[]
+  ventas       Venta[]
+  cotizaciones Cotizacion[]
+  auditorias   Auditoria[]
 }
 
 model Usuario {
-  id                     String           @id @default(cuid())
-  neonAuthId             String           @unique    // ID del usuario en neon_auth.user
-  email                  String           @unique    // email sincronizado desde Neon Auth
+  id                     String        @id @default(cuid())
+  neonAuthId             String        @unique // ID del usuario en neon_auth.user
+  email                  String        @unique // email sincronizado desde Neon Auth
   nombre                 String
-  estado                 EstadoUsuario    @default(PENDIENTE)
-  rol                    Rol              @default(USUARIO)
-  permisos               Permiso[]        @default([])
-  creadoEn               DateTime         @default(now())
+  estado                 EstadoUsuario @default(PENDIENTE)
+  rol                    Rol           @default(USUARIO)
+  permisos               Permiso[]     @default([])
+  creadoEn               DateTime      @default(now())
   auditorias             Auditoria[]
-  ventas                 Venta[]          @relation("VentaVendedor")
-  cancelaciones          Venta[]          @relation("VentaCanceladaPor")
-  cotizaciones           Cotizacion[]     @relation("CotizacionVendedor")
-  cotizacionesCanceladas Cotizacion[]     @relation("CotizacionCanceladaPor")
+  ventas                 Venta[]       @relation("VentaVendedor")
+  cancelaciones          Venta[]       @relation("VentaCanceladaPor")
+  cotizaciones           Cotizacion[]  @relation("CotizacionVendedor")
+  cotizacionesCanceladas Cotizacion[]  @relation("CotizacionCanceladaPor")
+
+  empresaId String?
+  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
 }
 
 model Categoria {
@@ -60,6 +78,11 @@ model Categoria {
   // existentes y es obligatorio para nuevas.
   prefijo   String     @unique
   productos Producto[]
+
+  empresaId String?
+  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
 }
 
 model Producto {
@@ -78,6 +101,11 @@ model Producto {
   itemsVenta      ItemVenta[]
   itemsCotizacion ItemCotizacion[]
   creadoEn        DateTime         @default(now())
+
+  empresaId String?
+  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
 }
 
 enum TipoMovimiento {
@@ -86,35 +114,39 @@ enum TipoMovimiento {
 }
 
 model Movimiento {
-  id         Int      @id @default(autoincrement())
+  id         Int            @id @default(autoincrement())
   productoId Int
-  producto   Producto @relation(fields: [productoId], references: [id])
+  producto   Producto       @relation(fields: [productoId], references: [id])
   tipo       TipoMovimiento
   cantidad   Int
   notas      String?
   ventaId    Int?
-  venta      Venta?   @relation(fields: [ventaId], references: [id], onDelete: SetNull)
-  creadoEn   DateTime @default(now())
+  venta      Venta?         @relation(fields: [ventaId], references: [id], onDelete: SetNull)
+  creadoEn   DateTime       @default(now())
 
   @@index([ventaId])
 }
 
 model Venta {
-  id                 Int          @id @default(autoincrement())
-  vendedorId         String?
-  vendedor           Usuario?     @relation("VentaVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
-  total              Float
-  notas              String?
-  items              ItemVenta[]
-  movimientos        Movimiento[]
-  creadoEn           DateTime     @default(now())
-  canceladaEn        DateTime?
-  canceladaPorId     String?
-  canceladaPor       Usuario?     @relation("VentaCanceladaPor", fields: [canceladaPorId], references: [id], onDelete: SetNull)
-  motivoCancelacion  String?
+  id                Int          @id @default(autoincrement())
+  vendedorId        String?
+  vendedor          Usuario?     @relation("VentaVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
+  total             Float
+  notas             String?
+  items             ItemVenta[]
+  movimientos       Movimiento[]
+  creadoEn          DateTime     @default(now())
+  canceladaEn       DateTime?
+  canceladaPorId    String?
+  canceladaPor      Usuario?     @relation("VentaCanceladaPor", fields: [canceladaPorId], references: [id], onDelete: SetNull)
+  motivoCancelacion String?
   // Si esta venta nacio de convertir una cotizacion, la cotizacion la apunta.
-  cotizacionOrigen   Cotizacion?  @relation("CotizacionConvertida")
+  cotizacionOrigen  Cotizacion?  @relation("CotizacionConvertida")
 
+  empresaId String?
+  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
   @@index([creadoEn(sort: Desc)])
   @@index([vendedorId])
   @@index([canceladaEn])
@@ -135,9 +167,9 @@ model ItemVenta {
 }
 
 enum EstadoCotizacion {
-  PENDIENTE  // activa: reserva stock mientras validaHasta > now
+  PENDIENTE // activa: reserva stock mientras validaHasta > now
   CONVERTIDA // convertida a Venta (ventaId apunta a la venta resultante)
-  CANCELADA  // cancelada manualmente, libera stock
+  CANCELADA // cancelada manualmente, libera stock
 }
 
 model Cotizacion {
@@ -161,6 +193,10 @@ model Cotizacion {
   canceladaPor      Usuario?         @relation("CotizacionCanceladaPor", fields: [canceladaPorId], references: [id], onDelete: SetNull)
   motivoCancelacion String?
 
+  empresaId String?
+  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
   @@index([estado])
   @@index([validaHasta])
   @@index([creadoEn(sort: Desc)])
@@ -185,13 +221,17 @@ model Auditoria {
   id        Int      @id @default(autoincrement())
   usuarioId String?
   usuario   Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
-  accion    String   // CREAR | ACTUALIZAR | ELIMINAR | LOGIN | LOGIN_FALLIDO
-  entidad   String   // Producto | Categoria | Movimiento | Usuario | Sesion
+  accion    String // CREAR | ACTUALIZAR | ELIMINAR | LOGIN | LOGIN_FALLIDO
+  entidad   String // Producto | Categoria | Movimiento | Usuario | Sesion
   entidadId String?
-  datos     Json?    // { antes: {...}, despues: {...} } o detalles especificos del evento
+  datos     Json? // { antes: {...}, despues: {...} } o detalles especificos del evento
   ip        String?
   creadoEn  DateTime @default(now())
 
+  empresaId String?
+  empresa   Empresa? @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
   @@index([creadoEn(sort: Desc)])
   @@index([usuarioId])
   @@index([entidad, entidadId])
