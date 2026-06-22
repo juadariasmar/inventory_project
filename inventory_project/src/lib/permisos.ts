@@ -4,26 +4,26 @@ import { prisma } from './db'
 import { cache } from 'react'
 
 export const obtenerSesion = cache(async () => {
-  const sesionNeon = await auth.getSession()
-  if (!sesionNeon?.user?.id) return null
+  const { data } = await auth.getSession()
+  if (!data?.user?.id) return null
 
   let usuario = await prisma.usuario.findUnique({
-    where: { neonAuthId: sesionNeon.user.id },
+    where: { neonAuthId: data.user.id },
   })
 
   if (!usuario) {
     usuario = await prisma.usuario.create({
       data: {
-        neonAuthId: sesionNeon.user.id,
-        email: sesionNeon.user.email || '',
-        nombre: sesionNeon.user.name || sesionNeon.user.email || 'Usuario',
+        neonAuthId: data.user.id,
+        email: data.user.email || '',
+        nombre: data.user.name || data.user.email || 'Usuario',
         estado: 'PENDIENTE',
         rol: 'USUARIO',
       },
     })
   }
 
-  return { ...sesionNeon, user: { ...sesionNeon.user, ...usuario } }
+  return { ...data, user: { ...data.user, ...usuario } }
 })
 
 export async function esAdmin() {
@@ -44,7 +44,7 @@ export async function tienePermiso(permiso: Permiso): Promise<boolean> {
   if (!sesion?.user) return false
   if (sesion.user.rol === 'ADMIN') return true
 
-  const idParaBuscar = typeof sesion.user.id === 'number' ? sesion.user.id : parseInt(String(sesion.user.id), 10)
+  const idParaBuscar = typeof sesion.user.id === 'number' ? sesion.user.id : Number(sesion.user.id)
   const permisos = await obtenerPermisosUsuario(idParaBuscar)
   return permisos.includes(permiso)
 }

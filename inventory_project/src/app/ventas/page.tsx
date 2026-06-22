@@ -44,7 +44,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
   const where: Prisma.VentaWhereInput = {}
   // Usuario regular solo ve sus propias ventas.
   if (!esAdmin) {
-    where.vendedorId = parseInt(sesion.user.id, 10)
+    where.vendedorId = Number(sesion.user.id)
   } else if (params.vendedor) {
     where.vendedorId = parseInt(params.vendedor)
   }
@@ -59,7 +59,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
     prisma.venta.findMany({
       where,
       include: {
-        vendedor: { select: { id: true, nombre: true, nombreUsuario: true } },
+        vendedor: { select: { id: true, nombre: true, email: true } },
         _count: { select: { items: true } },
       },
       orderBy: { creadoEn: 'desc' },
@@ -69,7 +69,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
     esAdmin
       ? prisma.usuario.findMany({
           where: { ventas: { some: {} } },
-          select: { id: true, nombre: true, nombreUsuario: true },
+          select: { id: true, nombre: true, email: true },
           orderBy: { nombre: 'asc' },
         })
       : Promise.resolve([]),
@@ -171,7 +171,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
                           {v.vendedor ? (
                             <>
                               <div className="font-medium">{v.vendedor.nombre}</div>
-                              <div className="text-xs text-gray-500">@{v.vendedor.nombreUsuario}</div>
+                              <div className="text-xs text-gray-500">@{v.vendedor.email}</div>
                             </>
                           ) : (
                             <span className="italic text-gray-400">(usuario eliminado)</span>
@@ -231,7 +231,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
                       Vendedor:{' '}
                       {v.vendedor ? (
                         <span className="font-medium">
-                          {v.vendedor.nombre} (@{v.vendedor.nombreUsuario})
+                          {v.vendedor.nombre} (@{v.vendedor.email})
                         </span>
                       ) : (
                         <span className="italic text-gray-400">(eliminado)</span>

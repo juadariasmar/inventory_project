@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     vendedorId?: number
     estado?: 'PENDIENTE' | 'CONVERTIDA' | 'CANCELADA'
   } = {}
-  if (!esAdmin) where.vendedorId = parseInt(sesion.user.id, 10)
+  if (!esAdmin) where.vendedorId = Number(sesion.user.id)
   if (estado === 'PENDIENTE' || estado === 'CONVERTIDA' || estado === 'CANCELADA') {
     where.estado = estado
   }
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
   const cotizaciones = await prisma.cotizacion.findMany({
     where,
     include: {
-      vendedor: { select: { id: true, nombre: true, nombreUsuario: true } },
+      vendedor: { select: { id: true, nombre: true, email: true } },
       _count: { select: { items: true } },
     },
     orderBy: { creadoEn: 'desc' },
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       consolidados.set(productoId, (consolidados.get(productoId) ?? 0) + cantidad)
     }
 
-    const vendedorId = sesion.user.id ? parseInt(sesion.user.id, 10) : null
+    const vendedorId = sesion.user.id ? Number(sesion.user.id) : null
     
     const resultado = await CotizacionesService.crearCotizacion(consolidados, vendedorId, notas, cliente, diasValidez)
     const cotizacion = resultado.cotizacion

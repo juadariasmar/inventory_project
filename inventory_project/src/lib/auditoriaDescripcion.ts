@@ -15,7 +15,7 @@ interface Datos {
   // campos especificos de algunas acciones:
   productoNuevaCantidad?: number
   contrasenaCambiada?: boolean
-  nombreUsuario?: string
+  email?: string
   motivo?: string
 }
 
@@ -51,7 +51,7 @@ const ETIQUETAS_CAMPO: Record<string, string> = {
   cantidad: 'cantidad',
   stockMinimo: 'stock mínimo',
   categoriaId: 'categoría',
-  nombreUsuario: 'usuario',
+  email: 'usuario',
   rol: 'rol',
 }
 
@@ -81,7 +81,7 @@ export function describirAuditoria(r: RegistroParaDescribir): string {
 
   // ----- SESION (LOGIN / LOGIN_FALLIDO) -----
   if (r.entidad === 'Sesion') {
-    const usuario = asString(d.nombreUsuario || despues.nombreUsuario || antes.nombreUsuario)
+    const usuario = asString(d.email || despues.email || antes.email)
     if (r.accion === 'LOGIN') {
       return usuario
         ? `Inició sesión como '${usuario}'.`
@@ -150,7 +150,7 @@ export function describirAuditoria(r: RegistroParaDescribir): string {
   // ----- USUARIO -----
   if (r.entidad === 'Usuario') {
     const usuario =
-      asString(despues.nombreUsuario || antes.nombreUsuario) ||
+      asString(despues.email || antes.email) ||
       `usuario #${r.entidadId ?? ''}`
     const rol = asString(despues.rol || antes.rol)
     const rolTexto = rol === 'ADMIN' ? 'Administrador' : rol === 'USUARIO' ? 'Usuario' : rol
@@ -162,7 +162,7 @@ export function describirAuditoria(r: RegistroParaDescribir): string {
       return rolTexto ? `${base} con rol ${rolTexto}.` : `${base}.`
     }
     if (r.accion === 'ACTUALIZAR') {
-      const cambios = listarCambios(antes, despues, ['nombre', 'nombreUsuario', 'rol'])
+      const cambios = listarCambios(antes, despues, ['nombre', 'email', 'rol'])
       // permisos: comparar arrays
       const permAntes = arr(antes.permisos)
       const permDespues = arr(despues.permisos)

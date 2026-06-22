@@ -2,35 +2,23 @@ import { prisma } from '../lib/db'
 import bcrypt from 'bcryptjs'
 import { AppError } from '../lib/AppError'
 
-function validarContrasena(contrasena: string): string | null {
-  if (contrasena.length < 8) return 'La contraseña debe tener al menos 8 caracteres.'
-  if (!/[A-Z]/.test(contrasena)) return 'La contraseña debe incluir al menos una letra mayúscula.'
-  if (!/[0-9]/.test(contrasena)) return 'La contraseña debe incluir al menos un número.'
-  return null
-}
+// Removed manual password validation since Neon Auth manages credentials
 
 const permisosValidos = ['VER_ANALISIS', 'EXPORTAR_REPORTES', 'REGISTRAR_MOVIMIENTOS', 'REALIZAR_VENTAS'] as const
 
 export const UsuariosService = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async crearUsuario(datos: any) {
-    if (!datos.nombreUsuario || !datos.contrasena || !datos.nombre) {
+    if (!datos.email || !datos.nombre) {
       throw new AppError('Campos requeridos faltantes', 400)
     }
 
-    const errorContrasena = validarContrasena(datos.contrasena)
-    if (errorContrasena) {
-      throw new AppError(errorContrasena, 400)
-    }
-
     const existente = await prisma.usuario.findUnique({
-      where: { nombreUsuario: datos.nombreUsuario },
+      where: { email: datos.email },
     })
     if (existente) {
       throw new AppError('El nombre de usuario ya existe', 409)
     }
-
-    const hash = await bcrypt.hash(datos.contrasena, 10)
 
     const permisos = Array.isArray(datos.permisos)
       ? datos.permisos.filter((p: string) => permisosValidos.includes(p as typeof permisosValidos[number]))
@@ -38,15 +26,15 @@ export const UsuariosService = {
 
     return await prisma.usuario.create({
       data: {
-        nombreUsuario: datos.nombreUsuario,
-        contrasena: hash,
+        neonAuthId: `pending-${Date.now()}`,
+        email: datos.email,
         nombre: datos.nombre,
         rol: datos.rol === 'ADMIN' ? 'ADMIN' : 'USUARIO',
         permisos,
       },
       select: {
         id: true,
-        nombreUsuario: true,
+        email: true,
         nombre: true,
         rol: true,
         permisos: true,
@@ -61,16 +49,10 @@ export const UsuariosService = {
     const datosActualizar: any = {}
 
     if (datos.nombre) datosActualizar.nombre = datos.nombre
-    if (datos.nombreUsuario) datosActualizar.nombreUsuario = datos.nombreUsuario
+    if (datos.email) datosActualizar.email = datos.email
     if (datos.rol === 'ADMIN' || datos.rol === 'USUARIO') datosActualizar.rol = datos.rol
 
-    if (datos.contrasena && datos.contrasena.length > 0) {
-      const errorContrasena = validarContrasena(datos.contrasena)
-      if (errorContrasena) {
-        throw new AppError(errorContrasena, 400)
-      }
-      datosActualizar.contrasena = await bcrypt.hash(datos.contrasena, 10)
-    }
+
 
     if (Array.isArray(datos.permisos)) {
       datosActualizar.permisos = datos.permisos.filter((p: string) =>
@@ -84,7 +66,7 @@ export const UsuariosService = {
     return await prisma.usuario.update({
       where: { id },
       data: datosActualizar,
-      select: { id: true, nombreUsuario: true, nombre: true, rol: true, permisos: true, creadoEn: true },
+      select: { id: true, email: true, nombre: true, rol: true, permisos: true, creadoEn: true },
     })
   },
 
