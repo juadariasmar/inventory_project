@@ -19,9 +19,6 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-    defaults:
-      run:
-        working-directory: inventory_project
 
     steps:
       - uses: actions/checkout@v4
