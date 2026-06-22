@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const datos = await request.json().catch(() => ({}))
     const expectedToken = process.env.RESET_TOKEN
 
-    if (expectedToken && datos.token !== expectedToken) {
+    if (!expectedToken || datos.token !== expectedToken) {
       return NextResponse.json(
         { error: 'Token de seguridad inválido o faltante.' },
         { status: 403 }
