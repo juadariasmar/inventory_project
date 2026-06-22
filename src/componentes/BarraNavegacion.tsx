@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { UserButton } from '@neondatabase/auth-ui'
-import { authClient } from '@/lib/auth/client'
 
 interface SubEnlace {
   href: string
@@ -29,7 +28,7 @@ interface Dropdown {
 
 type Item = EnlaceSimple | Dropdown
 
-export default function BarraNavegacion({ sesion }: { sesion: any }) {
+export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: string; permisos?: string[] } } | null }) {
   const pathname = usePathname()
   const [menuAbierto, setMenuAbierto] = useState(false)
   const [dropdownAbierto, setDropdownAbierto] = useState<string | null>(null)

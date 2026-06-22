@@ -20,6 +20,7 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock de NeonAuthUIProvider para inspeccionar las props que recibe
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockNeonAuthUIProvider = jest.fn((props: any) => <div data-testid="provider">{props.children}</div>);
 
 jest.mock('@neondatabase/auth-ui', () => ({
@@ -27,6 +28,7 @@ jest.mock('@neondatabase/auth-ui', () => ({
 }));
 
 import React from 'react';
+
 import { render } from '@testing-library/react';
 import ProveedorSesion from '../../componentes/ProveedorSesion';
 

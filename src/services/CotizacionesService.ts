@@ -1,5 +1,4 @@
 import { prisma } from '../lib/db'
-import { Prisma } from '@prisma/client'
 import { AppError } from '../lib/AppError'
 
 const DIAS_VALIDEZ_DEFECTO = 7

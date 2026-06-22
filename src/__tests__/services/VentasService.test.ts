@@ -1,7 +1,6 @@
 import { VentasService } from '../../services/VentasService';
 import { prisma } from '../../lib/db';
 import { AppError } from '../../lib/AppError';
-import { StockService } from '../../services/StockService';
 
 jest.mock('../../services/StockService', () => ({
   StockService: {

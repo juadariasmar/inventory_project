@@ -18,7 +18,7 @@ export const VentasService = {
         const p = mapaProductos.get(productoId)
         if (!p) throw new AppError(`Producto no encontrado o no pertenece a la empresa: ${productoId}`, 404)
         const reservado = reservas.get(productoId) ?? 0
-        StockService.validarDisponibilidad(p as any, cantidad, reservado)
+        StockService.validarDisponibilidad(p as Parameters<typeof StockService.validarDisponibilidad>[0], cantidad, reservado)
         itemsValidados.push({ productoId: p.id, cantidad, precio: p.precio, nombre: p.nombre, codigo: p.codigo })
       }
 
