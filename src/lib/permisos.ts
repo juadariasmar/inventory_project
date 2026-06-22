@@ -3,6 +3,7 @@ import { Permiso } from '@prisma/client'
 import { prisma } from './db'
 import { cache } from 'react'
 import { obtenerEmpresaPorDefectoId } from './empresa'
+import { esEmailAdministrador } from './adminEmails'
 
 export const obtenerSesion = cache(async () => {
   const { data } = await auth.getSession()
@@ -35,6 +36,19 @@ export const obtenerSesion = cache(async () => {
         rol: 'USUARIO',
         empresaId: await obtenerEmpresaPorDefectoId(),
       },
+    })
+  }
+
+  // Auto-promoción: si el correo está en ADMIN_EMAILS y aún no es admin activo,
+  // se le otorga ADMIN/ACTIVO. Evita tener que aprobar manualmente al admin inicial.
+  if (
+    usuario &&
+    esEmailAdministrador(usuario.email) &&
+    (usuario.rol !== 'ADMIN' || usuario.estado !== 'ACTIVO')
+  ) {
+    usuario = await prisma.usuario.update({
+      where: { id: usuario.id },
+      data: { rol: 'ADMIN', estado: 'ACTIVO' },
     })
   }
 

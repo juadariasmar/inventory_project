@@ -37,7 +37,7 @@ export default async function PaginaAuditoria({ searchParams }: Props) {
     redirect('/')
   }
   const empresaId = sesion.user.empresaId
-  if (!empresaId) redirect('/login')
+  if (!empresaId) redirect('/auth/sign-in')
 
   const params = await searchParams
 

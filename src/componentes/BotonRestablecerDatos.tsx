@@ -9,7 +9,6 @@ interface Conteos {
   movimientos: number
   ventas: number
   cotizaciones: number
-  auditorias: number
 }
 
 interface Propiedades {
@@ -31,8 +30,7 @@ export default function BotonRestablecerDatos({ conteos }: Propiedades) {
     conteos.categorias +
     conteos.movimientos +
     conteos.ventas +
-    conteos.cotizaciones +
-    conteos.auditorias
+    conteos.cotizaciones
 
   const cerrar = () => {
     if (trabajando) return
@@ -83,7 +81,6 @@ export default function BotonRestablecerDatos({ conteos }: Propiedades) {
             ['Movimientos', conteos.movimientos],
             ['Ventas', conteos.ventas],
             ['Cotizaciones', conteos.cotizaciones],
-            ['Auditoría', conteos.auditorias],
           ] as [string, number][]
         ).map(([etiqueta, n]) => (
           <div key={etiqueta} className="bg-gray-50 border border-gray-200 rounded-md p-3">
@@ -98,9 +95,9 @@ export default function BotonRestablecerDatos({ conteos }: Propiedades) {
           <div className="font-semibold">Base de datos restablecida.</div>
           <div className="mt-1">
             Se borraron {resultado.productos} producto(s), {resultado.categorias} categoría(s),{' '}
-            {resultado.movimientos} movimiento(s), {resultado.ventas} venta(s),{' '}
-            {resultado.cotizaciones} cotización(es) y {resultado.auditorias} registro(s) de
-            auditoría. Tus usuarios y permisos se conservaron.
+            {resultado.movimientos} movimiento(s), {resultado.ventas} venta(s) y{' '}
+            {resultado.cotizaciones} cotización(es). Tus usuarios, permisos y registros de
+            auditoría se conservaron.
           </div>
         </div>
       )}
@@ -141,10 +138,9 @@ export default function BotonRestablecerDatos({ conteos }: Propiedades) {
                 <li>{conteos.movimientos} movimiento(s)</li>
                 <li>{conteos.ventas} venta(s)</li>
                 <li>{conteos.cotizaciones} cotización(es)</li>
-                <li>{conteos.auditorias} entrada(s) de auditoría</li>
               </ul>
               <p className="text-sm text-emerald-800 mt-2">
-                ✓ Tus usuarios y permisos se mantienen.
+                ✓ Tus usuarios, permisos y registros de auditoría se mantienen.
               </p>
               <p className="text-sm text-red-700 mt-2 font-semibold">
                 Esta acción no se puede deshacer.

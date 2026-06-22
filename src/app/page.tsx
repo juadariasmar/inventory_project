@@ -49,7 +49,7 @@ async function obtenerEstadisticas(empresaId: string) {
 
 async function ContenidoDashboard() {
   const sesion = await obtenerSesion()
-  if (!sesion?.user?.empresaId) redirect('/login')
+  if (!sesion?.user?.empresaId) redirect('/auth/sign-in')
   const empresaId = sesion.user.empresaId
 
   const estadisticas = await obtenerEstadisticas(empresaId)
