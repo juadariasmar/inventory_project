@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import LayoutProtegido from '@/componentes/LayoutProtegido'
-import BotonRestablecerDatos from '@/componentes/BotonRestablecerDatos'
+import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
+import BotonRestablecerDatos from '@/componentes/admin/BotonRestablecerDatos'
 import { prisma } from '@/lib/db'
 import { obtenerSesion } from '@/lib/permisos'
 

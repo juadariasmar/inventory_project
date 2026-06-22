@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db'
-import LayoutProtegido from '@/componentes/LayoutProtegido'
-import FormularioProducto from '@/componentes/FormularioProducto'
+import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
+import FormularioProducto from '@/componentes/productos/FormularioProducto'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { obtenerSesion } from '@/lib/permisos'

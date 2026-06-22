@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import LayoutProtegido from '@/componentes/LayoutProtegido'
-import PanelCategorias from '@/componentes/PanelCategorias'
+import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
+import PanelCategorias from '@/componentes/productos/PanelCategorias'
 import { prisma } from '@/lib/db'
 import { obtenerSesion } from '@/lib/permisos'
 
