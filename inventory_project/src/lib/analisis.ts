@@ -88,7 +88,7 @@ const TOP_ROTACION = 10
  * Calcula la cantidad de unidades que han salido por producto en los últimos N días,
  * para luego estimar el consumo diario promedio.
  */
-async function consumoPorProducto(diasVentana: number) {
+async function consumoPorProducto(empresaId: string, diasVentana: number) {
   const desde = new Date()
   desde.setDate(desde.getDate() - diasVentana)
 
@@ -97,6 +97,7 @@ async function consumoPorProducto(diasVentana: number) {
   const salidas = await prisma.movimiento.groupBy({
     by: ['productoId'],
     where: {
+      empresaId,
       tipo: 'salida',
       creadoEn: { gte: desde },
       OR: [{ ventaId: null }, { venta: { canceladaEn: null } }],
@@ -116,11 +117,12 @@ async function consumoPorProducto(diasVentana: number) {
   )
 }
 
-export async function obtenerStockPorAgotarse(): Promise<AlertaStockAgotarse[]> {
+export async function obtenerStockPorAgotarse(empresaId: string): Promise<AlertaStockAgotarse[]> {
   const productos = await prisma.producto.findMany({
+    where: { empresaId },
     select: { id: true, nombre: true, codigo: true, cantidad: true, stockMinimo: true },
   })
-  const consumo = await consumoPorProducto(DIAS_VENTANA_CONSUMO)
+  const consumo = await consumoPorProducto(empresaId, DIAS_VENTANA_CONSUMO)
 
   const alertas: AlertaStockAgotarse[] = []
   for (const p of productos) {
@@ -170,8 +172,9 @@ export async function obtenerStockPorAgotarse(): Promise<AlertaStockAgotarse[]> 
   })
 }
 
-export async function obtenerProductosSinMovimientos(): Promise<AlertaSinMovimientos[]> {
+export async function obtenerProductosSinMovimientos(empresaId: string): Promise<AlertaSinMovimientos[]> {
   const productos = await prisma.producto.findMany({
+    where: { empresaId },
     select: {
       id: true,
       nombre: true,
@@ -209,13 +212,14 @@ export async function obtenerProductosSinMovimientos(): Promise<AlertaSinMovimie
   return alertas.sort((a, b) => b.valorInmovilizado - a.valorInmovilizado)
 }
 
-async function obtenerAltaRotacion(): Promise<ProductoAltaRotacion[]> {
+async function obtenerAltaRotacion(empresaId: string): Promise<ProductoAltaRotacion[]> {
   const desde = new Date()
   desde.setDate(desde.getDate() - DIAS_VENTANA_CONSUMO)
 
   const salidas = await prisma.movimiento.groupBy({
     by: ['productoId'],
     where: {
+      empresaId,
       tipo: 'salida',
       creadoEn: { gte: desde },
       OR: [{ ventaId: null }, { venta: { canceladaEn: null } }],
@@ -229,7 +233,7 @@ async function obtenerAltaRotacion(): Promise<ProductoAltaRotacion[]> {
   if (salidas.length === 0) return []
 
   const productos = await prisma.producto.findMany({
-    where: { id: { in: salidas.map((s) => s.productoId) } },
+    where: { id: { in: salidas.map((s) => s.productoId) }, empresaId },
     select: { id: true, nombre: true, codigo: true },
   })
   const mapaProductos = new Map(productos.map((p) => [p.id, p]))
@@ -249,12 +253,13 @@ async function obtenerAltaRotacion(): Promise<ProductoAltaRotacion[]> {
     .filter((x): x is ProductoAltaRotacion => x !== null)
 }
 
-async function obtenerStockCritico(): Promise<AlertaStockCritico[]> {
+async function obtenerStockCritico(empresaId: string): Promise<AlertaStockCritico[]> {
   const [productos, consumo] = await Promise.all([
     prisma.producto.findMany({
+      where: { empresaId },
       select: { id: true, nombre: true, codigo: true, cantidad: true, stockMinimo: true },
     }),
-    consumoPorProducto(DIAS_VENTANA_CONSUMO),
+    consumoPorProducto(empresaId, DIAS_VENTANA_CONSUMO),
   ])
 
   return productos
@@ -282,13 +287,13 @@ async function obtenerStockCritico(): Promise<AlertaStockCritico[]> {
 /**
  * Resumen de movimientos por día en los últimos N días para gráficos.
  */
-async function obtenerResumenMovimientos(dias = 30): Promise<ResumenMovimientos[]> {
+async function obtenerResumenMovimientos(empresaId: string, dias = 30): Promise<ResumenMovimientos[]> {
   const desde = new Date()
   desde.setDate(desde.getDate() - dias)
   desde.setHours(0, 0, 0, 0)
 
   const movimientos = await prisma.movimiento.findMany({
-    where: { creadoEn: { gte: desde } },
+    where: { empresaId, creadoEn: { gte: desde } },
     select: { tipo: true, cantidad: true, creadoEn: true },
     orderBy: { creadoEn: 'asc' },
   })
@@ -316,8 +321,9 @@ async function obtenerResumenMovimientos(dias = 30): Promise<ResumenMovimientos[
   }))
 }
 
-async function obtenerInventarioGeneral(): Promise<FilaInventarioGeneral[]> {
+async function obtenerInventarioGeneral(empresaId: string): Promise<FilaInventarioGeneral[]> {
   const productos = await prisma.producto.findMany({
+    where: { empresaId },
     select: {
       id: true,
       codigo: true,
@@ -365,13 +371,13 @@ async function obtenerInventarioGeneral(): Promise<FilaInventarioGeneral[]> {
  * Ventas por día (últimos N días): numero de ventas (Venta.id distintos) y
  * total ingresado (suma de Venta.total). Util para grafico de linea.
  */
-async function obtenerVentasPorDia(dias = 30): Promise<VentaDiaria[]> {
+async function obtenerVentasPorDia(empresaId: string, dias = 30): Promise<VentaDiaria[]> {
   const desde = new Date()
   desde.setDate(desde.getDate() - dias)
   desde.setHours(0, 0, 0, 0)
 
   const ventas = await prisma.venta.findMany({
-    where: { creadoEn: { gte: desde }, canceladaEn: null },
+    where: { empresaId, creadoEn: { gte: desde }, canceladaEn: null },
     select: { total: true, creadoEn: true },
     orderBy: { creadoEn: 'asc' },
   })
@@ -399,13 +405,13 @@ async function obtenerVentasPorDia(dias = 30): Promise<VentaDiaria[]> {
 /**
  * Categorías con más ventas (top N) por unidades vendidas y por ingreso total.
  */
-async function obtenerVentasPorCategoria(dias = 30, top = 8): Promise<CategoriaVentas[]> {
+async function obtenerVentasPorCategoria(empresaId: string, dias = 30, top = 8): Promise<CategoriaVentas[]> {
   const desde = new Date()
   desde.setDate(desde.getDate() - dias)
   desde.setHours(0, 0, 0, 0)
 
   const items = await prisma.itemVenta.findMany({
-    where: { venta: { creadoEn: { gte: desde }, canceladaEn: null } },
+    where: { venta: { empresaId, creadoEn: { gte: desde }, canceladaEn: null } },
     include: { producto: { include: { categoria: true } } },
   })
 
@@ -430,8 +436,9 @@ async function obtenerVentasPorCategoria(dias = 30, top = 8): Promise<CategoriaV
 /**
  * Distribucion del inventario por estado (sin stock / stock bajo / normal).
  */
-async function obtenerDistribucionStock(): Promise<DistribucionStock[]> {
+async function obtenerDistribucionStock(empresaId: string): Promise<DistribucionStock[]> {
   const productos = await prisma.producto.findMany({
+    where: { empresaId },
     select: { cantidad: true, stockMinimo: true },
   })
   let sinStock = 0, stockBajo = 0, normal = 0
@@ -448,7 +455,7 @@ async function obtenerDistribucionStock(): Promise<DistribucionStock[]> {
 }
 
 
-export async function obtenerTodoAnalisis() {
+export async function obtenerTodoAnalisis(empresaId: string) {
   const [
     inventarioGeneral,
     stockAgotarse,
@@ -460,15 +467,15 @@ export async function obtenerTodoAnalisis() {
     ventasPorCategoria,
     distribucionStock,
   ] = await Promise.all([
-    obtenerInventarioGeneral(),
-    obtenerStockPorAgotarse(),
-    obtenerProductosSinMovimientos(),
-    obtenerAltaRotacion(),
-    obtenerStockCritico(),
-    obtenerResumenMovimientos(30),
-    obtenerVentasPorDia(30),
-    obtenerVentasPorCategoria(30, 8),
-    obtenerDistribucionStock(),
+    obtenerInventarioGeneral(empresaId),
+    obtenerStockPorAgotarse(empresaId),
+    obtenerProductosSinMovimientos(empresaId),
+    obtenerAltaRotacion(empresaId),
+    obtenerStockCritico(empresaId),
+    obtenerResumenMovimientos(empresaId, 30),
+    obtenerVentasPorDia(empresaId, 30),
+    obtenerVentasPorCategoria(empresaId, 30, 8),
+    obtenerDistribucionStock(empresaId),
   ])
   return {
     inventarioGeneral,

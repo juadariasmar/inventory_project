@@ -7,9 +7,9 @@ describe('describirAuditoria', () => {
         accion: 'LOGIN',
         entidad: 'Sesion',
         entidadId: null,
-        datos: { nombreUsuario: 'admin' },
+        datos: { email: 'admin@example.com' },
       })
-      expect(txt).toBe("Inició sesión como 'admin'.")
+      expect(txt).toBe("Inició sesión como 'admin@example.com'.")
     })
 
     test('LOGIN_FALLIDO por contraseña incorrecta', () => {
@@ -17,9 +17,9 @@ describe('describirAuditoria', () => {
         accion: 'LOGIN_FALLIDO',
         entidad: 'Sesion',
         entidadId: null,
-        datos: { nombreUsuario: 'admin', motivo: 'CONTRASENA_INCORRECTA' },
+        datos: { email: 'admin@example.com', motivo: 'CONTRASENA_INCORRECTA' },
       })
-      expect(txt).toContain("'admin'")
+      expect(txt).toContain("'admin@example.com'")
       expect(txt).toContain('contraseña incorrecta')
     })
 
@@ -28,7 +28,7 @@ describe('describirAuditoria', () => {
         accion: 'LOGIN_FALLIDO',
         entidad: 'Sesion',
         entidadId: null,
-        datos: { nombreUsuario: 'fantasma', motivo: 'USUARIO_NO_EXISTE' },
+        datos: { email: 'fantasma@example.com', motivo: 'USUARIO_NO_EXISTE' },
       })
       expect(txt).toContain('usuario no existe')
     })
@@ -138,9 +138,9 @@ describe('describirAuditoria', () => {
         accion: 'CREAR',
         entidad: 'Usuario',
         entidadId: 5,
-        datos: { despues: { nombre: 'María Pérez', nombreUsuario: 'maria', rol: 'USUARIO' } },
+        datos: { despues: { nombre: 'María Pérez', email: 'maria@example.com', rol: 'USUARIO' } },
       })
-      expect(txt).toContain('@maria')
+      expect(txt).toContain('@maria@example.com')
       expect(txt).toContain('María Pérez')
       expect(txt).toContain('Usuario')
     })
@@ -151,8 +151,8 @@ describe('describirAuditoria', () => {
         entidad: 'Usuario',
         entidadId: 5,
         datos: {
-          antes: { nombreUsuario: 'maria', rol: 'USUARIO', permisos: ['VER_ANALISIS'] },
-          despues: { nombreUsuario: 'maria', rol: 'USUARIO', permisos: ['REALIZAR_VENTAS'] },
+          antes: { email: 'maria@example.com', rol: 'USUARIO', permisos: ['VER_ANALISIS'] },
+          despues: { email: 'maria@example.com', rol: 'USUARIO', permisos: ['REALIZAR_VENTAS'] },
         },
       })
       expect(txt).toContain('permisos agregados: REALIZAR_VENTAS')
@@ -165,8 +165,8 @@ describe('describirAuditoria', () => {
         entidad: 'Usuario',
         entidadId: 5,
         datos: {
-          antes: { nombreUsuario: 'maria', rol: 'USUARIO', permisos: [] },
-          despues: { nombreUsuario: 'maria', rol: 'USUARIO', permisos: [] },
+          antes: { email: 'maria@example.com', rol: 'USUARIO', permisos: [] },
+          despues: { email: 'maria@example.com', rol: 'USUARIO', permisos: [] },
           contrasenaCambiada: true,
         },
       })
@@ -178,9 +178,9 @@ describe('describirAuditoria', () => {
         accion: 'ELIMINAR',
         entidad: 'Usuario',
         entidadId: 5,
-        datos: { antes: { nombreUsuario: 'maria', nombre: 'María Pérez' } },
+        datos: { antes: { email: 'maria@example.com', nombre: 'María Pérez' } },
       })
-      expect(txt).toBe('Eliminó el usuario @maria (María Pérez).')
+      expect(txt).toBe('Eliminó el usuario @maria@example.com (María Pérez).')
     })
   })
 

@@ -36,10 +36,13 @@ export default async function PaginaAuditoria({ searchParams }: Props) {
   if (!sesion?.user || sesion.user.rol !== 'ADMIN') {
     redirect('/')
   }
+  const empresaId = sesion.user.empresaId
+  if (!empresaId) redirect('/login')
+
   const params = await searchParams
 
   const pagina = Math.max(1, parseInt(params.pagina ?? '1') || 1)
-  const where: Prisma.AuditoriaWhereInput = {}
+  const where: Prisma.AuditoriaWhereInput = { empresaId }
   if (params.usuario) where.usuarioId = params.usuario
   if (params.entidad) where.entidad = params.entidad
   if (params.accion) where.accion = params.accion
@@ -59,6 +62,7 @@ export default async function PaginaAuditoria({ searchParams }: Props) {
       take: POR_PAGINA,
     }),
     prisma.usuario.findMany({
+      where: { empresaId },
       select: { id: true, nombre: true, email: true },
       orderBy: { nombre: 'asc' },
     }),

@@ -4,21 +4,30 @@ import Link from 'next/link'
 import ListaProductosFiltrable from '@/componentes/ListaProductosFiltrable'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 
+import { redirect } from 'next/navigation'
+
 export const dynamic = 'force-dynamic'
 
 export default async function PaginaProductos() {
-  const [productos, categorias, sesion, puedeRealizarVentas, puedeRegistrar] =
+  const sesion = await obtenerSesion()
+  if (!sesion?.user?.empresaId) redirect('/login')
+  const empresaId = sesion.user.empresaId
+
+  const [productos, categorias, puedeRealizarVentas, puedeRegistrar] =
     await Promise.all([
       prisma.producto.findMany({
+        where: { empresaId },
         include: { categoria: true },
         orderBy: { nombre: 'asc' },
       }),
-      prisma.categoria.findMany({ orderBy: { nombre: 'asc' } }),
-      obtenerSesion(),
+      prisma.categoria.findMany({
+        where: { empresaId },
+        orderBy: { nombre: 'asc' },
+      }),
       tienePermiso('REALIZAR_VENTAS'),
       tienePermiso('REGISTRAR_MOVIMIENTOS'),
     ])
-  const esAdmin = sesion?.user?.rol === 'ADMIN'
+  const esAdmin = sesion.user.rol === 'ADMIN'
   const puedeVender = puedeRealizarVentas || puedeRegistrar
 
   return (

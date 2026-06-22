@@ -7,7 +7,8 @@ const permisosValidos = ['VER_ANALISIS', 'EXPORTAR_REPORTES', 'REGISTRAR_MOVIMIE
 
 export const UsuariosService = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async crearUsuario(datos: any) {
+  async crearUsuario(datos: any, empresaId: string) {
+    if (!empresaId) throw new AppError('empresaId es requerido', 400);
     if (!datos.email || !datos.nombre) {
       throw new AppError('Campos requeridos faltantes', 400)
     }
@@ -30,6 +31,7 @@ export const UsuariosService = {
         nombre: datos.nombre,
         rol: datos.rol === 'ADMIN' ? 'ADMIN' : 'USUARIO',
         permisos,
+        empresaId
       },
       select: {
         id: true,
@@ -44,7 +46,8 @@ export const UsuariosService = {
   },
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async actualizarUsuario(id: string, datos: any) {
+  async actualizarUsuario(id: string, datos: any, empresaId: string) {
+    if (!empresaId) throw new AppError('empresaId es requerido', 400);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const datosActualizar: any = {}
 
@@ -62,7 +65,7 @@ export const UsuariosService = {
     }
 
     const existe = await prisma.usuario.findUnique({ where: { id } })
-    if (!existe) throw new AppError('Usuario no encontrado', 404)
+    if (!existe || existe.empresaId !== empresaId) throw new AppError('Usuario no encontrado o no pertenece a la empresa', 404)
 
     return await prisma.usuario.update({
       where: { id },
@@ -71,13 +74,14 @@ export const UsuariosService = {
     })
   },
 
-  async eliminarUsuario(id: string, usuarioLogueadoId: string) {
+  async eliminarUsuario(id: string, usuarioLogueadoId: string, empresaId: string) {
+    if (!empresaId) throw new AppError('empresaId es requerido', 400);
     if (usuarioLogueadoId === id) {
       throw new AppError('No puedes eliminar tu propio usuario', 400)
     }
 
     const existe = await prisma.usuario.findUnique({ where: { id } })
-    if (!existe) throw new AppError('Usuario no encontrado', 404)
+    if (!existe || existe.empresaId !== empresaId) throw new AppError('Usuario no encontrado o no pertenece a la empresa', 404)
 
     await prisma.usuario.delete({ where: { id } })
     return true

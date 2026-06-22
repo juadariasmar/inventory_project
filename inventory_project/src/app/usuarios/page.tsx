@@ -9,11 +9,13 @@ export const dynamic = 'force-dynamic'
 
 export default async function PaginaUsuarios() {
   const sesion = await obtenerSesion()
-  if (!sesion?.user || sesion.user.rol !== 'ADMIN') {
+  if (!sesion?.user?.empresaId || sesion.user.rol !== 'ADMIN') {
     redirect('/')
   }
+  const empresaId = sesion.user.empresaId
 
   const usuarios = await prisma.usuario.findMany({
+    where: { empresaId },
     select: {
       id: true,
       email: true,

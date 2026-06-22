@@ -21,6 +21,10 @@ export async function GET(request: NextRequest) {
   if (!sesion?.user) {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
   }
+  const empresaId = sesion.user.empresaId
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
+  }
   const esAdmin = sesion.user.rol === 'ADMIN'
   if (!esAdmin && !(await tienePermiso('REALIZAR_VENTAS'))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
@@ -28,9 +32,10 @@ export async function GET(request: NextRequest) {
 
   const estado = request.nextUrl.searchParams.get('estado')
   const where: {
+    empresaId: string
     vendedorId?: string
     estado?: 'PENDIENTE' | 'CONVERTIDA' | 'CANCELADA'
-  } = {}
+  } = { empresaId }
   if (!esAdmin) where.vendedorId = sesion.user.id
   if (estado === 'PENDIENTE' || estado === 'CONVERTIDA' || estado === 'CANCELADA') {
     where.estado = estado
@@ -54,6 +59,10 @@ export async function POST(request: NextRequest) {
   const sesion = await obtenerSesion()
   if (!sesion?.user) {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+  }
+  const empresaId = sesion.user.empresaId
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
   }
   const esAdmin = sesion.user.rol === 'ADMIN'
   if (!esAdmin && !(await tienePermiso('REALIZAR_VENTAS'))) {
@@ -91,7 +100,7 @@ export async function POST(request: NextRequest) {
 
     const vendedorId = sesion.user.id ? sesion.user.id : null
     
-    const resultado = await CotizacionesService.crearCotizacion(consolidados, vendedorId, notas, cliente, diasValidez)
+    const resultado = await CotizacionesService.crearCotizacion(consolidados, vendedorId, notas, cliente, empresaId, diasValidez)
     const cotizacion = resultado.cotizacion
     const total = resultado.total
     const validaHasta = resultado.validaHasta
@@ -101,6 +110,7 @@ export async function POST(request: NextRequest) {
       accion: 'CREAR',
       entidad: 'Cotizacion',
       entidadId: cotizacion.id,
+      empresaId,
       datos: {
         despues: {
           id: cotizacion.id,

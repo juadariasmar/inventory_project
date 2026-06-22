@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server'
 import { prisma } from '../../lib/db'
 
 jest.mock('../../lib/permisos', () => ({
-  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 'test-user-prod-1', role: 'admin' } }),
+  obtenerSesion: jest.fn().mockResolvedValue({ user: { id: 'test-user-prod-1', role: 'admin', estado: 'ACTIVO', empresaId: 'test-empresa-prod-api' } }),
   esAdmin: jest.fn().mockResolvedValue(true)
 }))
 
@@ -16,16 +16,23 @@ jest.mock('next/cache', () => ({
 describe('Productos API', () => {
   let categoriaId: number
   let productoId: number
+  let empresaId: string
 
   let categoriaCreada = false
   let usuarioCreado = false
 
   beforeAll(async () => {
+    let emp = await prisma.empresa.findUnique({ where: { id: 'test-empresa-prod-api' } })
+    if (!emp) {
+      emp = await prisma.empresa.create({ data: { id: 'test-empresa-prod-api', nombre: 'Test Empresa Prod API' } })
+    }
+    empresaId = emp.id
+
     // Check if user 1 exists, if not create it
     let u = await prisma.usuario.findUnique({ where: { id: 'test-user-prod-1' } })
     if (!u) {
       u = await prisma.usuario.create({
-        data: { id: 'test-user-prod-1', neonAuthId: 'test-neon-auth-prod-1', nombre: 'Admin Prod', email: 'adminProdTest@example.com' }
+        data: { id: 'test-user-prod-1', neonAuthId: 'test-neon-auth-prod-1', nombre: 'Admin Prod', email: 'adminProdTest@example.com', empresaId }
       })
       usuarioCreado = true
     }
@@ -33,7 +40,7 @@ describe('Productos API', () => {
     let c = await prisma.categoria.findFirst({ where: { nombre: 'Test Cat Prod' } })
     if (!c) {
       c = await prisma.categoria.create({
-        data: { nombre: 'Test Cat Prod', prefijo: 'TCP' }
+        data: { nombre: 'Test Cat Prod', prefijo: 'TCP', empresaId }
       })
       categoriaCreada = true
     }
@@ -52,6 +59,7 @@ describe('Productos API', () => {
     if (usuarioCreado) {
       await prisma.usuario.deleteMany({ where: { id: 'test-user-prod-1' } })
     }
+    await prisma.empresa.delete({ where: { id: 'test-empresa-prod-api' } })
   })
 
   it('crea un producto exitosamente', async () => {

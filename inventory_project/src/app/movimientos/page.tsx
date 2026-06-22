@@ -3,19 +3,24 @@ import LayoutProtegido from '@/componentes/LayoutProtegido'
 import Link from 'next/link'
 import ListaMovimientosFiltrable from '@/componentes/ListaMovimientosFiltrable'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
+import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
 export default async function PaginaMovimientos() {
-  const [movimientos, puedeRegistrar, sesion] = await Promise.all([
+  const sesion = await obtenerSesion()
+  if (!sesion?.user?.empresaId) redirect('/login')
+  const empresaId = sesion.user.empresaId
+
+  const [movimientos, puedeRegistrar] = await Promise.all([
     prisma.movimiento.findMany({
+      where: { empresaId },
       include: { producto: true },
       orderBy: { creadoEn: 'desc' },
     }),
     tienePermiso('REGISTRAR_MOVIMIENTOS'),
-    obtenerSesion(),
   ])
-  const esAdmin = sesion?.user?.rol === 'ADMIN'
+  const esAdmin = sesion.user.rol === 'ADMIN'
 
   return (
     <LayoutProtegido>

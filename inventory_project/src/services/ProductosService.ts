@@ -4,10 +4,12 @@ import { registrarAuditoria } from '@/lib/auditoria'
 import { AppError } from '@/lib/AppError'
 
 export const ProductosService = {
-  async obtenerTodos(cursor?: number, limite: number = 50) {
+  async obtenerTodos(empresaId: string, cursor?: number, limite: number = 50) {
+    if (!empresaId) throw new AppError('empresaId es requerido', 400);
     const limiteReal = Math.min(limite, 100)
     
     const productos = await prisma.producto.findMany({
+      where: { empresaId },
       include: { categoria: true },
       orderBy: { creadoEn: 'desc' },
       take: limiteReal + 1,
@@ -26,7 +28,8 @@ export const ProductosService = {
   },
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async crear(datos: any, ip: string | null) {
+  async crear(datos: any, ip: string | null, empresaId: string) {
+    if (!empresaId) throw new AppError('empresaId es requerido', 400);
     const cantidadInicial = parseInt(datos.cantidad) || 0
 
     const nombre = typeof datos.nombre === 'string' ? datos.nombre.trim() : ''
@@ -40,15 +43,15 @@ export const ProductosService = {
     }
     const categoriaExiste = await prisma.categoria.findUnique({
       where: { id: categoriaId },
-      select: { id: true },
+      select: { id: true, empresaId: true },
     })
-    if (!categoriaExiste) {
-      throw new AppError('La categoría seleccionada no existe.', 400)
+    if (!categoriaExiste || categoriaExiste.empresaId !== empresaId) {
+      throw new AppError('La categoría seleccionada no existe o no pertenece a la empresa.', 400)
     }
 
     let codigo = typeof datos.codigo === 'string' ? datos.codigo.trim() : ''
     if (!codigo) {
-      codigo = await siguienteCodigoConsecutivoPorCategoria(categoriaId)
+      codigo = await siguienteCodigoConsecutivoPorCategoria(categoriaId, empresaId)
     }
 
     const precio = parseFloat(datos.precio)
@@ -67,6 +70,7 @@ export const ProductosService = {
             cantidad: cantidadInicial,
             stockMinimo: parseInt(datos.stockMinimo) || 1,
             categoriaId,
+            empresaId
           },
         })
 
@@ -76,7 +80,7 @@ export const ProductosService = {
               productoId: nuevo.id,
               tipo: 'entrada',
               cantidad: cantidadInicial,
-              notas: 'Stock inicial',
+              notas: 'Stock inicial'
             },
           })
         }
@@ -87,9 +91,10 @@ export const ProductosService = {
       await registrarAuditoria({
         accion: 'CREAR',
         entidad: 'Producto',
-        entidadId: producto.id,
+        entidadId: String(producto.id),
         datos: { despues: producto },
         ip,
+        empresaId
       })
 
       return producto

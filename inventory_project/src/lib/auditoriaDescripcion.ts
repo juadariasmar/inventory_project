@@ -5,7 +5,7 @@
 export interface RegistroParaDescribir {
   accion: string
   entidad: string
-  entidadId: number | null
+  entidadId: string | null
   datos: unknown
 }
 

@@ -12,8 +12,13 @@ export async function GET() {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
+  const empresaId = session.user.empresaId;
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 });
+  }
+
   try {
-    const categorias = await CategoriasService.obtenerTodos();
+    const categorias = await CategoriasService.obtenerTodos(empresaId);
     return NextResponse.json(categorias);
   } catch (error) {
     console.error('Error al obtener categorías:', error);
@@ -29,12 +34,18 @@ export async function POST(request: NextRequest) {
   if (!(await esAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
+  
+  const session = await obtenerSesion();
+  const empresaId = session?.user?.empresaId;
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 });
+  }
 
   try {
     const data = await request.json();
     const ip = extraerIp(request);
     
-    const categoria = await CategoriasService.crear(data, ip ?? '127.0.0.1');
+    const categoria = await CategoriasService.crear(data, ip ?? '127.0.0.1', empresaId);
 
     revalidatePath('/categorias');
     revalidatePath('/productos/categorias');

@@ -8,19 +8,21 @@ import { obtenerStockPorAgotarse, obtenerProductosSinMovimientos } from '@/lib/a
 import { MARGEN_ALERTA_STOCK } from '@/lib/inventario'
 import { formatearFecha } from '@/lib/fechas'
 import { Suspense } from 'react'
+import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
-async function obtenerEstadisticas() {
+async function obtenerEstadisticas(empresaId: string) {
   const [
     totalProductos,
     totalCategorias,
     movimientosRecientes,
     [metricasDB]
   ] = await Promise.all([
-    prisma.producto.count(),
-    prisma.categoria.count(),
+    prisma.producto.count({ where: { empresaId } }),
+    prisma.categoria.count({ where: { empresaId } }),
     prisma.movimiento.findMany({
+      where: { empresaId },
       take: 5,
       orderBy: { creadoEn: 'desc' },
       include: { producto: true },
@@ -31,6 +33,7 @@ async function obtenerEstadisticas() {
         COALESCE(SUM(CASE WHEN cantidad <= 0 THEN 1 ELSE 0 END), 0)::int as "productosSinStock",
         COALESCE(SUM(CASE WHEN cantidad > 0 AND cantidad <= "stockMinimo" + ${MARGEN_ALERTA_STOCK} THEN 1 ELSE 0 END), 0)::int as "productosStockBajo"
       FROM "Producto"
+      WHERE "empresaId" = ${empresaId}
     `
   ])
 
@@ -45,10 +48,11 @@ async function obtenerEstadisticas() {
 }
 
 async function ContenidoDashboard() {
-  const [estadisticas, sesion] = await Promise.all([
-    obtenerEstadisticas(),
-    obtenerSesion()
-  ])
+  const sesion = await obtenerSesion()
+  if (!sesion?.user?.empresaId) redirect('/login')
+  const empresaId = sesion.user.empresaId
+
+  const estadisticas = await obtenerEstadisticas(empresaId)
   const esAdmin = sesion?.user?.rol === 'ADMIN'
 
   const puedeVerAnalisis = await tienePermiso('VER_ANALISIS')
@@ -56,7 +60,7 @@ async function ContenidoDashboard() {
   const puedeVender = esAdmin || (await tienePermiso('REALIZAR_VENTAS'))
   const hayAccionesRapidas = esAdmin || puedeRegistrarMovimientos || puedeVender
   const [stockAgotarse, sinMovimientos] = puedeVerAnalisis
-    ? await Promise.all([obtenerStockPorAgotarse(), obtenerProductosSinMovimientos()])
+    ? await Promise.all([obtenerStockPorAgotarse(empresaId), obtenerProductosSinMovimientos(empresaId)])
     : [[], []]
   const alertasTotales = stockAgotarse.length + sinMovimientos.length
 
