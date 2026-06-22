@@ -1,28 +1,13 @@
 import { redirect } from 'next/navigation'
 import { obtenerSesion } from '@/lib/permisos'
 import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
-import nextDynamic from 'next/dynamic'
-
-const GraficoMovimientos = nextDynamic(() => import('@/componentes/graficos/GraficoMovimientos'), {
-  ssr: false,
-  loading: () => <div className="h-64 bg-gray-50 animate-pulse rounded-lg flex items-center justify-center text-gray-400 text-sm">Cargando gráfico...</div>
-})
-const GraficoAltaRotacion = nextDynamic(() => import('@/componentes/graficos/GraficoAltaRotacion'), {
-  ssr: false,
-  loading: () => <div className="h-64 bg-gray-50 animate-pulse rounded-lg flex items-center justify-center text-gray-400 text-sm">Cargando gráfico...</div>
-})
-const GraficoVentasDiarias = nextDynamic(() => import('@/componentes/graficos/GraficoVentasDiarias'), {
-  ssr: false,
-  loading: () => <div className="h-64 bg-gray-50 animate-pulse rounded-lg flex items-center justify-center text-gray-400 text-sm">Cargando gráfico...</div>
-})
-const GraficoVentasCategoria = nextDynamic(() => import('@/componentes/graficos/GraficoVentasCategoria'), {
-  ssr: false,
-  loading: () => <div className="h-64 bg-gray-50 animate-pulse rounded-lg flex items-center justify-center text-gray-400 text-sm">Cargando gráfico...</div>
-})
-const GraficoDistribucionStock = nextDynamic(() => import('@/componentes/graficos/GraficoDistribucionStock'), {
-  ssr: false,
-  loading: () => <div className="h-64 bg-gray-50 animate-pulse rounded-lg flex items-center justify-center text-gray-400 text-sm">Cargando gráfico...</div>
-})
+import {
+  GraficoMovimientos,
+  GraficoAltaRotacion,
+  GraficoVentasDiarias,
+  GraficoVentasCategoria,
+  GraficoDistribucionStock
+} from './GraficosCliente'
 
 import BotonExportarAnalisis from '@/componentes/comunes/BotonExportarAnalisis'
 import InventarioGeneralAgrupado from '@/componentes/productos/InventarioGeneralAgrupado'
