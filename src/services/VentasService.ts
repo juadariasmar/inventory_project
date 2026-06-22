@@ -57,7 +57,8 @@ export const VentasService = {
             tipo: 'salida',
             cantidad: it.cantidad,
             notas: notas ? `Venta #${venta.id} — ${notas}` : `Venta #${venta.id}`,
-            ventaId: venta.id
+            ventaId: venta.id,
+            empresaId
           },
         })
         await tx.producto.update({ where: { id: it.productoId }, data: { cantidad: { decrement: it.cantidad } } })
