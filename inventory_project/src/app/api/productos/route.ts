@@ -7,7 +7,8 @@ import { AppError } from '@/lib/AppError'
 
 // GET - Obtener todos los productos (con paginacion por cursor)
 export async function GET(request: NextRequest) {
-  if (!(await obtenerSesion())?.user) {
+  const sesion = await obtenerSesion();
+  if (!sesion?.user || sesion.user.estado !== 'ACTIVO') {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
   }
   try {

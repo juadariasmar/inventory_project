@@ -187,7 +187,7 @@ model Auditoria {
   usuario   Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
   accion    String   // CREAR | ACTUALIZAR | ELIMINAR | LOGIN | LOGIN_FALLIDO
   entidad   String   // Producto | Categoria | Movimiento | Usuario | Sesion
-  entidadId Int?
+  entidadId String?
   datos     Json?    // { antes: {...}, despues: {...} } o detalles especificos del evento
   ip        String?
   creadoEn  DateTime @default(now())

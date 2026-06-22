@@ -63,7 +63,7 @@ export async function registrarAuditoria(params: ParametrosAuditoria): Promise<v
         usuarioId: usuarioId ?? null,
         accion: params.accion,
         entidad: params.entidad,
-        entidadId: typeof params.entidadId === 'number' ? params.entidadId : null,
+        entidadId: params.entidadId != null ? String(params.entidadId) : null,
         // Prisma JsonValue acepta cualquier objeto serializable
         datos: (params.datos as object | null | undefined) ?? undefined,
         ip: params.ip ?? null,
