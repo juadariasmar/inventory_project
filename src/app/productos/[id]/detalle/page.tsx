@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import LayoutProtegido from '@/componentes/LayoutProtegido'
+import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
 import { prisma } from '@/lib/db'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 import { estadoStock, etiquetaEstadoStock, type EstadoStock } from '@/lib/inventario'

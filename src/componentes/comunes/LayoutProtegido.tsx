@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { obtenerSesion } from '@/lib/permisos'
-import BarraNavegacion from './BarraNavegacion'
+import BarraNavegacion from '../BarraNavegacion'
 import PendienteAprobacion from './PendienteAprobacion'
 
 interface PropiedadesLayout {

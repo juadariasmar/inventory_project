@@ -1,4 +1,4 @@
-import LayoutProtegido from '@/componentes/LayoutProtegido'
+import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
 import { AccountView } from '@neondatabase/auth-ui'
 import { accountViewPaths } from '@neondatabase/auth-ui/server'
 

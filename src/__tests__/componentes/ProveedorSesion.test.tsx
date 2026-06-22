@@ -30,7 +30,7 @@ jest.mock('@neondatabase/auth-ui', () => ({
 import React from 'react';
 
 import { render } from '@testing-library/react';
-import ProveedorSesion from '../../componentes/ProveedorSesion';
+import ProveedorSesion from '../../componentes/comunes/ProveedorSesion';
 
 describe('ProveedorSesion', () => {
   beforeEach(() => {
