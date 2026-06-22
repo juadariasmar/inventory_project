@@ -66,6 +66,16 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
         { href: '/movimientos', etiqueta: 'Movimientos', visible: true },
       ],
     },
+    {
+      tipo: 'dropdown',
+      id: 'compras',
+      etiqueta: 'Compras',
+      visible: esAdmin,
+      items: [
+        { href: '/proveedores', etiqueta: 'Proveedores', visible: true },
+        { href: '/proveedores/ordenes', etiqueta: 'Órdenes de compra', visible: true },
+      ],
+    },
     { tipo: 'enlace', href: '/analisis', etiqueta: 'Análisis', visible: puedeVerAnalisis },
     {
       tipo: 'dropdown',
