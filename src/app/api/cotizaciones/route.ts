@@ -3,7 +3,6 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { obtenerSesion, tienePermiso } from '@/lib/permisos'
 import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
-import { obtenerDisponiblePorProducto } from '@/lib/reservas'
 import { CotizacionesService } from '@/services/CotizacionesService'
 import { AppError } from '@/lib/AppError'
 

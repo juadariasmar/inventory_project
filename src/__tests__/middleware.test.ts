@@ -4,7 +4,7 @@ import { createMockRequest } from './utils/test-utils';
 jest.mock('../../src/lib/auth/server', () => ({
   auth: {
     getSession: jest.fn().mockResolvedValue(null),
-    middleware: jest.fn(() => (req: any) => null)
+    middleware: jest.fn(() => () => null)
   }
 }));
 

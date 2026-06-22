@@ -64,7 +64,7 @@ export const MovimientosService = {
         });
         const stockReservado = reservas._sum.cantidad || 0;
         
-        StockService.validarDisponibilidad(producto as any, cantidad, stockReservado);
+        StockService.validarDisponibilidad(producto as Parameters<typeof StockService.validarDisponibilidad>[0], cantidad, stockReservado);
       }
 
       const movimiento = await tx.movimiento.create({

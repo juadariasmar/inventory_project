@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import BarraSeleccionMultiple from '@/componentes/BarraSeleccionMultiple'
 
 interface ProductoEnCategoria {
@@ -65,7 +65,7 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
   const [busqueda, setBusqueda] = useState('')
   const [expandidaId, setExpandidaId] = useState<number | null>(null)
   const [nuevoNombre, setNuevoNombre] = useState('')
-  const [nuevoPrefijo, setNuevoPrefijo] = useState('')
+  const [nuevoPrefijoManual, setNuevoPrefijoManual] = useState('')
   const [prefijoEditadoManual, setPrefijoEditadoManual] = useState(false)
   const [creando, setCreando] = useState(false)
   const [eliminandoId, setEliminandoId] = useState<number | null>(null)
@@ -78,17 +78,12 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
   const [error, setError] = useState('')
   const [exito, setExito] = useState('')
 
-  // Mantener prefijo sugerido sincronizado con el nombre (mientras el
-  // usuario no lo edite manualmente).
-  useEffect(() => {
-    if (prefijoEditadoManual) return
+  const nuevoPrefijo = useMemo(() => {
+    if (prefijoEditadoManual) return nuevoPrefijoManual
+    if (!nuevoNombre.trim()) return ''
     const enUso = new Set(categorias.map((c) => c.prefijo))
-    if (nuevoNombre.trim()) {
-      setNuevoPrefijo(prefijoSugeridoLocal(nuevoNombre, enUso))
-    } else {
-      setNuevoPrefijo('')
-    }
-  }, [nuevoNombre, categorias, prefijoEditadoManual])
+    return prefijoSugeridoLocal(nuevoNombre, enUso)
+  }, [nuevoNombre, categorias, prefijoEditadoManual, nuevoPrefijoManual])
 
   const recargar = async () => {
     try {
@@ -133,7 +128,7 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
         const cat = await r.json()
         setExito(`Categoría "${nombre}" creada con prefijo ${cat.prefijo}.`)
         setNuevoNombre('')
-        setNuevoPrefijo('')
+        setNuevoPrefijoManual('')
         setPrefijoEditadoManual(false)
         await recargar()
         router.refresh()
@@ -561,7 +556,7 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
               type="text"
               value={nuevoPrefijo}
               onChange={(e) => {
-                setNuevoPrefijo(e.target.value.toUpperCase())
+                setNuevoPrefijoManual(e.target.value.toUpperCase())
                 setPrefijoEditadoManual(true)
               }}
               maxLength={8}

@@ -1,7 +1,6 @@
 import { POST } from '../../app/api/webhooks/neon/route'
 import { WebhooksService } from '../../services/WebhooksService'
 import { NextRequest } from 'next/server'
-import { createMockRequest } from '../utils/test-utils'
 
 jest.mock('../../services/WebhooksService')
 

@@ -23,6 +23,7 @@ export class WebhooksService {
   /**
    * Procesa el evento de creacion de usuario de Neon Auth.
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static async procesarEventoUsuarioCreado(payload: any): Promise<void> {
     // Validacion muy basica (podria usarse Zod para mas robustez)
     if (!payload || !payload.id || !payload.email) {
