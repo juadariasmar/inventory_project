@@ -1,13 +1,16 @@
 import { redirect } from 'next/navigation'
 import { obtenerSesion } from '@/lib/permisos'
-import LayoutProtegido from '@/componentes/LayoutProtegido'
-import GraficoMovimientos from '@/componentes/GraficoMovimientos'
-import GraficoAltaRotacion from '@/componentes/GraficoAltaRotacion'
-import GraficoVentasDiarias from '@/componentes/GraficoVentasDiarias'
-import GraficoVentasCategoria from '@/componentes/GraficoVentasCategoria'
-import GraficoDistribucionStock from '@/componentes/GraficoDistribucionStock'
-import BotonExportarAnalisis from '@/componentes/BotonExportarAnalisis'
-import InventarioGeneralAgrupado from '@/componentes/InventarioGeneralAgrupado'
+import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
+import {
+  GraficoMovimientos,
+  GraficoAltaRotacion,
+  GraficoVentasDiarias,
+  GraficoVentasCategoria,
+  GraficoDistribucionStock
+} from './GraficosCliente'
+
+import BotonExportarAnalisis from '@/componentes/comunes/BotonExportarAnalisis'
+import InventarioGeneralAgrupado from '@/componentes/productos/InventarioGeneralAgrupado'
 import { obtenerTodoAnalisis } from '@/lib/analisis'
 import { tienePermiso } from '@/lib/permisos'
 import { Suspense } from 'react'

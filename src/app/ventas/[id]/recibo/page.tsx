@@ -3,8 +3,8 @@ import { notFound, redirect } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { obtenerSesion } from '@/lib/permisos'
 import { formatearFechaHora } from '@/lib/fechas'
-import BotonImprimir from '@/componentes/BotonImprimir'
-import BotonCancelarVenta from '@/componentes/BotonCancelarVenta'
+import BotonImprimir from '@/componentes/comunes/BotonImprimir'
+import BotonCancelarVenta from '@/componentes/ventas/BotonCancelarVenta'
 
 export const dynamic = 'force-dynamic'
 

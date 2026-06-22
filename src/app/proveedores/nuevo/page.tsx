@@ -1,5 +1,5 @@
-import LayoutProtegido from '@/componentes/LayoutProtegido'
-import FormularioProveedor from '@/componentes/FormularioProveedor'
+import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
+import FormularioProveedor from '@/componentes/compras/FormularioProveedor'
 import Link from 'next/link'
 import { obtenerSesion } from '@/lib/permisos'
 import { redirect } from 'next/navigation'
