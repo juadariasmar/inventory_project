@@ -40,7 +40,7 @@ export const obtenerSesion = cache(async () => {
 
 export async function esAdmin() {
   const sesion = await obtenerSesion()
-  return sesion?.user?.rol === 'ADMIN'
+  return sesion?.user?.rol === 'ADMIN' && sesion?.user?.estado === 'ACTIVO'
 }
 
 const obtenerPermisosUsuario = cache(async (usuarioId: string) => {
@@ -53,7 +53,7 @@ const obtenerPermisosUsuario = cache(async (usuarioId: string) => {
 
 export async function tienePermiso(permiso: Permiso): Promise<boolean> {
   const sesion = await obtenerSesion()
-  if (!sesion?.user) return false
+  if (!sesion?.user || sesion.user.estado !== 'ACTIVO') return false
   if (sesion.user.rol === 'ADMIN') return true
 
   const idParaBuscar = typeof sesion.user.id === 'string' ? sesion.user.id : String(sesion.user.id)

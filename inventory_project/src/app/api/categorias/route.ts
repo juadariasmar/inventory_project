@@ -8,7 +8,7 @@ import { extraerIp } from '@/lib/auditoria';
 // GET - Obtener todas las categorías
 export async function GET() {
   const session = await obtenerSesion();
-  if (!session?.user) {
+  if (!session?.user || session.user.estado !== 'ACTIVO') {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 

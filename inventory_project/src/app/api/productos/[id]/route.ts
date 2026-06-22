@@ -10,7 +10,8 @@ interface Parametros {
 
 // GET - Obtener un producto por ID
 export async function GET(request: NextRequest, { params }: Parametros) {
-  if (!(await obtenerSesion())?.user) {
+  const sesion = await obtenerSesion();
+  if (!sesion?.user || sesion.user.estado !== 'ACTIVO') {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
   }
   try {
