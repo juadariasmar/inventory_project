@@ -3,11 +3,13 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
+  const empresa = (await prisma.empresa.findFirst()) ?? (await prisma.empresa.create({ data: { nombre: 'Empresa Demo' } }))
   const newUser = await prisma.usuario.create({
     data: {
       neonAuthId: `fake-id-${Date.now()}`,
       email: `alice_local_${Date.now()}`,
       nombre: 'Alice Local',
+      empresaId: empresa.id,
     },
   })
   console.log('Created usuario:', newUser)

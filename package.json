@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma migrate deploy && next build",
+    "build": "prisma generate && prisma db push && next build",
     "start": "next start",
     "test:prisma-local": "tsx src/main-local.ts",
     "test:prisma": "tsx src/main.ts",
@@ -29,13 +29,14 @@
     "@upstash/redis": "^1.38.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
-    "dotenv": "^17.2.3",
     "exceljs": "^4.4.0",
     "next": "16.0.7",
+    "pdf-lib": "^1.17.1",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "recharts": "^3.8.1",
-    "ws": "^8.21.0"
+    "ws": "^8.21.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@jest/globals": "^30.4.1",
@@ -49,6 +50,7 @@
     "@types/react-dom": "^19",
     "@types/ws": "^8.18.1",
     "baseline-browser-mapping": "^2.10.33",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
     "jest": "^30.4.2",
