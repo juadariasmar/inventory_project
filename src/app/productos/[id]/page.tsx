@@ -30,7 +30,7 @@ async function obtenerCategorias(empresaId: string) {
 
 export default async function PaginaEditarProducto({ params }: PropiedadesPagina) {
   const sesion = await obtenerSesion()
-  if (!sesion?.user?.empresaId) redirect('/login')
+  if (!sesion?.user?.empresaId) redirect('/auth/sign-in')
   const empresaId = sesion.user.empresaId
 
   const { id } = await params

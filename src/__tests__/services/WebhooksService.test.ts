@@ -16,6 +16,7 @@ jest.mock('../../lib/db', () => ({
 describe('WebhooksService', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    delete process.env.ADMIN_EMAILS
     ;(prisma.empresa.findFirst as jest.Mock).mockResolvedValue({ id: 'empresa-default-id' })
   })
 
@@ -62,29 +63,17 @@ describe('WebhooksService', () => {
     })
 
     it('debe ignorar si el usuario ya existe (idempotencia)', async () => {
-      const payload = {
-        id: 'neon-123',
-        email: 'test@ejemplo.com',
-        name: 'Test'
-      }
+      const payload = { id: 'neon-123', email: 'test@ejemplo.com', name: 'Test' }
       ;(prisma.usuario.findUnique as jest.Mock).mockResolvedValue({ id: 'local-1' })
-
       await WebhooksService.procesarEventoUsuarioCreado(payload)
-
       expect(prisma.usuario.findUnique).toHaveBeenCalledWith({ where: { neonAuthId: 'neon-123' } })
       expect(prisma.usuario.create).not.toHaveBeenCalled()
     })
 
     it('debe crear el usuario en estado PENDIENTE (con empresa por defecto) si no existe', async () => {
-      const payload = {
-        id: 'neon-123',
-        email: 'test@ejemplo.com',
-        name: 'Test Name'
-      }
+      const payload = { id: 'neon-123', email: 'test@ejemplo.com', name: 'Test Name' }
       ;(prisma.usuario.findUnique as jest.Mock).mockResolvedValue(null)
-
       await WebhooksService.procesarEventoUsuarioCreado(payload)
-
       expect(prisma.usuario.create).toHaveBeenCalledWith({
         data: {
           neonAuthId: 'neon-123',
@@ -97,21 +86,28 @@ describe('WebhooksService', () => {
       })
     })
 
-    it('debe usar el email como nombre si no viene name', async () => {
-      const payload = {
-        id: 'neon-123',
-        email: 'test@ejemplo.com'
-      }
+    it('debe crear como ADMIN/ACTIVO si el email está en ADMIN_EMAILS', async () => {
+      process.env.ADMIN_EMAILS = 'jefe@empresa.com, test@ejemplo.com'
       ;(prisma.usuario.findUnique as jest.Mock).mockResolvedValue(null)
+      await WebhooksService.procesarEventoUsuarioCreado({ id: 'neon-9', email: 'test@ejemplo.com', name: 'Jefe' })
+      expect(prisma.usuario.create).toHaveBeenCalledWith({
+        data: {
+          neonAuthId: 'neon-9',
+          email: 'test@ejemplo.com',
+          nombre: 'Jefe',
+          estado: 'ACTIVO',
+          rol: 'ADMIN',
+          empresaId: 'empresa-default-id'
+        }
+      })
+    })
 
+    it('debe usar el email como nombre si no viene name', async () => {
+      const payload = { id: 'neon-123', email: 'test@ejemplo.com' }
+      ;(prisma.usuario.findUnique as jest.Mock).mockResolvedValue(null)
       await WebhooksService.procesarEventoUsuarioCreado(payload)
-
       expect(prisma.usuario.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            nombre: 'test@ejemplo.com'
-          })
-        })
+        expect.objectContaining({ data: expect.objectContaining({ nombre: 'test@ejemplo.com' }) })
       )
     })
   })
