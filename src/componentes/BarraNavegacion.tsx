@@ -127,7 +127,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
           </Link>
 
           {/* Enlaces escritorio */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden md:flex! items-center space-x-1">
             {items.map((item) => {
               if (item.tipo === 'enlace') {
                 return (
@@ -188,7 +188,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
           </div>
 
           {/* Mi cuenta (escritorio) */}
-          <div className="hidden md:flex items-center">
+          <div className="hidden md:flex! items-center">
             {sesion?.user && (
               <UserButton size="icon" />
             )}
