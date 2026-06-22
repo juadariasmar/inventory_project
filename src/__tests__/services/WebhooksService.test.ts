@@ -31,11 +31,30 @@ describe('WebhooksService', () => {
       const resultado = await WebhooksService.validarFirma('secreto_super_seguro')
       expect(resultado).toBe(true)
     })
+
+    it('debe rechazar un token de igual longitud pero distinto (timingSafeEqual)', async () => {
+      process.env.NEON_WEBHOOK_SECRET = 'secreto_super_seguro'
+      const mismaLongitud = 'X'.repeat('secreto_super_seguro'.length)
+      await expect(WebhooksService.validarFirma(mismaLongitud)).rejects.toThrow('Firma de webhook inválida')
+    })
+
+    it('debe rechazar (sin RangeError) un token de longitud distinta al secreto', async () => {
+      process.env.NEON_WEBHOOK_SECRET = 'secreto_super_seguro'
+      await expect(WebhooksService.validarFirma('x')).rejects.toThrow('Firma de webhook inválida')
+    })
   })
 
   describe('procesarEventoUsuarioCreado', () => {
     it('debe lanzar error si el payload es invalido', async () => {
       await expect(WebhooksService.procesarEventoUsuarioCreado({})).rejects.toThrow('Payload inválido para evento user.created')
+    })
+
+    it('debe lanzar 400 si el email no es un correo válido (Zod)', async () => {
+      ;(prisma.usuario.findUnique as jest.Mock).mockResolvedValue(null)
+      await expect(
+        WebhooksService.procesarEventoUsuarioCreado({ id: 'neon-1', email: 'no-es-email' })
+      ).rejects.toThrow('Payload inválido para evento user.created')
+      expect(prisma.usuario.create).not.toHaveBeenCalled()
     })
 
     it('debe ignorar si el usuario ya existe (idempotencia)', async () => {
@@ -45,9 +64,9 @@ describe('WebhooksService', () => {
         name: 'Test'
       }
       ;(prisma.usuario.findUnique as jest.Mock).mockResolvedValue({ id: 'local-1' })
-      
+
       await WebhooksService.procesarEventoUsuarioCreado(payload)
-      
+
       expect(prisma.usuario.findUnique).toHaveBeenCalledWith({ where: { neonAuthId: 'neon-123' } })
       expect(prisma.usuario.create).not.toHaveBeenCalled()
     })
@@ -59,9 +78,9 @@ describe('WebhooksService', () => {
         name: 'Test Name'
       }
       ;(prisma.usuario.findUnique as jest.Mock).mockResolvedValue(null)
-      
+
       await WebhooksService.procesarEventoUsuarioCreado(payload)
-      
+
       expect(prisma.usuario.create).toHaveBeenCalledWith({
         data: {
           neonAuthId: 'neon-123',
@@ -79,9 +98,9 @@ describe('WebhooksService', () => {
         email: 'test@ejemplo.com'
       }
       ;(prisma.usuario.findUnique as jest.Mock).mockResolvedValue(null)
-      
+
       await WebhooksService.procesarEventoUsuarioCreado(payload)
-      
+
       expect(prisma.usuario.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({

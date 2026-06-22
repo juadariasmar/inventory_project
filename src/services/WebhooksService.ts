@@ -1,19 +1,40 @@
 import { prisma } from '../lib/db'
 import { AppError } from '../lib/AppError'
+import { timingSafeEqual } from 'crypto'
+import { z } from 'zod'
+
+// Esquema estricto del payload de creación de usuario de Neon Auth.
+// Evita procesar datos malformados o inyecciones de campos inesperados.
+const usuarioCreadoSchema = z.object({
+  id: z.string().min(1),
+  email: z.email(),
+  name: z.string().optional(),
+})
 
 export class WebhooksService {
   /**
    * Valida que el token proporcionado coincida con el secreto configurado.
-   * Lanza un AppError 401 si falla.
+   * Usa comparación de tiempo constante (timingSafeEqual) para evitar timing attacks.
+   * Lanza un AppError 401 si falla, 500 si el secreto no está configurado.
    */
   static async validarFirma(token: string | null): Promise<boolean> {
     const secreto = process.env.NEON_WEBHOOK_SECRET
-    
+
     if (!secreto) {
       throw new AppError('NEON_WEBHOOK_SECRET no configurado en el servidor', 500)
     }
 
-    if (!token || token !== secreto) {
+    if (!token) {
+      throw new AppError('Firma de webhook inválida', 401)
+    }
+
+    const tokenBuf = Buffer.from(token)
+    const secretoBuf = Buffer.from(secreto)
+
+    // timingSafeEqual exige buffers de igual longitud; si difieren, la firma es
+    // inválida. La comprobación de longitud no filtra el secreto porque su
+    // longitud no es información sensible.
+    if (tokenBuf.length !== secretoBuf.length || !timingSafeEqual(tokenBuf, secretoBuf)) {
       throw new AppError('Firma de webhook inválida', 401)
     }
 
@@ -22,15 +43,16 @@ export class WebhooksService {
 
   /**
    * Procesa el evento de creacion de usuario de Neon Auth.
+   * Valida el payload con Zod antes de tocar la base de datos.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static async procesarEventoUsuarioCreado(payload: any): Promise<void> {
-    // Validacion muy basica (podria usarse Zod para mas robustez)
-    if (!payload || !payload.id || !payload.email) {
+    const parsed = usuarioCreadoSchema.safeParse(payload)
+    if (!parsed.success) {
       throw new AppError('Payload inválido para evento user.created', 400)
     }
 
-    const { id, email, name } = payload
+    const { id, email, name } = parsed.data
 
     // Idempotencia: Verificar si ya existe
     const usuarioExistente = await prisma.usuario.findUnique({
@@ -52,7 +74,7 @@ export class WebhooksService {
         rol: 'USUARIO'
       }
     })
-    
+
     console.log(`[Webhooks] Usuario ${id} (${email}) sincronizado exitosamente como PENDIENTE.`)
   }
 }
