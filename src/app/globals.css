@@ -1,3 +1,9 @@
+/* El CSS de auth-ui se importa en una cascade layer de baja prioridad para que
+   las utilidades de Tailwind (.hidden, lg:block, md:flex, etc.) siempre ganen
+   sobre el `.hidden` global SIN capa que trae auth-ui y que dejaba invisibles
+   las tablas responsivas (hidden lg:block) de toda la app. */
+@layer authui, theme, base, components, utilities;
+@import "@neondatabase/auth-ui/css" layer(authui);
 @import "tailwindcss";
 
 :root {
