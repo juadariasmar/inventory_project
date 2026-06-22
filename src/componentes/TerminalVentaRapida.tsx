@@ -58,6 +58,7 @@ export default function TerminalVentaRapida({
 
   // Sincronizar carrito desde sessionStorage al montar y cuando cambie.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCarrito(obtenerCarrito())
     const onCambio = () => setCarrito(obtenerCarrito())
     window.addEventListener(EVENTO_CARRITO_CAMBIO, onCambio)

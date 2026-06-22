@@ -13,14 +13,15 @@ export async function POST(req: NextRequest) {
 
     try {
       await WebhooksService.validarFirma(token)
-    } catch (error: any) {
+    } catch {
       return NextResponse.json({ error: 'Firma de webhook inválida' }, { status: 401 })
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let payload: any
     try {
       payload = await req.json()
-    } catch (e) {
+    } catch {
       return NextResponse.json({ error: 'Payload inválido' }, { status: 400 })
     }
 

@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { neon } = require('@neondatabase/serverless');
 
 const sql = neon(process.env.DATABASE_URL);
