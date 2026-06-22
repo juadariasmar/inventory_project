@@ -57,4 +57,21 @@ describe('Middleware Security Tests', () => {
     const res7 = await middleware(req7);
     if (res7) expect(res7.status).not.toBe(429);
   });
+
+  it('no aplica rate limiting a rutas GET de auth (reset-password, email-otp)', async () => {
+    const paths = [
+      'http://localhost/auth/reset-password',
+      'http://localhost/auth/email-otp',
+      'http://localhost/auth/forgot-password',
+      'http://localhost/auth/sign-up',
+    ];
+
+    for (const url of paths) {
+      const req = createMockRequest(url, 'GET');
+      const res = await middleware(req);
+      if (res) {
+        expect(res.status).not.toBe(429);
+      }
+    }
+  });
 });
