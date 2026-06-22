@@ -223,7 +223,7 @@ export async function POST(request: NextRequest) {
     if (!sinClasificarId) {
       const prefijoSC = generarPrefijoSugerido('Sin clasificar', prefijosEnUso)
       const sc = await prisma.categoria.create({
-        data: { nombre: 'Sin clasificar', prefijo: prefijoSC },
+        data: { nombre: 'Sin clasificar', prefijo: prefijoSC, empresaId },
       })
       sinClasificarId = sc.id
       mapaCategorias.set('sin clasificar', { id: sc.id, prefijo: sc.prefijo })
@@ -277,7 +277,7 @@ export async function POST(request: NextRequest) {
           try {
             const prefijo = generarPrefijoSugerido(categoriaNombre, prefijosEnUso)
             const nuevaCategoria = await prisma.categoria.create({
-              data: { nombre: categoriaNombre, prefijo },
+              data: { nombre: categoriaNombre, prefijo, empresaId },
             })
             categoriaId = nuevaCategoria.id
             mapaCategorias.set(clave, { id: nuevaCategoria.id, prefijo: nuevaCategoria.prefijo })
@@ -318,7 +318,7 @@ export async function POST(request: NextRequest) {
       try {
         const producto = await prisma.$transaction(async (tx) => {
           const nuevo = await tx.producto.create({
-            data: { nombre, descripcion, codigo, precio, cantidad, stockMinimo, categoriaId },
+            data: { nombre, descripcion, codigo, precio, cantidad, stockMinimo, categoriaId, empresaId },
           })
           if (cantidad > 0) {
             await tx.movimiento.create({
@@ -327,6 +327,7 @@ export async function POST(request: NextRequest) {
                 tipo: 'entrada',
                 cantidad,
                 notas: `Stock inicial (importación ${formato.toUpperCase()})`,
+                empresaId,
               },
             })
           }

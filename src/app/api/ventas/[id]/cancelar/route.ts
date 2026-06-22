@@ -90,6 +90,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
             cantidad: item.cantidad,
             notas: `Devolución por cancelación de venta #${venta.id}`,
             ventaId: venta.id,
+            empresaId: venta.empresaId,
           },
         })
       }
