@@ -41,13 +41,15 @@ model Empresa {
   nombre   String
   creadoEn DateTime @default(now())
 
-  usuarios     Usuario[]
-  categorias   Categoria[]
-  productos    Producto[]
-  ventas       Venta[]
-  cotizaciones Cotizacion[]
-  auditorias   Auditoria[]
-  Movimiento   Movimiento[]
+  usuarios      Usuario[]
+  categorias    Categoria[]
+  productos     Producto[]
+  ventas        Venta[]
+  cotizaciones  Cotizacion[]
+  auditorias    Auditoria[]
+  Movimiento    Movimiento[]
+  proveedores   Proveedor[]
+  ordenesCompra OrdenCompra[]
 }
 
 model Usuario {
@@ -87,21 +89,22 @@ model Categoria {
 }
 
 model Producto {
-  id              Int              @id @default(autoincrement())
-  nombre          String
-  descripcion     String?
-  codigo          String           @unique
-  precio          Float
-  cantidad        Int              @default(0)
-  stockMinimo     Int              @default(1)
+  id               Int               @id @default(autoincrement())
+  nombre           String
+  descripcion      String?
+  codigo           String            @unique
+  precio           Float
+  cantidad         Int               @default(0)
+  stockMinimo      Int               @default(1)
   // Categoria obligatoria. Los productos sin categoria previa se reasignan
   // a la categoria "Sin clasificar" en la migracion.
-  categoriaId     Int
-  categoria       Categoria        @relation(fields: [categoriaId], references: [id])
-  movimientos     Movimiento[]
-  itemsVenta      ItemVenta[]
-  itemsCotizacion ItemCotizacion[]
-  creadoEn        DateTime         @default(now())
+  categoriaId      Int
+  categoria        Categoria         @relation(fields: [categoriaId], references: [id])
+  movimientos      Movimiento[]
+  itemsVenta       ItemVenta[]
+  itemsCotizacion  ItemCotizacion[]
+  itemsOrdenCompra OrdenCompraItem[]
+  creadoEn         DateTime          @default(now())
 
   empresaId String
   empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
@@ -115,21 +118,24 @@ enum TipoMovimiento {
 }
 
 model Movimiento {
-  id         Int            @id @default(autoincrement())
-  productoId Int
-  producto   Producto       @relation(fields: [productoId], references: [id])
-  tipo       TipoMovimiento
-  cantidad   Int
-  notas      String?
-  ventaId    Int?
-  venta      Venta?         @relation(fields: [ventaId], references: [id], onDelete: SetNull)
-  creadoEn   DateTime       @default(now())
+  id            Int            @id @default(autoincrement())
+  productoId    Int
+  producto      Producto       @relation(fields: [productoId], references: [id])
+  tipo          TipoMovimiento
+  cantidad      Int
+  notas         String?
+  ventaId       Int?
+  venta         Venta?         @relation(fields: [ventaId], references: [id], onDelete: SetNull)
+  ordenCompraId Int?
+  ordenCompra   OrdenCompra?   @relation(fields: [ordenCompraId], references: [id], onDelete: SetNull)
+  creadoEn      DateTime       @default(now())
 
   empresaId String
   empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
   @@index([empresaId])
   @@index([ventaId])
+  @@index([ordenCompraId])
 }
 
 model Venta {
@@ -241,4 +247,64 @@ model Auditoria {
   @@index([usuarioId])
   @@index([entidad, entidadId])
   @@index([accion])
+}
+
+enum EstadoOrdenCompra {
+  BORRADOR // creada, editable, aún no recibida
+  RECIBIDA // recibida: generó movimientos de entrada (inmutable)
+  CANCELADA // cancelada antes de recibir
+}
+
+model Proveedor {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  nit       String?
+  contacto  String?
+  telefono  String?
+  email     String?
+  direccion String?
+  activo    Boolean  @default(true)
+  creadoEn  DateTime @default(now())
+
+  ordenes OrdenCompra[]
+
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
+}
+
+model OrdenCompra {
+  id          Int               @id @default(autoincrement())
+  proveedorId Int
+  proveedor   Proveedor         @relation(fields: [proveedorId], references: [id])
+  estado      EstadoOrdenCompra @default(BORRADOR)
+  total       Float             @default(0)
+  notas       String?
+  items       OrdenCompraItem[]
+  movimientos Movimiento[]
+  creadoEn    DateTime          @default(now())
+  recibidaEn  DateTime?
+
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
+  @@index([proveedorId])
+  @@index([estado])
+  @@index([creadoEn(sort: Desc)])
+}
+
+model OrdenCompraItem {
+  id            Int         @id @default(autoincrement())
+  ordenCompraId Int
+  ordenCompra   OrdenCompra @relation(fields: [ordenCompraId], references: [id], onDelete: Cascade)
+  productoId    Int
+  producto      Producto    @relation(fields: [productoId], references: [id])
+  cantidad      Int
+  costoUnitario Float
+  subtotal      Float
+
+  @@index([ordenCompraId])
+  @@index([productoId])
 }
