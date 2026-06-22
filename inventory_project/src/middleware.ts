@@ -69,6 +69,14 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes) -> Ya cubierto por rate limiting arriba, pero los callbacks pasan
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - auth/ (public auth routes like /auth/sign-in, /auth/reset-password)
+     */
+    '/((?!_next/static|_next/image|favicon.ico|auth/).*)',
   ],
 }
