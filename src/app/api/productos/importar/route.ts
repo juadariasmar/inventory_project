@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import ExcelJS from 'exceljs'
 import { prisma } from '@/lib/db'
-import { esAdmin } from '@/lib/permisos'
+import { esAdmin, obtenerSesion } from '@/lib/permisos'
 import { parsearCsv } from '@/lib/csv'
 import { aplicarMapeo, mapearColumnas } from '@/lib/mapeoColumnas'
 import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
@@ -123,9 +123,11 @@ async function leerXlsx(buffer: Buffer): Promise<{ encabezados: string[]; filas:
 
 
 export async function POST(request: NextRequest) {
-  if (!(await esAdmin())) {
+  const sesion = await obtenerSesion()
+  if (!sesion?.user?.empresaId || !(await esAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
+  const empresaId = sesion.user.empresaId
   try {
     let encabezados: string[] = []
     let filas: Record<string, string>[] = []
@@ -299,7 +301,7 @@ export async function POST(request: NextRequest) {
       // categoria resuelta. Si trae codigo, se respeta y se intenta usar.
       if (!codigo) {
         try {
-          codigo = await siguienteCodigoConsecutivoPorCategoria(categoriaId)
+          codigo = await siguienteCodigoConsecutivoPorCategoria(categoriaId, empresaId)
         } catch (e) {
           console.error('Error generando codigo en importacion', e)
           resultados.push({ linea: numLinea, codigo: '', nombre, estado: 'error', mensaje: 'No se pudo generar el código automáticamente.' })

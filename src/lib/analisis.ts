@@ -110,8 +110,8 @@ async function consumoPorProducto(empresaId: string, diasVentana: number) {
     salidas.map((s) => [
       s.productoId,
       {
-        cantidadVendida: s._sum.cantidad ?? 0,
-        totalSalidas: s._count._all,
+        cantidadVendida: s._sum?.cantidad ?? 0,
+        totalSalidas: s._count?._all ?? 0,
       },
     ])
   )
@@ -246,8 +246,8 @@ async function obtenerAltaRotacion(empresaId: string): Promise<ProductoAltaRotac
         productoId: s.productoId,
         nombre: p.nombre,
         codigo: p.codigo,
-        totalSalidas: s._count._all,
-        cantidadVendida: s._sum.cantidad ?? 0,
+        totalSalidas: s._count?._all ?? 0,
+        cantidadVendida: s._sum?.cantidad ?? 0,
       }
     })
     .filter((x): x is ProductoAltaRotacion => x !== null)

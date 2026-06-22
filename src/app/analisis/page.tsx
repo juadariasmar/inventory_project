@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { obtenerSesion } from '@/lib/permisos'
 import LayoutProtegido from '@/componentes/LayoutProtegido'
 import GraficoMovimientos from '@/componentes/GraficoMovimientos'
 import GraficoAltaRotacion from '@/componentes/GraficoAltaRotacion'
@@ -19,8 +20,12 @@ async function ContenidoAnalisis() {
     redirect('/')
   }
 
+  const sesion = await obtenerSesion()
+  if (!sesion?.user?.empresaId) redirect('/login')
+  const empresaId = sesion.user.empresaId
+
   const [analisis, puedeExportar] = await Promise.all([
-    obtenerTodoAnalisis(),
+    obtenerTodoAnalisis(empresaId),
     tienePermiso('EXPORTAR_REPORTES')
   ])
 

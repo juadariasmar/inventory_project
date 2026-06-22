@@ -39,7 +39,7 @@ describe('describirAuditoria', () => {
       const txt = describirAuditoria({
         accion: 'CREAR',
         entidad: 'Movimiento',
-        entidadId: 64,
+        entidadId: '64',
         datos: {
           despues: {
             tipo: 'salida',
@@ -59,7 +59,7 @@ describe('describirAuditoria', () => {
       const txt = describirAuditoria({
         accion: 'CREAR',
         entidad: 'Movimiento',
-        entidadId: 1,
+        entidadId: '1',
         datos: { despues: { tipo: 'entrada', cantidad: 5, productoId: 3 } },
       })
       expect(txt).toContain('Entrada de 5')
@@ -72,7 +72,7 @@ describe('describirAuditoria', () => {
       const txt = describirAuditoria({
         accion: 'CREAR',
         entidad: 'Producto',
-        entidadId: 10,
+        entidadId: '10',
         datos: {
           despues: { nombre: 'Lápiz HB', codigo: 'LAP-001', precio: 5000, cantidad: 100 },
         },
@@ -86,7 +86,7 @@ describe('describirAuditoria', () => {
       const txt = describirAuditoria({
         accion: 'ACTUALIZAR',
         entidad: 'Producto',
-        entidadId: 10,
+        entidadId: '10',
         datos: {
           antes: { nombre: 'Lápiz HB', codigo: 'LAP-001', precio: 5000, cantidad: 100, stockMinimo: 20 },
           despues: { nombre: 'Lápiz HB', codigo: 'LAP-001', precio: 7500, cantidad: 100, stockMinimo: 20 },
@@ -101,7 +101,7 @@ describe('describirAuditoria', () => {
       const txt = describirAuditoria({
         accion: 'ELIMINAR',
         entidad: 'Producto',
-        entidadId: 10,
+        entidadId: '10',
         datos: { antes: { nombre: 'Lápiz HB', codigo: 'LAP-001' } },
       })
       expect(txt).toBe('Eliminó el producto Lápiz HB (LAP-001).')
@@ -114,7 +114,7 @@ describe('describirAuditoria', () => {
         describirAuditoria({
           accion: 'CREAR',
           entidad: 'Categoria',
-          entidadId: 1,
+          entidadId: '1',
           datos: { despues: { nombre: 'Bebidas' } },
         })
       ).toBe("Creó la categoría 'Bebidas'.")
@@ -125,7 +125,7 @@ describe('describirAuditoria', () => {
         describirAuditoria({
           accion: 'ELIMINAR',
           entidad: 'Categoria',
-          entidadId: 1,
+          entidadId: '1',
           datos: { antes: { nombre: 'Bebidas' } },
         })
       ).toBe("Eliminó la categoría 'Bebidas'.")
@@ -137,7 +137,7 @@ describe('describirAuditoria', () => {
       const txt = describirAuditoria({
         accion: 'CREAR',
         entidad: 'Usuario',
-        entidadId: 5,
+        entidadId: '5',
         datos: { despues: { nombre: 'María Pérez', email: 'maria@example.com', rol: 'USUARIO' } },
       })
       expect(txt).toContain('@maria@example.com')
@@ -149,7 +149,7 @@ describe('describirAuditoria', () => {
       const txt = describirAuditoria({
         accion: 'ACTUALIZAR',
         entidad: 'Usuario',
-        entidadId: 5,
+        entidadId: '5',
         datos: {
           antes: { email: 'maria@example.com', rol: 'USUARIO', permisos: ['VER_ANALISIS'] },
           despues: { email: 'maria@example.com', rol: 'USUARIO', permisos: ['REALIZAR_VENTAS'] },
@@ -163,7 +163,7 @@ describe('describirAuditoria', () => {
       const txt = describirAuditoria({
         accion: 'ACTUALIZAR',
         entidad: 'Usuario',
-        entidadId: 5,
+        entidadId: '5',
         datos: {
           antes: { email: 'maria@example.com', rol: 'USUARIO', permisos: [] },
           despues: { email: 'maria@example.com', rol: 'USUARIO', permisos: [] },
@@ -177,7 +177,7 @@ describe('describirAuditoria', () => {
       const txt = describirAuditoria({
         accion: 'ELIMINAR',
         entidad: 'Usuario',
-        entidadId: 5,
+        entidadId: '5',
         datos: { antes: { email: 'maria@example.com', nombre: 'María Pérez' } },
       })
       expect(txt).toBe('Eliminó el usuario @maria@example.com (María Pérez).')
@@ -188,7 +188,7 @@ describe('describirAuditoria', () => {
     const txt = describirAuditoria({
       accion: 'OTRO',
       entidad: 'Algo',
-      entidadId: 7,
+      entidadId: '7',
       datos: null,
     })
     expect(txt).toBe('OTRO sobre Algo #7.')
