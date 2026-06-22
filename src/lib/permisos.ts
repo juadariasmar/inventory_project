@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth/server'
 import { Permiso } from '@prisma/client'
 import { prisma } from './db'
 import { cache } from 'react'
+import { obtenerEmpresaPorDefectoId } from './empresa'
 
 export const obtenerSesion = cache(async () => {
   const { data } = await auth.getSession()
@@ -32,6 +33,7 @@ export const obtenerSesion = cache(async () => {
         nombre: data.user.name || data.user.email || 'Usuario',
         estado: 'PENDIENTE',
         rol: 'USUARIO',
+        empresaId: await obtenerEmpresaPorDefectoId(),
       },
     })
   }
