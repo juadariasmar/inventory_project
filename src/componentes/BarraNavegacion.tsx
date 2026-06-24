@@ -84,6 +84,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
       etiqueta: 'Administración',
       visible: esAdmin,
       items: [
+        { href: '/admin', etiqueta: 'Empresas', visible: true },
         { href: '/usuarios', etiqueta: 'Usuarios', visible: true },
         { href: '/auditoria', etiqueta: 'Auditoría', visible: true },
         { href: '/admin/configuracion', etiqueta: 'Configuración', visible: true },
