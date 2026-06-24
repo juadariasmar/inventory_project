@@ -15,7 +15,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const busqueda = request.nextUrl.searchParams.get('busqueda') || undefined
-    const clientes = await ClientesService.obtenerTodos(empresaId, busqueda)
+    const limiteParam = request.nextUrl.searchParams.get('limite')
+    const limite = limiteParam ? Math.min(parseInt(limiteParam, 10) || 200, 500) : undefined
+    const clientes = await ClientesService.obtenerTodos(empresaId, busqueda, limite)
     return NextResponse.json(clientes)
   } catch (error) {
     console.error('Error al obtener clientes:', error)

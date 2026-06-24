@@ -16,7 +16,7 @@ interface CrearOrdenInput {
 }
 
 export const OrdenesCompraService = {
-  async obtenerTodos(empresaId: string) {
+  async obtenerTodos(empresaId: string, limite = 200) {
     if (!empresaId) throw new AppError('empresaId es requerido', 400);
     return await prisma.ordenCompra.findMany({
       where: { empresaId },
@@ -25,6 +25,7 @@ export const OrdenesCompraService = {
         _count: { select: { items: true } },
       },
       orderBy: { creadoEn: 'desc' },
+      take: limite,
     });
   },
 
@@ -33,7 +34,7 @@ export const OrdenesCompraService = {
     const orden = await prisma.ordenCompra.findFirst({
       where: { id, empresaId },
       include: {
-        proveedor: true,
+        proveedor: { select: { id: true, nombre: true, nit: true, telefono: true, contacto: true, direccion: true, email: true } },
         items: { include: { producto: { select: { nombre: true, codigo: true } } } },
       },
     });
@@ -122,11 +123,11 @@ export const OrdenesCompraService = {
 
     return await prisma.$transaction(async (tx) => {
       const orden = await tx.ordenCompra.findUnique({
-        where: { id },
-        include: { items: true },
+        where: { id, empresaId },
+        include: { items: { select: { id: true, productoId: true, cantidad: true, costoUnitario: true, subtotal: true } } },
       });
 
-      if (!orden || orden.empresaId !== empresaId) {
+      if (!orden) {
         throw new AppError('Orden de compra no encontrada', 404);
       }
       if (orden.estado !== 'BORRADOR') {
@@ -157,7 +158,7 @@ export const OrdenesCompraService = {
       }
 
       const actualizada = await tx.ordenCompra.update({
-        where: { id },
+        where: { id, empresaId },
         data: { estado: 'RECIBIDA', recibidaEn: new Date() },
         include: { items: true },
       });
@@ -191,7 +192,7 @@ export const OrdenesCompraService = {
     }
 
     const actualizada = await prisma.ordenCompra.update({
-      where: { id },
+      where: { id, empresaId },
       data: { estado: 'CANCELADA' },
     });
 

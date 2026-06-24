@@ -2,7 +2,7 @@ import { prisma } from '../lib/db'
 import { AppError } from '../lib/AppError'
 
 export const ClientesService = {
-  async obtenerTodos(empresaId: string, busqueda?: string) {
+  async obtenerTodos(empresaId: string, busqueda?: string, limite = 200) {
     if (!empresaId) throw new AppError('empresaId es requerido', 400)
 
     return prisma.cliente.findMany({
@@ -19,7 +19,8 @@ export const ClientesService = {
             }
           : {}),
       },
-      orderBy: { nombre: 'asc' },
+      orderBy: { id: 'desc' },
+      take: limite,
     })
   },
 
