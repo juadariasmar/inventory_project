@@ -254,7 +254,7 @@ async function obtenerAltaRotacion(empresaId: string): Promise<ProductoAltaRotac
     .filter((x): x is ProductoAltaRotacion => x !== null)
 }
 
-async function obtenerStockCritico(empresaId: string): Promise<AlertaStockCritico[]> {
+export async function obtenerStockCritico(empresaId: string): Promise<AlertaStockCritico[]> {
   const [productos, consumo] = await Promise.all([
     prisma.producto.findMany({
       where: { empresaId },

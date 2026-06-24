@@ -43,6 +43,56 @@ enum EstadoInvitacion {
   CANCELADA
 }
 
+enum TipoNotificacion {
+  STOCK_BAJO
+  STOCK_CRITICO
+  COTIZACION_POR_VENCER
+  PRODUCTO_SIN_MOVIMIENTO
+  INVITACION_ACEPTADA
+  USUARIO_REGISTRADO
+}
+
+model Notificacion {
+  id        Int              @id @default(autoincrement())
+  tipo      TipoNotificacion
+  titulo    String
+  mensaje   String?
+  link      String?
+  leida     Boolean          @default(false)
+  leidaEn   DateTime?
+  creadoEn  DateTime         @default(now())
+
+  usuarioId String?
+  usuario   Usuario?         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  empresaId String
+  empresa   Empresa          @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId, leida])
+  @@index([empresaId, usuarioId, leida])
+  @@index([creadoEn(sort: Desc)])
+}
+
+model Cliente {
+  id        Int       @id @default(autoincrement())
+  nombre    String
+  documento String?   @unique
+  email     String?
+  telefono  String?
+  direccion String?
+  notas     String?
+  creadoEn  DateTime  @default(now())
+
+  ventas        Venta[]
+  cotizaciones  Cotizacion[]
+
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
+  @@index([nombre])
+}
+
 model Invitacion {
   id          String           @id @default(cuid())
   email       String
@@ -79,6 +129,8 @@ model Empresa {
   ordenesCompra      OrdenCompra[]
   configuracion      ConfiguracionEmpresa?
   invitaciones       Invitacion[]
+  notificaciones     Notificacion[]
+  clientes           Cliente[]
 }
 
 model ConfiguracionEmpresa {
@@ -117,6 +169,7 @@ model Usuario {
   empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
   invitacionesCreadas Invitacion[] @relation("InvitacionCreadaPor")
+  notificaciones      Notificacion[]
 
   @@index([empresaId])
 }
@@ -191,6 +244,8 @@ model Venta {
   id                Int          @id @default(autoincrement())
   vendedorId        String?
   vendedor          Usuario?     @relation("VentaVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
+  clienteId         Int?
+  cliente           Cliente?     @relation(fields: [clienteId], references: [id], onDelete: SetNull)
   total             Float
   notas             String?
   items             ItemVenta[]
@@ -209,6 +264,7 @@ model Venta {
   @@index([empresaId, creadoEn(sort: Desc)])
   @@index([vendedorId])
   @@index([canceladaEn])
+  @@index([clienteId])
 }
 
 model ItemVenta {
@@ -235,7 +291,8 @@ model Cotizacion {
   id                Int              @id @default(autoincrement())
   vendedorId        String?
   vendedor          Usuario?         @relation("CotizacionVendedor", fields: [vendedorId], references: [id], onDelete: SetNull)
-  cliente           String?
+  clienteId         Int?
+  cliente           Cliente?         @relation(fields: [clienteId], references: [id], onDelete: SetNull)
   total             Float
   notas             String?
   items             ItemCotizacion[]

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import AvatarUsuario from '@/componentes/comunes/AvatarUsuario'
+import { Bell } from 'lucide-react'
 
 interface SubEnlace {
   href: string
@@ -32,6 +33,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
   const pathname = usePathname()
   const [menuAbierto, setMenuAbierto] = useState(false)
   const [dropdownAbierto, setDropdownAbierto] = useState<string | null>(null)
+  const [contadorNotif, setContadorNotif] = useState(0)
   const contenedorRef = useRef<HTMLDivElement>(null)
 
   const esAdmin = sesion?.user?.rol === 'ADMIN'
@@ -42,9 +44,18 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
     (sesion?.user?.permisos?.includes('REALIZAR_VENTAS') ?? false) ||
     (sesion?.user?.permisos?.includes('REGISTRAR_MOVIMIENTOS') ?? false)
 
+  useEffect(() => {
+    if (!sesion?.user) return
+    fetch('/api/notificaciones?contador=true')
+      .then((r) => r.json())
+      .then((d) => setContadorNotif(d.count ?? 0))
+      .catch(() => {})
+  }, [sesion])
+
   // Definicion de la estructura de la barra. visible se evalua al render.
   const items: Item[] = [
     { tipo: 'enlace', href: '/', etiqueta: 'Panel', visible: true },
+    { tipo: 'enlace', href: '/clientes', etiqueta: 'Clientes', visible: puedeVender },
     {
       tipo: 'dropdown',
       id: 'ventas',
@@ -74,6 +85,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
       items: [
         { href: '/proveedores', etiqueta: 'Proveedores', visible: true },
         { href: '/proveedores/ordenes', etiqueta: 'Órdenes de compra', visible: true },
+        { href: '/compras/sugerencias', etiqueta: 'Sugerencias', visible: true },
       ],
     },
     { tipo: 'enlace', href: '/analisis', etiqueta: 'Análisis', visible: puedeVerAnalisis },
@@ -203,6 +215,18 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
           <div className="hidden md:flex items-center gap-1">
             {sesion?.user && (
               <>
+                <Link
+                  href="/notificaciones"
+                  className="relative p-2 text-blue-100 hover:bg-blue-500 rounded-md transition-colors"
+                  title="Notificaciones"
+                >
+                  <Bell className="w-5 h-5" />
+                  {contadorNotif > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 rounded-full">
+                      {contadorNotif > 9 ? '9+' : contadorNotif}
+                    </span>
+                  )}
+                </Link>
                 <AvatarUsuario sesion={sesion} />
               </>
             )}
