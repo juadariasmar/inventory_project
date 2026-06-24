@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { UserButton } from '@neondatabase/auth-ui'
+import UserButtonCliente from '@/componentes/comunes/UserButtonCliente'
 
 interface SubEnlace {
   href: string
@@ -200,7 +200,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
           {/* Mi cuenta (escritorio) */}
           <div className="hidden md:flex items-center">
             {sesion?.user && (
-              <UserButton size="icon" />
+                <UserButtonCliente size="icon" />
             )}
           </div>
 
@@ -274,7 +274,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
           </div>
           {sesion?.user && (
             <div className="border-t border-blue-500 pt-3 pb-3 px-4 flex justify-center">
-              <UserButton size="icon" />
+              <UserButtonCliente size="icon" />
             </div>
           )}
         </div>
