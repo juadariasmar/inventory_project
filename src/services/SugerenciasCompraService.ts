@@ -23,7 +23,7 @@ export const SugerenciasCompraService = {
     const desde = new Date()
     desde.setDate(desde.getDate() - DIAS_VENTANA_CONSUMO)
 
-    const [productos, consumo, proveedores] = await Promise.all([
+    const [productos, consumo] = await Promise.all([
       prisma.producto.findMany({
         where: { empresaId },
         select: {
@@ -45,10 +45,6 @@ export const SugerenciasCompraService = {
           creadoEn: { gte: desde },
         },
         _sum: { cantidad: true },
-      }),
-      prisma.proveedor.findMany({
-        where: { empresaId, activo: true },
-        select: { id: true, nombre: true },
       }),
     ])
 

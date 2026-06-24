@@ -23,7 +23,7 @@ interface Notificacion {
   creadoEn: string
 }
 
-export default function VistaNotificaciones({ empresaId }: { empresaId: string }) {
+export default function VistaNotificaciones() {
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([])
   const [cargando, setCargando] = useState(true)
 
