@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
 import ListaUsuariosFiltrable from '@/componentes/usuarios/ListaUsuariosFiltrable'
+import GestorInvitaciones from '@/componentes/usuarios/GestorInvitaciones'
 import { prisma } from '@/lib/db'
 import { obtenerSesion } from '@/lib/permisos'
 
@@ -14,7 +15,7 @@ export default async function PaginaUsuarios() {
   }
   const empresaId = sesion.user.empresaId
 
-  const [usuarios, empresa] = await Promise.all([
+  const [usuarios, empresa, invitaciones] = await Promise.all([
     prisma.usuario.findMany({
       where: { empresaId },
       select: {
@@ -31,6 +32,13 @@ export default async function PaginaUsuarios() {
       where: { id: empresaId },
       select: { nombre: true },
     }),
+    prisma.invitacion.findMany({
+      where: { empresaId },
+      orderBy: { creadoEn: 'desc' },
+      include: {
+        creadoPor: { select: { id: true, nombre: true } },
+      },
+    }),
   ])
 
   const pendientes = usuarios.filter((u) => u.estado === 'PENDIENTE').length
@@ -43,12 +51,14 @@ export default async function PaginaUsuarios() {
             <h1 className="text-2xl font-bold text-gray-800">Usuarios</h1>
             <p className="text-sm text-gray-500">{empresa?.nombre ?? 'Empresa'}</p>
           </div>
-          <Link
-            href="/usuarios/nuevo"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-center"
-          >
-            + Nuevo Usuario
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/usuarios/nuevo"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-center"
+            >
+              + Nuevo Usuario
+            </Link>
+          </div>
         </div>
 
         {pendientes > 0 && (
@@ -65,6 +75,10 @@ export default async function PaginaUsuarios() {
         <ListaUsuariosFiltrable
           usuarios={usuarios}
           usuarioActualId={sesion.user.id}
+        />
+
+        <GestorInvitaciones
+          invitaciones={invitaciones}
         />
       </div>
     </LayoutProtegido>
