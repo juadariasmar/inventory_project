@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import ConfirmarAccion from '@/componentes/comunes/ConfirmarAccion'
 
 interface Propiedades {
   id: number
@@ -13,12 +14,7 @@ export default function AccionesOrdenCompra({ id, estado }: Propiedades) {
   const [procesando, setProcesando] = useState(false)
   const [error, setError] = useState('')
 
-  const ejecutar = async (
-    accion: 'recibir' | 'cancelar',
-    confirmacion: string
-  ) => {
-    if (!confirm(confirmacion)) return
-
+  const ejecutar = async (accion: 'recibir' | 'cancelar') => {
     setError('')
     setProcesando(true)
     try {
@@ -61,29 +57,38 @@ export default function AccionesOrdenCompra({ id, estado }: Propiedades) {
         </p>
       )}
       <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={() =>
-            ejecutar(
-              'recibir',
-              '¿Recibir esta orden? Se registrará la entrada de stock y la orden quedará inmutable.'
-            )
+        <ConfirmarAccion
+          titulo="Recibir orden"
+          descripcion="¿Recibir esta orden? Se registrará la entrada de stock y la orden quedará inmutable."
+          accion="Recibir"
+          variant="primary"
+          onConfirm={() => ejecutar('recibir')}
+          trigger={
+            <button
+              type="button"
+              disabled={procesando}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
+            >
+              {procesando ? 'Procesando…' : 'Recibir'}
+            </button>
           }
-          disabled={procesando}
-          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
-        >
-          {procesando ? 'Procesando…' : 'Recibir'}
-        </button>
-        <button
-          type="button"
-          onClick={() =>
-            ejecutar('cancelar', '¿Cancelar esta orden de compra?')
+        />
+        <ConfirmarAccion
+          titulo="Cancelar orden"
+          descripcion="¿Cancelar esta orden de compra?"
+          accion="Cancelar"
+          variant="danger"
+          onConfirm={() => ejecutar('cancelar')}
+          trigger={
+            <button
+              type="button"
+              disabled={procesando}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            >
+              Cancelar orden
+            </button>
           }
-          disabled={procesando}
-          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors"
-        >
-          Cancelar orden
-        </button>
+        />
       </div>
     </div>
   )

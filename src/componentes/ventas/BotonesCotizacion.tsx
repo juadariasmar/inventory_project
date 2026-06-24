@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import ConfirmarAccion from '@/componentes/comunes/ConfirmarAccion'
 
 interface Propiedades {
   cotizacionId: number
@@ -38,9 +39,6 @@ export default function BotonesCotizacion({
   }, [accion, trabajando])
 
   const convertir = async () => {
-    if (!confirm('¿Convertir esta cotización en venta?\n\nSe descontará el stock y se generará una venta con los mismos items.')) {
-      return
-    }
     setTrabajando(true)
     setError('')
     try {
@@ -97,14 +95,22 @@ export default function BotonesCotizacion({
     <>
       <div className="flex flex-wrap gap-2">
         {puedeConvertir && (
-          <button
-            type="button"
-            onClick={convertir}
-            disabled={trabajando}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-sm font-semibold disabled:opacity-50"
-          >
-            Convertir a venta
-          </button>
+          <ConfirmarAccion
+            titulo="Convertir cotización en venta"
+            descripcion="Se descontará el stock y se generará una venta con los mismos items."
+            accion="Convertir"
+            variant="primary"
+            onConfirm={convertir}
+            trigger={
+              <button
+                type="button"
+                disabled={trabajando}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-sm font-semibold disabled:opacity-50"
+              >
+                Convertir a venta
+              </button>
+            }
+          />
         )}
         {puedeCancelar && (
           <button
