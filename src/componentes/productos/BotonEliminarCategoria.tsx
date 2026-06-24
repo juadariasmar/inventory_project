@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import ConfirmarAccion from '../comunes/ConfirmarAccion'
 
 interface PropiedadesBoton {
   id: number
@@ -18,19 +19,7 @@ export default function BotonEliminarCategoria({
   const [eliminando, setEliminando] = useState(false)
 
   const manejarEliminacion = async () => {
-    if (tieneProductos) {
-      alert(
-        'No se puede eliminar esta categoría porque tiene productos asociados. Primero mueve o elimina los productos.'
-      )
-      return
-    }
-
-    if (!confirm(`¿Estás seguro de eliminar la categoría "${nombre}"?`)) {
-      return
-    }
-
     setEliminando(true)
-
     try {
       const respuesta = await fetch(`/api/categorias/${id}`, {
         method: 'DELETE',
@@ -50,22 +39,35 @@ export default function BotonEliminarCategoria({
     }
   }
 
+  if (tieneProductos) {
+    return (
+      <button
+        type="button"
+        disabled
+        className="py-2 px-4 rounded-lg bg-gray-400 text-white opacity-50 cursor-not-allowed inline-flex items-center justify-center font-medium shadow-sm min-h-[44px]"
+        title="No se puede eliminar: tiene productos asociados"
+      >
+        Eliminar
+      </button>
+    )
+  }
+
   return (
-    <button
-      onClick={manejarEliminacion}
-      disabled={eliminando}
-      className={`py-2 px-4 rounded-lg transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-error focus:ring-offset-2 min-h-[44px] inline-flex items-center justify-center font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${
-        tieneProductos
-          ? 'bg-gray-400 text-white'
-          : 'bg-error text-white hover:bg-error-hover'
-      }`}
-      title={
-        tieneProductos
-          ? 'No se puede eliminar: tiene productos asociados'
-          : 'Eliminar categoría'
+    <ConfirmarAccion
+      titulo="Eliminar categoría"
+      descripcion={`¿Estás seguro de eliminar la categoría "${nombre}"? Esta acción no se puede deshacer.`}
+      accion="Eliminar"
+      variant="danger"
+      onConfirm={manejarEliminacion}
+      trigger={
+        <button
+          type="button"
+          disabled={eliminando}
+          className="bg-error text-white py-2 px-4 rounded-lg hover:bg-error-hover transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-error focus:ring-offset-2 min-h-[44px] inline-flex items-center justify-center font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {eliminando ? 'Eliminando...' : 'Eliminar'}
+        </button>
       }
-    >
-      {eliminando ? 'Eliminando...' : 'Eliminar'}
-    </button>
+    />
   )
 }
