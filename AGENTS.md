@@ -85,6 +85,11 @@ Critical for Prisma engine binary discovery in production bundle.
 | WebSocket connection fails | Use `DATABASE_URL_UNPOOLED` for Neon adapter; `DATABASE_URL` for plain PrismaClient |
 | Tests hang on DB | Run with `--runInBand`; ensure `.env` has both DATABASE URLs |
 | Middleware rate limiting | Requires `UPSTASH_REDIS_*` env; falls back to in-memory Map |
+| React hydration mismatch (attributes) | Vercel Analytics/SpeedInsights + Neon Auth UI inyectan atributos; `suppressHydrationWarning` en `<html>` y `<body>` |
+| ERR_SSL_PROTOCOL_ERROR en fetch a API sin sesión | CSP `upgrade-insecure-requests` fuerza HTTPS en localhost; se omitió en dev (`process.env.NODE_ENV`) |
+| Invalid origin en Neon Auth | Agregar `http://localhost:3000` en Neon Console > Auth > Settings > Allowed Origins |
+| CSS compat warnings (-webkit-*) | Vienen de Tailwind/Neon Auth UI; seguros de ignorar |
+| Vercel CSP bloquea speed-insights | `script-src-elem` con `https://va.vercel-scripts.com` en CSP |
 
 ## Project Structure
 
