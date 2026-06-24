@@ -2,6 +2,9 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { Input } from '@/componentes/comunes/Input'
+import { Button } from '@/componentes/comunes/Button'
+import { AlertCircle } from 'lucide-react'
 
 interface DatosProveedor {
   id?: number
@@ -72,107 +75,64 @@ export default function FormularioProveedor({ proveedor }: PropiedadesFormulario
   }
 
   return (
-    <form onSubmit={manejarEnvio} className="space-y-6">
+    <form onSubmit={manejarEnvio} className="space-y-6" noValidate>
       {error && (
-        <div role="alert" className="bg-red-50 text-red-600 p-3 rounded-md text-sm">
-          {error}
+        <div role="alert" className="flex items-start gap-2 bg-red-50 text-red-700 border border-red-200 p-3 rounded-lg text-sm">
+          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" aria-hidden="true" />
+          <span>{error}</span>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="md:col-span-2">
-          <label
-            htmlFor="nombre"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Nombre *
-          </label>
-          <input
-            type="text"
+          <Input
+            label="Nombre"
             id="nombre"
             name="nombre"
             value={datos.nombre}
             onChange={manejarCambio}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Ej: Distribuidora Andina S.A.S."
             required
           />
         </div>
 
-        <div>
-          <label
-            htmlFor="nit"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            NIT
-          </label>
-          <input
-            type="text"
-            id="nit"
-            name="nit"
-            value={datos.nit}
-            onChange={manejarCambio}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+        <Input
+          label="NIT"
+          id="nit"
+          name="nit"
+          value={datos.nit}
+          onChange={manejarCambio}
+        />
 
-        <div>
-          <label
-            htmlFor="contacto"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Contacto
-          </label>
-          <input
-            type="text"
-            id="contacto"
-            name="contacto"
-            value={datos.contacto}
-            onChange={manejarCambio}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Nombre de la persona de contacto"
-          />
-        </div>
+        <Input
+          label="Contacto"
+          id="contacto"
+          name="contacto"
+          value={datos.contacto}
+          onChange={manejarCambio}
+          placeholder="Nombre de la persona de contacto"
+        />
 
-        <div>
-          <label
-            htmlFor="telefono"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Teléfono
-          </label>
-          <input
-            type="text"
-            id="telefono"
-            name="telefono"
-            value={datos.telefono}
-            onChange={manejarCambio}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+        <Input
+          label="Teléfono"
+          type="tel"
+          id="telefono"
+          name="telefono"
+          value={datos.telefono}
+          onChange={manejarCambio}
+        />
 
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Correo electrónico
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={datos.email}
-            onChange={manejarCambio}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+        <Input
+          label="Correo electrónico"
+          type="email"
+          id="email"
+          name="email"
+          value={datos.email}
+          onChange={manejarCambio}
+        />
 
         <div className="md:col-span-2">
-          <label
-            htmlFor="direccion"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <label htmlFor="direccion" className="block text-sm font-medium text-gray-700 mb-1.5">
             Dirección
           </label>
           <textarea
@@ -181,26 +141,18 @@ export default function FormularioProveedor({ proveedor }: PropiedadesFormulario
             value={datos.direccion}
             onChange={manejarCambio}
             rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg transition-premium placeholder:text-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
           />
         </div>
       </div>
 
-      <div className="flex justify-end space-x-4">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-        >
+      <div className="flex justify-end gap-3">
+        <Button type="button" variant="secondary" onClick={() => router.back()}>
           Cancelar
-        </button>
-        <button
-          type="submit"
-          disabled={guardando}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
-        >
-          {guardando ? 'Guardando...' : esEdicion ? 'Actualizar' : 'Crear proveedor'}
-        </button>
+        </Button>
+        <Button type="submit" variant="primary" isLoading={guardando} loadingText="Guardando...">
+          {esEdicion ? 'Actualizar' : 'Crear proveedor'}
+        </Button>
       </div>
     </form>
   )
