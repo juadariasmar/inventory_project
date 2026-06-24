@@ -2,6 +2,10 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { Input } from '@/componentes/comunes/Input'
+import { Select } from '@/componentes/comunes/Select'
+import { Button } from '@/componentes/comunes/Button'
+import { AlertCircle } from 'lucide-react'
 
 interface Categoria {
   id: number
@@ -47,13 +51,10 @@ export default function FormularioProducto({
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
 
-  // Al crear (no editar), sugerir codigo basado en la categoria seleccionada.
   useEffect(() => {
     if (esEdicion) return
     const categoriaId = datos.categoriaId
     if (!categoriaId) return
-    // Solo regenerar si el codigo esta vacio o fue auto-rellenado (no si el
-    // usuario lo escribio manualmente).
     if (datos.codigo && !codigoAutoSugerido) return
     let cancelado = false
     fetch(`/api/productos/sugerir-codigo?categoria=${categoriaId}`)
@@ -76,7 +77,6 @@ export default function FormularioProducto({
   ) => {
     const { name, value } = e.target
     setDatos((prev) => ({ ...prev, [name]: value }))
-    // Si el usuario edita el codigo manualmente, dejar de auto-regenerarlo.
     if (name === 'codigo') setCodigoAutoSugerido(false)
   }
 
@@ -110,180 +110,105 @@ export default function FormularioProducto({
     }
   }
 
+  const categoriasOptions = categorias.map((cat) => ({
+    value: cat.id,
+    label: `${cat.nombre} (${cat.prefijo})`,
+  }))
+
   return (
-    <form onSubmit={manejarEnvio} className="space-y-6">
+    <form onSubmit={manejarEnvio} className="space-y-6" noValidate>
       {error && (
-        <div className="bg-red-50 text-red-500 p-3 rounded-md text-sm">
-          {error}
+        <div role="alert" className="flex items-start gap-2 bg-red-50 text-red-700 border border-red-200 p-3 rounded-lg text-sm">
+          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" aria-hidden="true" />
+          <span>{error}</span>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label
-            htmlFor="codigo"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Código *
-          </label>
-          <input
-            type="text"
-            id="codigo"
-            name="codigo"
-            value={datos.codigo}
-            onChange={manejarCambio}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-          {!esEdicion && codigoAutoSugerido && (
-            <p className="text-xs text-gray-500 mt-1">
-              Sugerido automáticamente según la categoría. Puedes editarlo si
-              prefieres otro.
-            </p>
-          )}
-        </div>
+        <Input
+          label="Código"
+          id="codigo"
+          name="codigo"
+          value={datos.codigo}
+          onChange={manejarCambio}
+          required
+          hint={!esEdicion && codigoAutoSugerido ? 'Sugerido automáticamente según la categoría. Puedes editarlo si prefieres otro.' : undefined}
+        />
 
-        <div>
-          <label
-            htmlFor="nombre"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Nombre *
-          </label>
-          <input
-            type="text"
-            id="nombre"
-            name="nombre"
-            value={datos.nombre}
-            onChange={manejarCambio}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
+        <Input
+          label="Nombre"
+          id="nombre"
+          name="nombre"
+          value={datos.nombre}
+          onChange={manejarCambio}
+          required
+        />
 
         <div className="md:col-span-2">
-          <label
-            htmlFor="descripcion"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Descripción
-          </label>
-          <textarea
+          <Input
+            label="Descripción"
             id="descripcion"
             name="descripcion"
             value={datos.descripcion}
             onChange={manejarCambio}
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        <div>
-          <label
-            htmlFor="categoriaId"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Categoría *
-          </label>
-          <select
-            id="categoriaId"
-            name="categoriaId"
-            value={datos.categoriaId}
-            onChange={manejarCambio}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {categorias.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.nombre} ({cat.prefijo})
-              </option>
-            ))}
-          </select>
-        </div>
+        <Select
+          label="Categoría"
+          id="categoriaId"
+          name="categoriaId"
+          value={datos.categoriaId}
+          onChange={manejarCambio}
+          options={categoriasOptions}
+          required
+        />
 
-        <div>
-          <label
-            htmlFor="precio"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Precio *
-          </label>
-          <input
-            type="number"
-            id="precio"
-            name="precio"
-            value={datos.precio}
-            onChange={manejarCambio}
-            step="0.01"
-            min="0"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
+        <Input
+          label="Precio"
+          type="number"
+          id="precio"
+          name="precio"
+          value={datos.precio}
+          onChange={manejarCambio}
+          step="0.01"
+          min="0"
+          required
+        />
 
-        <div>
-          <label
-            htmlFor="cantidad"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            {esEdicion ? 'Cantidad actual' : 'Cantidad inicial'}
-          </label>
-          <input
-            type="number"
-            id="cantidad"
-            name="cantidad"
-            value={datos.cantidad}
-            onChange={manejarCambio}
-            min={esEdicion ? producto?.cantidad ?? 0 : 0}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {esEdicion ? (
-            <p className="text-xs text-gray-500 mt-1">
-              Aumentar genera un movimiento de entrada automático. Para reducir
-              el stock, registra un movimiento de salida desde Movimientos.
-            </p>
-          ) : (
-            <p className="text-xs text-gray-500 mt-1">
-              Si es mayor a 0, se registrará un movimiento de entrada como
-              &quot;Stock inicial&quot;.
-            </p>
-          )}
-        </div>
+        <Input
+          label={esEdicion ? 'Cantidad actual' : 'Cantidad inicial'}
+          type="number"
+          id="cantidad"
+          name="cantidad"
+          value={datos.cantidad}
+          onChange={manejarCambio}
+          min={esEdicion ? producto?.cantidad ?? 0 : 0}
+          hint={
+            esEdicion
+              ? 'Aumentar genera un movimiento de entrada automático. Para reducir el stock, registra un movimiento de salida desde Movimientos.'
+              : 'Si es mayor a 0, se registrará un movimiento de entrada como "Stock inicial".'
+          }
+        />
 
-        <div>
-          <label
-            htmlFor="stockMinimo"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Stock Mínimo
-          </label>
-          <input
-            type="number"
-            id="stockMinimo"
-            name="stockMinimo"
-            value={datos.stockMinimo}
-            onChange={manejarCambio}
-            min="0"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+        <Input
+          label="Stock Mínimo"
+          type="number"
+          id="stockMinimo"
+          name="stockMinimo"
+          value={datos.stockMinimo}
+          onChange={manejarCambio}
+          min="0"
+        />
       </div>
 
-      <div className="flex justify-end space-x-4">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-        >
+      <div className="flex justify-end gap-3">
+        <Button type="button" variant="secondary" onClick={() => router.back()}>
           Cancelar
-        </button>
-        <button
-          type="submit"
-          disabled={guardando}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
-        >
-          {guardando ? 'Guardando...' : esEdicion ? 'Actualizar' : 'Crear Producto'}
-        </button>
+        </Button>
+        <Button type="submit" variant="primary" isLoading={guardando} loadingText="Guardando...">
+          {esEdicion ? 'Actualizar' : 'Crear Producto'}
+        </Button>
       </div>
     </form>
   )
