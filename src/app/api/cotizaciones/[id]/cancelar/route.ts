@@ -40,7 +40,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
     }
 
     const cotizacion = await prisma.cotizacion.findUnique({
-      where: { id: cotizacionId },
+      where: { id: cotizacionId, empresaId: sesion.user.empresaId! },
     })
     if (!cotizacion) {
       return NextResponse.json({ error: 'Cotización no encontrada.' }, { status: 404 })
