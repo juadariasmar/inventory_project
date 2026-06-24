@@ -25,6 +25,15 @@ export const obtenerSesion = cache(async () => {
   }
 
   if (!usuario) {
+    const emailFallback = data.user.email
+    // Si ALLOWLIST_REGISTRO está definida, solo permite auto-creación para emails en esa lista
+    if (process.env.ALLOWLIST_REGISTRO && emailFallback) {
+      const permitidos = process.env.ALLOWLIST_REGISTRO.split(',').map(e => e.trim().toLowerCase())
+      if (!permitidos.includes(emailFallback.toLowerCase()) && !esEmailAdministrador(emailFallback)) {
+        console.warn(`[Auth] Auto-registro bloqueado para ${emailFallback} — no está en ALLOWLIST_REGISTRO`)
+        return null
+      }
+    }
     console.warn(`[Auth Fallback] Creando usuario ${data.user.email} en obtenerSesion. El webhook de Neon Auth no llegó a tiempo o falló.`)
     const empresa = await prisma.empresa.create({
       data: { nombre: `Empresa de ${data.user.email ?? 'usuario'}` },
@@ -58,6 +67,12 @@ export const obtenerSesion = cache(async () => {
 export async function esAdmin() {
   const sesion = await obtenerSesion()
   return sesion?.user?.rol === 'ADMIN' && sesion?.user?.estado === 'ACTIVO'
+}
+
+export async function esSuperAdmin() {
+  const sesion = await obtenerSesion()
+  if (!sesion?.user) return false
+  return esEmailAdministrador(sesion.user.email)
 }
 
 const obtenerPermisosUsuario = cache(async (usuarioId: string) => {
