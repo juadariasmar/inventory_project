@@ -19,7 +19,7 @@ export default async function PaginaEditarUsuario({
   const { id } = await params
   const usuario = await prisma.usuario.findUnique({
     where: { id, empresaId },
-    select: { id: true, email: true, nombre: true, rol: true, permisos: true },
+    select: { id: true, email: true, nombre: true, rol: true, estado: true, permisos: true },
   })
 
   if (!usuario) {
