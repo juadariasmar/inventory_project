@@ -17,10 +17,16 @@ export default async function PaginaEditarUsuario({
   const empresaId = sesion.user.empresaId
 
   const { id } = await params
-  const usuario = await prisma.usuario.findUnique({
-    where: { id, empresaId },
-    select: { id: true, email: true, nombre: true, rol: true, estado: true, permisos: true },
-  })
+  const [usuario, empresa] = await Promise.all([
+    prisma.usuario.findUnique({
+      where: { id, empresaId },
+      select: { id: true, email: true, nombre: true, rol: true, estado: true, permisos: true },
+    }),
+    prisma.empresa.findUnique({
+      where: { id: empresaId },
+      select: { nombre: true },
+    }),
+  ])
 
   if (!usuario) {
     notFound()
@@ -57,7 +63,7 @@ export default async function PaginaEditarUsuario({
 
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 max-w-2xl">
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          <FormularioUsuario usuario={usuarioSeguro as any} />
+          <FormularioUsuario usuario={usuarioSeguro as any} empresaNombre={empresa?.nombre} />
         </div>
       </div>
     </LayoutProtegido>
