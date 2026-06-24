@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
-import { esAdmin } from '@/lib/permisos'
+import { esAdmin, obtenerSesion } from '@/lib/permisos'
 import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
 
 // POST /api/productos/bulk-delete  body: { ids: number[] }
@@ -12,6 +12,11 @@ import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
 export async function POST(request: NextRequest) {
   if (!(await esAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+  }
+  const sesion = await obtenerSesion()
+  const empresaId = sesion?.user?.empresaId
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
   }
   try {
     const datos = await request.json().catch(() => ({}))
@@ -33,7 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     const productos = await prisma.producto.findMany({
-      where: { id: { in: ids } },
+      where: { id: { in: ids }, empresaId },
       select: { id: true, nombre: true, codigo: true },
     })
     if (productos.length === 0) {
@@ -77,8 +82,8 @@ export async function POST(request: NextRequest) {
 
     const idsValidos = productos.map((p) => p.id)
     await prisma.$transaction(async (tx) => {
-      await tx.movimiento.deleteMany({ where: { productoId: { in: idsValidos } } })
-      await tx.producto.deleteMany({ where: { id: { in: idsValidos } } })
+      await tx.movimiento.deleteMany({ where: { productoId: { in: idsValidos }, empresaId } })
+      await tx.producto.deleteMany({ where: { id: { in: idsValidos }, empresaId } })
     })
 
     await registrarAuditoria({

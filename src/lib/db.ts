@@ -14,7 +14,20 @@ let prisma: PrismaClient
 if (isLocalhost) {
   prisma = prismaGlobal.prisma || new PrismaClient({ log: ['error'] })
 } else {
-  const pool = new Pool({ connectionString })
+  const pool = new Pool({
+    connectionString,
+    max: process.env.DB_POOL_MAX ? parseInt(process.env.DB_POOL_MAX, 10) : 8,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+  })
+  pool.on('error', (err) => {
+    console.error('[neon-pool] Unexpected pool error:', err.message)
+  })
+  pool.on('connect', () => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[neon-pool] New WebSocket connection established')
+    }
+  })
   const adapter = new PrismaNeon(pool)
   prisma = prismaGlobal.prisma || new PrismaClient({ adapter, log: ['error'] })
 }

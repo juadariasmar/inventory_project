@@ -33,8 +33,8 @@ export async function POST(request: NextRequest, { params }: Parametros) {
     }
 
     const cotizacion = await prisma.cotizacion.findUnique({
-      where: { id: cotizacionId },
-      include: { items: { include: { producto: true } } },
+      where: { id: cotizacionId, empresaId: sesion.user.empresaId! },
+      include: { items: { select: { productoId: true, cantidad: true, precioUnitario: true, subtotal: true, producto: { select: { id: true, precio: true, nombre: true, cantidad: true, empresaId: true } } } } },
     })
     if (!cotizacion) {
       return NextResponse.json({ error: 'Cotización no encontrada.' }, { status: 404 })
