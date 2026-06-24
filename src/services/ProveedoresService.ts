@@ -3,11 +3,12 @@ import { AppError } from '../lib/AppError';
 import { registrarAuditoria } from '../lib/auditoria';
 
 export const ProveedoresService = {
-  async obtenerTodos(empresaId: string) {
+  async obtenerTodos(empresaId: string, limite = 200) {
     if (!empresaId) throw new AppError('empresaId es requerido', 400);
     return await prisma.proveedor.findMany({
       where: { empresaId },
       orderBy: { nombre: 'asc' },
+      take: limite,
     });
   },
 
