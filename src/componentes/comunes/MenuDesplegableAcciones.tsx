@@ -33,12 +33,11 @@ export default function MenuDesplegableAcciones({ children }: Propiedades) {
       >
         {Children.map(children, (child) => {
           if (!isValidElement(child)) return child
+          const childProps = child.props as Record<string, unknown>
+          const className = typeof childProps.className === 'string' ? childProps.className : ''
           return (
             <DropdownMenuItem asChild>
-              {cloneElement(child, {
-                ...child.props,
-                className: `${child.props.className || ''} cursor-pointer`,
-              })}
+              {cloneElement(child, { className: `${className} cursor-pointer` } as Record<string, unknown>)}
             </DropdownMenuItem>
           )
         })}
