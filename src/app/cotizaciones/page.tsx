@@ -57,6 +57,7 @@ export default async function PaginaCotizaciones({ searchParams }: Props) {
     where,
     include: {
       vendedor: { select: { nombre: true, email: true } },
+      cliente: { select: { nombre: true } },
       _count: { select: { items: true } },
     },
     orderBy: { creadoEn: 'desc' },
@@ -163,8 +164,8 @@ export default async function PaginaCotizaciones({ searchParams }: Props) {
                             {formatearFechaHora(c.validaHasta)}
                           </td>
                           <td className="px-3 py-3 text-sm text-gray-700 break-words">
-                            {c.cliente && (
-                              <div className="font-medium text-gray-800">{c.cliente}</div>
+                            {c.cliente?.nombre && (
+                              <div className="font-medium text-gray-800">{c.cliente.nombre}</div>
                             )}
                             <div className="text-xs text-gray-500">
                               {c.vendedor
@@ -214,9 +215,9 @@ export default async function PaginaCotizaciones({ searchParams }: Props) {
                           <div className="text-xs text-gray-500 mt-1">
                             {formatearFechaHora(c.creadoEn)}
                           </div>
-                          {c.cliente && (
+                          {c.cliente?.nombre && (
                             <div className="text-sm font-medium text-gray-800 mt-1 truncate">
-                              {c.cliente}
+                              {c.cliente.nombre}
                             </div>
                           )}
                         </div>

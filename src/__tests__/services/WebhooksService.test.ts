@@ -1,5 +1,6 @@
 import { WebhooksService } from '../../services/WebhooksService'
 import { prisma } from '../../lib/db'
+import { createHmac } from 'crypto'
 
 jest.mock('../../lib/db', () => ({
   prisma: {
@@ -14,6 +15,10 @@ jest.mock('../../lib/db', () => ({
   }
 }))
 
+function firmarPayload(payload: string, secreto: string): string {
+  return createHmac('sha256', secreto).update(payload).digest('hex')
+}
+
 describe('WebhooksService', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -25,29 +30,33 @@ describe('WebhooksService', () => {
   describe('validarFirma', () => {
     it('debe lanzar error si el secreto no esta configurado', async () => {
       delete process.env.NEON_WEBHOOK_SECRET
-      await expect(WebhooksService.validarFirma('token')).rejects.toThrow('NEON_WEBHOOK_SECRET no configurado')
+      await expect(WebhooksService.validarFirma('{}', 'firma')).rejects.toThrow('NEON_WEBHOOK_SECRET no configurado')
     })
 
-    it('debe lanzar error si el token es invalido', async () => {
+    it('debe lanzar error si la firma es invalida', async () => {
       process.env.NEON_WEBHOOK_SECRET = 'secreto_super_seguro'
-      await expect(WebhooksService.validarFirma('token_falso')).rejects.toThrow('Firma de webhook inválida')
+      await expect(WebhooksService.validarFirma('{}', 'firma_falsa')).rejects.toThrow('Firma de webhook inválida')
     })
 
-    it('debe retornar true si el token es valido', async () => {
+    it('debe retornar true si la firma es valida', async () => {
       process.env.NEON_WEBHOOK_SECRET = 'secreto_super_seguro'
-      const resultado = await WebhooksService.validarFirma('secreto_super_seguro')
+      const payload = JSON.stringify({ type: 'user.created', data: { id: '1', email: 'a@b.com' } })
+      const firma = firmarPayload(payload, 'secreto_super_seguro')
+      const resultado = await WebhooksService.validarFirma(payload, firma)
       expect(resultado).toBe(true)
     })
 
-    it('debe rechazar un token de igual longitud pero distinto (timingSafeEqual)', async () => {
+    it('debe rechazar una firma alterada (tampering)', async () => {
       process.env.NEON_WEBHOOK_SECRET = 'secreto_super_seguro'
-      const mismaLongitud = 'X'.repeat('secreto_super_seguro'.length)
-      await expect(WebhooksService.validarFirma(mismaLongitud)).rejects.toThrow('Firma de webhook inválida')
+      const payload = JSON.stringify({ type: 'user.created', data: { id: '1', email: 'a@b.com' } })
+      const firma = firmarPayload(payload, 'secreto_super_seguro')
+      const payloadAlterado = JSON.stringify({ type: 'user.created', data: { id: '1', email: 'malo@b.com' } })
+      await expect(WebhooksService.validarFirma(payloadAlterado, firma)).rejects.toThrow('Firma de webhook inválida')
     })
 
-    it('debe rechazar (sin RangeError) un token de longitud distinta al secreto', async () => {
+    it('debe lanzar 401 si no se envía firma', async () => {
       process.env.NEON_WEBHOOK_SECRET = 'secreto_super_seguro'
-      await expect(WebhooksService.validarFirma('x')).rejects.toThrow('Firma de webhook inválida')
+      await expect(WebhooksService.validarFirma('{}', null)).rejects.toThrow('Firma de webhook inválida')
     })
   })
 

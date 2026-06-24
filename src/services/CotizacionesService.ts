@@ -5,11 +5,22 @@ import { AppError } from '../lib/AppError'
 const DIAS_VALIDEZ_DEFECTO = 7
 
 export const CotizacionesService = {
-  async crearCotizacion(consolidados: Map<number, number>, vendedorId: string | null, notas: string, cliente: string, empresaId: string, diasValidezInput?: number) {
+  async crearCotizacion(consolidados: Map<number, number>, vendedorId: string | null, notas: string, clienteNombre: string, empresaId: string, diasValidezInput?: number) {
     if (!empresaId) throw new AppError('empresaId es requerido', 400);
     const productosIds = Array.from(consolidados.keys())
     const productos = await prisma.producto.findMany({ where: { id: { in: productosIds }, empresaId } })
     const mapaProductos = new Map(productos.map((p) => [p.id, p]))
+
+    let clienteId: number | null = null
+    if (clienteNombre?.trim()) {
+      const cliente = await prisma.cliente.findFirst({ where: { nombre: clienteNombre.trim(), empresaId } })
+      if (cliente) {
+        clienteId = cliente.id
+      } else {
+        const nuevo = await prisma.cliente.create({ data: { nombre: clienteNombre.trim(), empresaId } })
+        clienteId = nuevo.id
+      }
+    }
 
     const diasValidez = diasValidezInput && Number.isInteger(diasValidezInput) && diasValidezInput > 0
       ? Math.min(365, diasValidezInput)
@@ -63,7 +74,7 @@ export const CotizacionesService = {
         data: {
           empresaId,
           vendedorId,
-          cliente: cliente || null,
+          clienteId,
           total,
           notas: notas || null,
           validaHasta,
