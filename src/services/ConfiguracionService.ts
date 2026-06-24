@@ -14,8 +14,6 @@ const configSchema = z.object({
   nombrePersonalizado: z.string().min(1).max(100).optional().nullable(),
 })
 
-type DatosConfig = z.infer<typeof configSchema>
-
 export const ConfiguracionService = {
   async obtener(empresaId: string) {
     const config = await prisma.configuracionEmpresa.findUnique({
