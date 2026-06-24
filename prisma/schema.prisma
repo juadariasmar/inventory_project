@@ -41,15 +41,32 @@ model Empresa {
   nombre   String
   creadoEn DateTime @default(now())
 
-  usuarios      Usuario[]
-  categorias    Categoria[]
-  productos     Producto[]
-  ventas        Venta[]
-  cotizaciones  Cotizacion[]
-  auditorias    Auditoria[]
-  Movimiento    Movimiento[]
-  proveedores   Proveedor[]
-  ordenesCompra OrdenCompra[]
+  usuarios           Usuario[]
+  categorias         Categoria[]
+  productos          Producto[]
+  ventas             Venta[]
+  cotizaciones       Cotizacion[]
+  auditorias         Auditoria[]
+  Movimiento         Movimiento[]
+  proveedores        Proveedor[]
+  ordenesCompra      OrdenCompra[]
+  configuracion      ConfiguracionEmpresa?
+}
+
+model ConfiguracionEmpresa {
+  id                  String   @id @default(cuid())
+  empresaId           String   @unique
+  empresa             Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  moneda              String   @default("COP")
+  simboloMoneda       String   @default("$")
+  impuestos           Float    @default(0.19)
+  logoUrl             String?
+  direccion           String?
+  telefono            String?
+  email               String?
+  nombrePersonalizado String?
+  creadoEn            DateTime @default(now())
+  actualizadoEn       DateTime @updatedAt
 }
 
 model Usuario {
