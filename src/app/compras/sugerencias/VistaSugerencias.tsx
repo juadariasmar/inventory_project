@@ -20,7 +20,7 @@ interface Proveedor {
   nombre: string
 }
 
-export default function VistaSugerencias({ empresaId }: { empresaId: string }) {
+export default function VistaSugerencias() {
   const router = useRouter()
   const [sugerencias, setSugerencias] = useState<Sugerencia[]>([])
   const [proveedores, setProveedores] = useState<Proveedor[]>([])

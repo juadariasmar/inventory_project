@@ -26,7 +26,7 @@ export default async function PaginaClientes() {
           <p className="text-sm text-gray-500 mt-1">Gestiona el registro de tus clientes.</p>
         </div>
 
-        <VistaClientes empresaId={sesion.user.empresaId} />
+        <VistaClientes />
       </div>
     </LayoutProtegido>
   )

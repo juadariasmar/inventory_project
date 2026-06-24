@@ -5,7 +5,7 @@ import { EmpresasService } from '@/services/EmpresasService';
 import { AppError } from '@/lib/AppError';
 
 // GET - Listar todas las empresas (solo superadmin)
-export async function GET(_request: NextRequest) {
+export async function GET() {
   if (!(await esSuperAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }

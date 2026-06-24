@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { obtenerSesion } from '@/lib/permisos'
 import { NotificacionesService } from '@/services/NotificacionesService'
 import { AppError } from '@/lib/AppError'

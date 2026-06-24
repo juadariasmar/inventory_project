@@ -31,7 +31,7 @@ export default async function PaginaSugerencias() {
           </p>
         </div>
 
-        <VistaSugerencias empresaId={sesion.user.empresaId} />
+        <VistaSugerencias />
       </div>
     </LayoutProtegido>
   )
