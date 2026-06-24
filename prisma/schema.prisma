@@ -77,6 +77,7 @@ model Usuario {
   estado                 EstadoUsuario @default(PENDIENTE)
   rol                    Rol           @default(USUARIO)
   permisos               Permiso[]     @default([])
+  onboardingCompletado   Boolean       @default(false)
   creadoEn               DateTime      @default(now())
   auditorias             Auditoria[]
   ventas                 Venta[]       @relation("VentaVendedor")
