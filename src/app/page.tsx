@@ -13,10 +13,17 @@ import { redirect } from 'next/navigation'
 export const dynamic = 'force-dynamic'
 
 async function obtenerEstadisticas(empresaId: string) {
+  const inicioMes = new Date()
+  inicioMes.setDate(1)
+  inicioMes.setHours(0, 0, 0, 0)
+
   const [
     totalProductos,
     totalCategorias,
     movimientosRecientes,
+    ventasMes,
+    cotizacionesActivas,
+    topProductos,
     [metricasDB]
   ] = await Promise.all([
     prisma.producto.count({ where: { empresaId } }),
@@ -27,6 +34,29 @@ async function obtenerEstadisticas(empresaId: string) {
       orderBy: { creadoEn: 'desc' },
       include: { producto: true },
     }),
+    prisma.venta.aggregate({
+      where: { empresaId, canceladaEn: null, creadoEn: { gte: inicioMes } },
+      _count: { id: true },
+      _sum: { total: true },
+    }),
+    prisma.cotizacion.aggregate({
+      where: { empresaId, estado: 'PENDIENTE', validaHasta: { gt: new Date() } },
+      _count: { id: true },
+      _sum: { total: true },
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    prisma.$queryRaw<any[]>`
+      SELECT p.nombre, p.codigo, SUM(iv.cantidad)::int as cantidad, SUM(iv.subtotal)::float as total
+      FROM "ItemVenta" iv
+      JOIN "Producto" p ON p.id = iv."productoId"
+      JOIN "Venta" v ON v.id = iv."ventaId"
+      WHERE v."empresaId" = ${empresaId}
+        AND v."canceladaEn" IS NULL
+        AND v."creadoEn" >= ${inicioMes}
+      GROUP BY p.id, p.nombre, p.codigo
+      ORDER BY cantidad DESC
+      LIMIT 5
+    `,
     prisma.$queryRaw<{ valorInventario: number, productosSinStock: number, productosStockBajo: number }[]>`
       SELECT 
         COALESCE(SUM(precio * cantidad), 0)::float as "valorInventario",
@@ -44,6 +74,11 @@ async function obtenerEstadisticas(empresaId: string) {
     productosStockBajo: Number(metricasDB?.productosStockBajo || 0),
     movimientosRecientes,
     valorInventario: Number(metricasDB?.valorInventario || 0),
+    ventasConteo: ventasMes._count.id,
+    ventasTotal: ventasMes._sum.total ?? 0,
+    cotizacionesConteo: cotizacionesActivas._count.id,
+    cotizacionesTotal: cotizacionesActivas._sum.total ?? 0,
+    topProductos: topProductos as { nombre: string; codigo: string; cantidad: number; total: number }[],
   }
 }
 
@@ -106,6 +141,66 @@ async function ContenidoDashboard() {
                 </div>
               </Link>
             )}
+          </div>
+        )}
+
+        {/* Tarjetas de KPI financieros */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TarjetaEstadisticaDoble
+            titulo="Ventas del mes"
+            colorFondo="bg-emerald-100 text-emerald-600"
+            icono={
+              <svg className="w-6 h-6" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            }
+            cifras={[
+              { etiqueta: 'Cantidad', valor: estadisticas.ventasConteo },
+              { etiqueta: 'Total', valor: `$${estadisticas.ventasTotal.toLocaleString('es-MX')}` },
+            ]}
+          />
+          <TarjetaEstadisticaDoble
+            titulo="Cotizaciones activas"
+            colorFondo="bg-amber-100 text-amber-600"
+            icono={
+              <svg className="w-6 h-6" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            }
+            cifras={[
+              { etiqueta: 'Pendientes', valor: estadisticas.cotizacionesConteo },
+              { etiqueta: 'Valor total', valor: `$${estadisticas.cotizacionesTotal.toLocaleString('es-MX')}` },
+            ]}
+          />
+        </div>
+
+        {/* Top productos del mes */}
+        {estadisticas.topProductos.length > 0 && (
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Productos más vendidos este mes</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unidades</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {estadisticas.topProductos.map((p, i) => (
+                    <tr key={i} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-gray-900">{p.nombre}</div>
+                        <div className="text-xs text-gray-500">{p.codigo}</div>
+                      </td>
+                      <td className="px-4 py-3 text-right text-gray-900 font-medium">{p.cantidad}</td>
+                      <td className="px-4 py-3 text-right text-gray-900">${(p.total ?? 0).toLocaleString('es-MX')}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 

@@ -131,6 +131,7 @@ model Empresa {
   invitaciones       Invitacion[]
   notificaciones     Notificacion[]
   clientes           Cliente[]
+  historialPrecios   HistorialPrecio[]
 }
 
 model ConfiguracionEmpresa {
@@ -170,6 +171,7 @@ model Usuario {
 
   invitacionesCreadas Invitacion[] @relation("InvitacionCreadaPor")
   notificaciones      Notificacion[]
+  historialPrecios    HistorialPrecio[] @relation("HistorialPrecioUsuario")
 
   @@index([empresaId])
 }
@@ -205,6 +207,7 @@ model Producto {
   itemsVenta       ItemVenta[]
   itemsCotizacion  ItemCotizacion[]
   itemsOrdenCompra OrdenCompraItem[]
+  historialPrecios HistorialPrecio[]
   creadoEn         DateTime          @default(now())
 
   empresaId String
@@ -212,6 +215,23 @@ model Producto {
 
   @@index([empresaId])
   @@index([empresaId, codigo])
+}
+
+model HistorialPrecio {
+  id             Int      @id @default(autoincrement())
+  productoId     Int
+  producto       Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  precioAnterior Float
+  precioNuevo    Float
+  creadoEn       DateTime @default(now())
+  cambiadoPorId  String?
+  cambiadoPor    Usuario? @relation("HistorialPrecioUsuario", fields: [cambiadoPorId], references: [id], onDelete: SetNull)
+
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([productoId, creadoEn(sort: Desc)])
+  @@index([empresaId])
 }
 
 enum TipoMovimiento {
