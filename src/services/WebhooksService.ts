@@ -1,6 +1,6 @@
 import { prisma } from '../lib/db'
 import { AppError } from '../lib/AppError'
-import { timingSafeEqual } from 'crypto'
+import { createHmac, timingSafeEqual } from 'crypto'
 import { z } from 'zod'
 
 const usuarioCreadoSchema = z.object({
@@ -10,21 +10,22 @@ const usuarioCreadoSchema = z.object({
 })
 
 export class WebhooksService {
-  static async validarFirma(token: string | null): Promise<boolean> {
+  static async validarFirma(payload: string, signatureHeader: string | null): Promise<boolean> {
     const secreto = process.env.NEON_WEBHOOK_SECRET
 
     if (!secreto) {
       throw new AppError('NEON_WEBHOOK_SECRET no configurado en el servidor', 500)
     }
 
-    if (!token) {
+    if (!signatureHeader) {
       throw new AppError('Firma de webhook inválida', 401)
     }
 
-    const tokenBuf = Buffer.from(token)
-    const secretoBuf = Buffer.from(secreto)
+    const expected = createHmac('sha256', secreto).update(payload).digest('hex')
+    const sigBuf = Buffer.from(signatureHeader)
+    const expBuf = Buffer.from(expected)
 
-    if (tokenBuf.length !== secretoBuf.length || !timingSafeEqual(tokenBuf, secretoBuf)) {
+    if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) {
       throw new AppError('Firma de webhook inválida', 401)
     }
 

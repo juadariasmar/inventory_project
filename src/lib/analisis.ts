@@ -83,6 +83,7 @@ const DIAS_VENTANA_CONSUMO = 30
 const DIAS_LIMITE_AGOTARSE = 7
 const DIAS_SIN_MOVIMIENTO = 30
 const TOP_ROTACION = 10
+const MAX_PRODUCTOS_ANALISIS = 500
 
 /**
  * Calcula la cantidad de unidades que han salido por producto en los últimos N días,
@@ -173,27 +174,26 @@ export async function obtenerStockPorAgotarse(empresaId: string): Promise<Alerta
 }
 
 export async function obtenerProductosSinMovimientos(empresaId: string): Promise<AlertaSinMovimientos[]> {
-  const productos = await prisma.producto.findMany({
-    where: { empresaId },
-    select: {
-      id: true,
-      nombre: true,
-      codigo: true,
-      cantidad: true,
-      precio: true,
-      movimientos: {
-        orderBy: { creadoEn: 'desc' },
-        take: 1,
-        select: { creadoEn: true },
-      },
-    },
-  })
+  const [productos, ultimosMovimientos] = await Promise.all([
+    prisma.producto.findMany({
+      where: { empresaId },
+      select: { id: true, nombre: true, codigo: true, cantidad: true, precio: true },
+      take: MAX_PRODUCTOS_ANALISIS,
+    }),
+    prisma.movimiento.groupBy({
+      by: ['productoId'],
+      where: { empresaId },
+      _max: { creadoEn: true },
+    }),
+  ])
 
+  const mapaUltimoMov = new Map(ultimosMovimientos.map((m) => [m.productoId, m._max.creadoEn]))
   const hoy = new Date()
   const alertas: AlertaSinMovimientos[] = []
+
   for (const p of productos) {
     if (p.cantidad <= 0) continue
-    const ultimo = p.movimientos[0]?.creadoEn
+    const ultimo = mapaUltimoMov.get(p.id)
     const diasSinMovimiento = ultimo
       ? Math.floor((hoy.getTime() - ultimo.getTime()) / (1000 * 60 * 60 * 24))
       : DIAS_SIN_MOVIMIENTO + 1
@@ -209,6 +209,7 @@ export async function obtenerProductosSinMovimientos(empresaId: string): Promise
       })
     }
   }
+
   return alertas.sort((a, b) => b.valorInmovilizado - a.valorInmovilizado)
 }
 
@@ -253,7 +254,7 @@ async function obtenerAltaRotacion(empresaId: string): Promise<ProductoAltaRotac
     .filter((x): x is ProductoAltaRotacion => x !== null)
 }
 
-async function obtenerStockCritico(empresaId: string): Promise<AlertaStockCritico[]> {
+export async function obtenerStockCritico(empresaId: string): Promise<AlertaStockCritico[]> {
   const [productos, consumo] = await Promise.all([
     prisma.producto.findMany({
       where: { empresaId },
@@ -322,28 +323,32 @@ async function obtenerResumenMovimientos(empresaId: string, dias = 30): Promise<
 }
 
 async function obtenerInventarioGeneral(empresaId: string): Promise<FilaInventarioGeneral[]> {
-  const productos = await prisma.producto.findMany({
-    where: { empresaId },
-    select: {
-      id: true,
-      codigo: true,
-      nombre: true,
-      precio: true,
-      cantidad: true,
-      stockMinimo: true,
-      categoria: { select: { nombre: true } },
-      movimientos: {
-        orderBy: { creadoEn: 'desc' },
-        take: 1,
-        select: { creadoEn: true },
+  const [productos, ultimosMovimientos] = await Promise.all([
+    prisma.producto.findMany({
+      where: { empresaId },
+      select: {
+        id: true,
+        codigo: true,
+        nombre: true,
+        precio: true,
+        cantidad: true,
+        stockMinimo: true,
+        categoria: { select: { nombre: true } },
       },
-    },
-    orderBy: { nombre: 'asc' },
-  })
+      orderBy: { nombre: 'asc' },
+      take: MAX_PRODUCTOS_ANALISIS,
+    }),
+    prisma.movimiento.groupBy({
+      by: ['productoId'],
+      where: { empresaId },
+      _max: { creadoEn: true },
+    }),
+  ])
 
+  const mapaUltimoMov = new Map(ultimosMovimientos.map((m) => [m.productoId, m._max.creadoEn]))
   const hoy = new Date()
   return productos.map((p) => {
-    const ultimo = p.movimientos[0]?.creadoEn
+    const ultimo = mapaUltimoMov.get(p.id)
     const diasDesdeUltimaActividad = ultimo
       ? Math.floor((hoy.getTime() - ultimo.getTime()) / (1000 * 60 * 60 * 24))
       : null
@@ -410,17 +415,29 @@ async function obtenerVentasPorCategoria(empresaId: string, dias = 30, top = 8):
   desde.setDate(desde.getDate() - dias)
   desde.setHours(0, 0, 0, 0)
 
-  const items = await prisma.itemVenta.findMany({
-    where: { venta: { empresaId, creadoEn: { gte: desde }, canceladaEn: null } },
-    include: { producto: { include: { categoria: true } } },
+  const items = await prisma.itemVenta.groupBy({
+    by: ['productoId'],
+    where: {
+      venta: { empresaId, creadoEn: { gte: desde }, canceladaEn: null },
+    },
+    _sum: { cantidad: true, subtotal: true },
   })
+
+  if (items.length === 0) return []
+
+  const productosIds = items.map((i) => i.productoId)
+  const productos = await prisma.producto.findMany({
+    where: { id: { in: productosIds } },
+    select: { id: true, categoria: { select: { nombre: true } } },
+  })
+  const mapaCategoria = new Map(productos.map((p) => [p.id, p.categoria?.nombre ?? 'Sin categoría']))
 
   const agrupado = new Map<string, { unidadesVendidas: number; ingresoTotal: number }>()
   for (const it of items) {
-    const cat = it.producto.categoria?.nombre ?? 'Sin categoría'
+    const cat = mapaCategoria.get(it.productoId) ?? 'Sin categoría'
     const acc = agrupado.get(cat) ?? { unidadesVendidas: 0, ingresoTotal: 0 }
-    acc.unidadesVendidas += it.cantidad
-    acc.ingresoTotal += it.subtotal
+    acc.unidadesVendidas += it._sum.cantidad ?? 0
+    acc.ingresoTotal += it._sum.subtotal ?? 0
     agrupado.set(cat, acc)
   }
   return Array.from(agrupado.entries())
