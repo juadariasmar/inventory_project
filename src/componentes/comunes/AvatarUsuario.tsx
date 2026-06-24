@@ -15,7 +15,8 @@ function obtenerIniciales(nombre: string): string {
 }
 
 interface AvatarUsuarioProps {
-  sesion: { user?: { nombre?: string } } | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sesion: { user?: Record<string, any> } | null
 }
 
 export default function AvatarUsuario({ sesion }: AvatarUsuarioProps) {
