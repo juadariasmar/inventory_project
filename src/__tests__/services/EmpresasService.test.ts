@@ -8,8 +8,8 @@ jest.mock('../../lib/auditoria', () => ({
 }));
 
 describe('EmpresasService', () => {
-  let createdEmpresaIds: string[] = [];
-  let testUsuarioId: string = 'test-user-empresas-service';
+  const createdEmpresaIds: string[] = [];
+  const testUsuarioId: string = 'test-user-empresas-service';
 
   beforeAll(async () => {
     // Ensure we have a test user to associate audits/actions
@@ -44,7 +44,7 @@ describe('EmpresasService', () => {
         await prisma.producto.deleteMany({ where: { empresaId: empId } });
         await prisma.categoria.deleteMany({ where: { empresaId: empId } });
         await prisma.empresa.deleteMany({ where: { id: empId } });
-      } catch (e) {
+      } catch {
         // Ignore
       }
     }
