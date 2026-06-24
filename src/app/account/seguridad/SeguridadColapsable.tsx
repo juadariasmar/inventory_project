@@ -3,28 +3,9 @@
 import * as Accordion from '@radix-ui/react-accordion'
 import { ChangePasswordCard, TwoFactorCard, PasskeysCard } from '@neondatabase/auth-ui'
 import { ChevronDown, Shield, Key, Fingerprint, Monitor, Lock } from 'lucide-react'
-import { useSyncExternalStore } from 'react'
-
-const emptySubscribe = () => () => {}
+import { useState, useEffect } from 'react'
 
 export default function SeguridadColapsable() {
-  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false)
-
-  if (!mounted) {
-    return (
-      <div className="max-w-2xl mx-auto py-8 px-4">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Seguridad</h1>
-        <div className="space-y-3">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-white rounded-xl shadow-sm border border-border p-4">
-              <div className="h-6 w-40 bg-gray-200 rounded animate-pulse" />
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="max-w-2xl mx-auto py-8 px-4">
       <div className="flex items-center gap-3 mb-6">
