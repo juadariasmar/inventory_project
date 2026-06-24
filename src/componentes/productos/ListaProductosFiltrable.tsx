@@ -456,16 +456,16 @@ export default function ListaProductosFiltrable({
                               </Link>
                             </div>
                             {esAdmin && (
-                              <>
-                                <div className="px-4 py-2 hover:bg-gray-100">
-                                  <Link href={`/productos/${producto.id}`} className="text-blue-600 block w-full text-left">
-                                    Editar
-                                  </Link>
-                                </div>
-                                <div className="px-4 py-2 hover:bg-gray-100">
-                                  <BotonEliminarProducto id={producto.id} nombre={producto.nombre} />
-                                </div>
-                              </>
+                              <div className="px-4 py-2 hover:bg-gray-100">
+                                <Link href={`/productos/${producto.id}`} className="text-blue-600 block w-full text-left">
+                                  Editar
+                                </Link>
+                              </div>
+                            )}
+                            {esAdmin && (
+                              <div className="px-4 py-2 hover:bg-gray-100">
+                                <BotonEliminarProducto id={producto.id} nombre={producto.nombre} />
+                              </div>
                             )}
                           </MenuDesplegableAcciones>
                         </td>
@@ -550,16 +550,16 @@ export default function ListaProductosFiltrable({
                           </Link>
                         </div>
                         {esAdmin && (
-                          <>
-                            <div className="px-4 py-2 hover:bg-gray-100">
-                              <Link href={`/productos/${producto.id}`} className="text-blue-600 block w-full text-left">
-                                Editar
-                              </Link>
-                            </div>
-                            <div className="px-4 py-2 hover:bg-gray-100">
-                              <BotonEliminarProducto id={producto.id} nombre={producto.nombre} />
-                            </div>
-                          </>
+                          <div className="px-4 py-2 hover:bg-gray-100">
+                            <Link href={`/productos/${producto.id}`} className="text-blue-600 block w-full text-left">
+                              Editar
+                            </Link>
+                          </div>
+                        )}
+                        {esAdmin && (
+                          <div className="px-4 py-2 hover:bg-gray-100">
+                            <BotonEliminarProducto id={producto.id} nombre={producto.nombre} />
+                          </div>
                         )}
                       </MenuDesplegableAcciones>
                     </div>

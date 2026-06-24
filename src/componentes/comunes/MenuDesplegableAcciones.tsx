@@ -33,6 +33,7 @@ export default function MenuDesplegableAcciones({ children }: Propiedades) {
       >
         {Children.map(children, (child) => {
           if (!isValidElement(child)) return child
+          if (typeof child.type === 'symbol') return <DropdownMenuItem asChild>{child}</DropdownMenuItem>
           const childProps = child.props as Record<string, unknown>
           const className = typeof childProps.className === 'string' ? childProps.className : ''
           return (
