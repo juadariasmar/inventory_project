@@ -3,7 +3,7 @@
 import {
   ToastProvider,
   ToastViewport,
-  ToastRoot,
+  Toast,
   ToastTitle,
   ToastDescription,
   ToastClose,
@@ -73,10 +73,10 @@ export default function ProveedorToast({ children }: { children: ReactNode }) {
         {toasts.map((t) => {
           const Icono = iconos[t.variant || 'info']
           return (
-            <ToastRoot
+            <Toast
               key={t.id}
               open
-              onOpenChange={(open) => { if (!open) eliminar(t.id) }}
+              onOpenChange={(open: boolean) => { if (!open) eliminar(t.id) }}
               className={`fixed bottom-4 right-4 z-[100] w-[90vw] max-w-sm bg-white rounded-lg shadow-2xl p-4 ${colores[t.variant || 'info']} data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out`}
             >
               <div className="flex items-start gap-3">
@@ -101,7 +101,7 @@ export default function ProveedorToast({ children }: { children: ReactNode }) {
                   </button>
                 </ToastClose>
               </div>
-            </ToastRoot>
+            </Toast>
           )
         })}
 

@@ -4,6 +4,7 @@ import { createMockRequest } from '../utils/test-utils';
 import { NextRequest } from 'next/server';
 import { prisma } from '../../lib/db';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockSesion: any = null;
 let mockEsAdminValue = true;
 
@@ -18,10 +19,10 @@ jest.mock('../../lib/auditoria', () => ({
 }));
 
 describe('Empresas API', () => {
-  let createdEmpresaIds: string[] = [];
-  let adminEmpresaId: string = 'api-test-admin-empresa';
-  let otherEmpresaId: string = 'api-test-other-empresa';
-  let adminUserId: string = 'api-test-admin-user';
+  const createdEmpresaIds: string[] = [];
+  const adminEmpresaId: string = 'api-test-admin-empresa';
+  const otherEmpresaId: string = 'api-test-other-empresa';
+  const adminUserId: string = 'api-test-admin-user';
 
   beforeAll(async () => {
     // Create admin company
@@ -83,7 +84,7 @@ describe('Empresas API', () => {
         await prisma.producto.deleteMany({ where: { empresaId: empId } });
         await prisma.categoria.deleteMany({ where: { empresaId: empId } });
         await prisma.empresa.deleteMany({ where: { id: empId } });
-      } catch (e) {
+      } catch {
         // Ignore
       }
     }

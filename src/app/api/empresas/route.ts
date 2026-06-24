@@ -5,7 +5,7 @@ import { EmpresasService } from '@/services/EmpresasService';
 import { AppError } from '@/lib/AppError';
 
 // GET - Listar todas las empresas (solo ADMIN activo)
-export async function GET() {
+export async function GET(_request: NextRequest) {
   if (!(await esAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
