@@ -2,6 +2,9 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { Input } from '@/componentes/comunes/Input'
+import { Button } from '@/componentes/comunes/Button'
+import { AlertCircle } from 'lucide-react'
 
 export default function FormularioCategoria() {
   const router = useRouter()
@@ -37,46 +40,30 @@ export default function FormularioCategoria() {
   }
 
   return (
-    <form onSubmit={manejarEnvio} className="space-y-6">
+    <form onSubmit={manejarEnvio} className="space-y-6" noValidate>
       {error && (
-        <div className="bg-red-50 text-red-500 p-3 rounded-md text-sm">
-          {error}
+        <div role="alert" className="flex items-start gap-2 bg-red-50 text-red-700 border border-red-200 p-3 rounded-lg text-sm">
+          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" aria-hidden="true" />
+          <span>{error}</span>
         </div>
       )}
 
-      <div>
-        <label
-          htmlFor="nombre"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Nombre de la Categoría *
-        </label>
-        <input
-          type="text"
-          id="nombre"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-          placeholder="Ej: Electrónicos, Ropa, Alimentos..."
-          required
-        />
-      </div>
+      <Input
+        label="Nombre de la Categoría"
+        id="nombre"
+        value={nombre}
+        onChange={(e) => setNombre(e.target.value)}
+        placeholder="Ej: Electrónicos, Ropa, Alimentos..."
+        required
+      />
 
-      <div className="flex justify-end space-x-4">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-        >
+      <div className="flex justify-end gap-3">
+        <Button type="button" variant="secondary" onClick={() => router.back()}>
           Cancelar
-        </button>
-        <button
-          type="submit"
-          disabled={guardando}
-          className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 transition-colors"
-        >
-          {guardando ? 'Guardando...' : 'Crear Categoría'}
-        </button>
+        </Button>
+        <Button type="submit" variant="primary" isLoading={guardando} loadingText="Guardando...">
+          Crear Categoría
+        </Button>
       </div>
     </form>
   )
