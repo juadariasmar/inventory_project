@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { esAdmin, obtenerSesion } from '@/lib/permisos';
+import { esSuperAdmin, obtenerSesion } from '@/lib/permisos';
 import { extraerIp } from '@/lib/auditoria';
 import { EmpresasService } from '@/services/EmpresasService';
 import { AppError } from '@/lib/AppError';
 
-// GET - Listar todas las empresas (solo ADMIN activo)
+// GET - Listar todas las empresas (solo superadmin)
 export async function GET(_request: NextRequest) {
-  if (!(await esAdmin())) {
+  if (!(await esSuperAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
 
@@ -22,9 +22,9 @@ export async function GET(_request: NextRequest) {
   }
 }
 
-// POST - Crear una nueva empresa (solo ADMIN activo)
+// POST - Crear una nueva empresa (solo superadmin)
 export async function POST(request: NextRequest) {
-  if (!(await esAdmin())) {
+  if (!(await esSuperAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
 
