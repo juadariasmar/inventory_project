@@ -14,8 +14,8 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
         role={asRegion ? 'region' : undefined}
         aria-labelledby={labelledBy}
         className={`${
-          glass ? 'glass' : 'bg-white'
-        } p-6 rounded-xl shadow-sm border border-gray-200 transition-premium hover:shadow-md ${className}`}
+          glass ? 'glass dark:glass-dark' : 'bg-surface border border-border'
+        } p-6 rounded-xl shadow-sm transition-shadow duration-200 hover:shadow-md ${className}`}
         {...props}
       >
         {children}

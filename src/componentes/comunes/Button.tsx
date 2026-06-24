@@ -9,14 +9,14 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className = '', variant = 'primary', isLoading, loadingText = 'Cargando...', children, disabled, ...props }, ref) => {
-    const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-lg transition-premium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 px-4 py-2 text-sm select-none active:scale-[0.98]'
+    const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 px-4 py-2.5 text-sm select-none active:scale-[0.98]'
 
     const variants = {
-      primary: 'bg-primary text-white hover:bg-primary-hover shadow-sm focus-visible:ring-primary',
-      secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus-visible:ring-gray-400',
-      danger: 'bg-error text-white hover:bg-error/90 shadow-sm focus-visible:ring-error',
-      success: 'bg-success text-white hover:bg-success/90 shadow-sm focus-visible:ring-success',
-      ghost: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-gray-400',
+      primary: 'bg-primary text-primary-foreground hover:bg-primary-hover shadow-sm active:shadow-xs',
+      secondary: 'bg-surface text-foreground border border-border hover:bg-surface-alt hover:border-border-strong shadow-sm',
+      danger: 'bg-error text-error-foreground hover:bg-error-hover shadow-sm active:shadow-xs',
+      success: 'bg-success text-success-foreground hover:bg-success-hover shadow-sm active:shadow-xs',
+      ghost: 'text-foreground hover:bg-muted active:bg-muted',
     }
 
     const isDisabled = disabled || isLoading
@@ -27,7 +27,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={isDisabled}
         aria-busy={isLoading || undefined}
         aria-disabled={isDisabled || undefined}
-        className={`${baseStyles} ${variants[variant]} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+        className={`${baseStyles} ${variants[variant]} ${isDisabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''} ${className}`}
         {...props}
       >
         {isLoading ? (

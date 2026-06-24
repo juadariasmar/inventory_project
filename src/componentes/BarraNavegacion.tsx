@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import AvatarUsuario from '@/componentes/comunes/AvatarUsuario'
+import { TemaToggle } from '@/componentes/comunes/TemaToggle'
 import { Bell } from 'lucide-react'
 
 interface SubEnlace {
@@ -215,9 +216,10 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
           <div className="hidden md:flex items-center gap-1">
             {sesion?.user && (
               <>
+                <TemaToggle className="text-white/80 hover:text-white hover:bg-white/10" />
                 <Link
                   href="/notificaciones"
-                  className="relative p-2 text-white/90 hover:bg-primary-hover rounded-md transition-colors"
+                  className="relative p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-fast"
                   title="Notificaciones"
                 >
                   <Bell className="w-5 h-5" />

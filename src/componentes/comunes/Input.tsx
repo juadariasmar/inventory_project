@@ -21,7 +21,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full space-y-1.5">
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700">
+          <label htmlFor={inputId} className="block text-sm font-medium text-foreground">
             {label}
             {required && <span className="text-error ml-0.5" aria-hidden="true">*</span>}
           </label>
@@ -35,10 +35,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             aria-required={required || undefined}
             aria-invalid={!!error}
             aria-describedby={describedBy}
-            className={`w-full px-3 py-2 text-sm text-gray-900 bg-white border rounded-lg transition-premium placeholder:text-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary ${
+            className={`w-full px-3 py-2.5 text-sm text-foreground bg-surface border rounded-lg transition-fast placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring ${
               error
-                ? 'border-error pr-9 focus-visible:border-error focus-visible:ring-error/20'
-                : 'border-gray-300'
+                ? 'border-error pr-10 focus-visible:border-error focus-visible:ring-error/30'
+                : 'border-border hover:border-border-strong'
             } ${className}`}
             {...props}
           />
@@ -49,7 +49,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {hint && !error && (
-          <p id={hintId} className="text-xs text-gray-500">{hint}</p>
+          <p id={hintId} className="text-xs text-muted-foreground">{hint}</p>
         )}
         {error && (
           <p id={errorId} role="alert" className="flex items-start gap-1 text-xs text-error font-medium">
