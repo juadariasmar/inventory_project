@@ -26,7 +26,7 @@ export default async function PaginaNotificaciones() {
           <p className="text-sm text-gray-500 mt-1">Alertas y avisos del sistema.</p>
         </div>
 
-        <VistaNotificaciones empresaId={sesion.user.empresaId} />
+        <VistaNotificaciones />
       </div>
     </LayoutProtegido>
   )

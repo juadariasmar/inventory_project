@@ -6,11 +6,12 @@ import { prisma } from '../../lib/db';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockSesion: any = null;
-let mockEsAdminValue = true;
+let mockEsSuperAdminValue = true;
 
 jest.mock('../../lib/permisos', () => ({
   obtenerSesion: jest.fn(() => Promise.resolve(mockSesion)),
-  esAdmin: jest.fn(() => Promise.resolve(mockEsAdminValue))
+  esAdmin: jest.fn(() => Promise.resolve(true)),
+  esSuperAdmin: jest.fn(() => Promise.resolve(mockEsSuperAdminValue))
 }));
 
 jest.mock('../../lib/auditoria', () => ({
@@ -70,7 +71,7 @@ describe('Empresas API', () => {
         estado: 'ACTIVO'
       }
     };
-    mockEsAdminValue = true;
+    mockEsSuperAdminValue = true;
   });
 
   afterAll(async () => {
@@ -102,34 +103,31 @@ describe('Empresas API', () => {
         estado: 'ACTIVO'
       }
     };
-    mockEsAdminValue = true;
+    mockEsSuperAdminValue = true;
   });
 
   describe('GET /api/empresas', () => {
     it('returns list of companies for active ADMIN', async () => {
-      const req = createMockRequest('http://localhost/api/empresas', 'GET');
-      const res = await GET(req as unknown as NextRequest);
+      const res = await GET();
       expect(res.status).toBe(200);
       const data = await res.json();
       expect(Array.isArray(data)).toBe(true);
       expect(data.length).toBeGreaterThanOrEqual(2);
     });
 
-    it('returns 403 if user is not ADMIN', async () => {
-      mockEsAdminValue = false;
-      mockSesion.user.rol = 'USUARIO';
+    it('returns 403 if user does not exist', async () => {
+      mockEsSuperAdminValue = false;
+      mockSesion = null as any;
 
-      const req = createMockRequest('http://localhost/api/empresas', 'GET');
-      const res = await GET(req as unknown as NextRequest);
+      const res = await GET();
       expect(res.status).toBe(403);
     });
 
     it('returns 403 if user is suspended/inactive admin', async () => {
-      mockEsAdminValue = false;
+      mockEsSuperAdminValue = false;
       mockSesion.user.estado = 'SUSPENDIDO';
 
-      const req = createMockRequest('http://localhost/api/empresas', 'GET');
-      const res = await GET(req as unknown as NextRequest);
+      const res = await GET();
       expect(res.status).toBe(403);
     });
   });
@@ -155,7 +153,7 @@ describe('Empresas API', () => {
     });
 
     it('returns 403 if not ADMIN', async () => {
-      mockEsAdminValue = false;
+      mockEsSuperAdminValue = false;
       const req = createMockRequest('http://localhost/api/empresas', 'POST', '127.0.0.1', {
         nombre: 'Intento de creacion'
       });
@@ -180,7 +178,7 @@ describe('Empresas API', () => {
     });
 
     it('returns 403 if not ADMIN', async () => {
-      mockEsAdminValue = false;
+      mockEsSuperAdminValue = false;
       const req = createMockRequest(`http://localhost/api/empresas/${otherEmpresaId}`, 'GET');
       const res = await GET_BY_ID(req as unknown as NextRequest, { params: Promise.resolve({ id: otherEmpresaId }) });
       expect(res.status).toBe(403);
@@ -207,7 +205,7 @@ describe('Empresas API', () => {
     });
 
     it('returns 403 if not ADMIN', async () => {
-      mockEsAdminValue = false;
+      mockEsSuperAdminValue = false;
       const req = createMockRequest(`http://localhost/api/empresas/${otherEmpresaId}`, 'PUT', '127.0.0.1', {
         nombre: 'Fallo admin'
       });
@@ -261,7 +259,7 @@ describe('Empresas API', () => {
     });
 
     it('returns 403 if not ADMIN', async () => {
-      mockEsAdminValue = false;
+      mockEsSuperAdminValue = false;
       const req = createMockRequest(`http://localhost/api/empresas/${otherEmpresaId}`, 'DELETE', '127.0.0.1');
       const res = await DELETE(req as unknown as NextRequest, { params: Promise.resolve({ id: otherEmpresaId }) });
       expect(res.status).toBe(403);

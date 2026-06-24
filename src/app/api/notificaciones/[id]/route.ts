@@ -15,8 +15,7 @@ export async function PATCH(_request: NextRequest, { params }: Parametros) {
 
   try {
     const { id } = await params
-    const usuarioId = typeof sesion.user.id === 'string' ? sesion.user.id : String(sesion.user.id)
-    await NotificacionesService.marcarLeida(parseInt(id, 10), usuarioId)
+    await NotificacionesService.marcarLeida(parseInt(id, 10))
     return NextResponse.json({ ok: true })
   } catch (error) {
     if (error instanceof AppError) {

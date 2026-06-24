@@ -29,7 +29,7 @@ export const NotificacionesService = {
     })
   },
 
-  async marcarLeida(id: number, usuarioId: string) {
+  async marcarLeida(id: number) {
     const notif = await prisma.notificacion.findUnique({ where: { id } })
     if (!notif) throw new AppError('Notificación no encontrada', 404)
 

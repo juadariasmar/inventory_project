@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { Search, Plus, Edit, History, X } from 'lucide-react'
 
@@ -14,7 +14,7 @@ interface Cliente {
   notas: string | null
 }
 
-export default function VistaClientes({ empresaId }: { empresaId: string }) {
+export default function VistaClientes() {
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [busqueda, setBusqueda] = useState('')
   const [mostrandoForm, setMostrandoForm] = useState(false)
@@ -23,15 +23,15 @@ export default function VistaClientes({ empresaId }: { empresaId: string }) {
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
 
-  const cargar = () => {
+  const cargar = useCallback(() => {
     const q = busqueda ? `?busqueda=${encodeURIComponent(busqueda)}` : ''
     fetch(`/api/clientes${q}`)
       .then((r) => r.json())
       .then(setClientes)
       .catch(() => setError('Error al cargar clientes'))
-  }
+  }, [busqueda])
 
-  useEffect(() => { cargar() }, [busqueda])
+  useEffect(() => { cargar() }, [busqueda, cargar])
 
   const abrirNuevo = () => {
     setEditando(null)
