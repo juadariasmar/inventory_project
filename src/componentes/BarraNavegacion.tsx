@@ -77,13 +77,13 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
       ],
     },
     { tipo: 'enlace', href: '/analisis', etiqueta: 'Análisis', visible: puedeVerAnalisis },
+    { tipo: 'enlace', href: '/empresa/configuracion', etiqueta: 'Empresa', visible: true },
     {
       tipo: 'dropdown',
       id: 'admin',
       etiqueta: 'Administración',
       visible: esAdmin,
       items: [
-        { href: '/empresa/configuracion', etiqueta: 'Empresa', visible: true },
         { href: '/usuarios', etiqueta: 'Usuarios', visible: true },
         { href: '/auditoria', etiqueta: 'Auditoría', visible: true },
         { href: '/admin/configuracion', etiqueta: 'Configuración', visible: true },
