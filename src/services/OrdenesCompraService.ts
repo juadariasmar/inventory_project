@@ -34,7 +34,7 @@ export const OrdenesCompraService = {
     const orden = await prisma.ordenCompra.findFirst({
       where: { id, empresaId },
       include: {
-        proveedor: { select: { id: true, nombre: true, nit: true, telefono: true } },
+        proveedor: { select: { id: true, nombre: true, nit: true, telefono: true, contacto: true, direccion: true, email: true } },
         items: { include: { producto: { select: { nombre: true, codigo: true } } } },
       },
     });
