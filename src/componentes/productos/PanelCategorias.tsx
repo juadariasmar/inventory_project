@@ -2,8 +2,10 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import BarraSeleccionMultiple from '@/componentes/comunes/BarraSeleccionMultiple'
+import { useToast } from '@/componentes/comunes/ProveedorToast'
+import ConfirmarAccion from '@/componentes/comunes/ConfirmarAccion'
 
 interface ProductoEnCategoria {
   id: number
@@ -71,12 +73,15 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
   const [eliminandoId, setEliminandoId] = useState<number | null>(null)
   const [seleccionadas, setSeleccionadas] = useState<Set<number>>(new Set())
   const [eliminandoBulk, setEliminandoBulk] = useState(false)
+  const [confirmarBulk, setConfirmarBulk] = useState(false)
+  const bulkTriggerRef = useRef<HTMLButtonElement>(null)
   const [editandoId, setEditandoId] = useState<number | null>(null)
   const [editNombre, setEditNombre] = useState('')
   const [editPrefijo, setEditPrefijo] = useState('')
   const [guardandoEdit, setGuardandoEdit] = useState(false)
   const [error, setError] = useState('')
   const [exito, setExito] = useState('')
+  const { toast } = useToast()
 
   const nuevoPrefijo = useMemo(() => {
     if (prefijoEditadoManual) return nuevoPrefijoManual
@@ -108,6 +113,13 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
       }
     } catch {}
   }
+
+  useEffect(() => {
+    if (confirmarBulk && bulkTriggerRef.current) {
+      bulkTriggerRef.current.click()
+      setConfirmarBulk(false)
+    }
+  }, [confirmarBulk])
 
   const crear = async () => {
     const nombre = nuevoNombre.trim()
@@ -191,12 +203,13 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
 
   const eliminar = async (id: number, nombre: string, productosCount: number) => {
     if (productosCount > 0) {
-      alert(
-        `No se puede eliminar "${nombre}" porque tiene ${productosCount} producto(s) asociado(s).\n\nReasigna los productos a otra categoría primero.`
-      )
+      toast({
+        titulo: 'No se puede eliminar',
+        descripcion: `"${nombre}" tiene ${productosCount} producto(s) asociado(s). Reasigna los productos a otra categoría primero.`,
+        variant: 'info',
+      })
       return
     }
-    if (!confirm(`¿Eliminar la categoría "${nombre}"?`)) return
     setEliminandoId(id)
     setError('')
     setExito('')
@@ -270,10 +283,14 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
   }
   const limpiarSeleccionCats = () => setSeleccionadas(new Set())
 
-  const eliminarSeleccionadas = async () => {
+  const eliminarSeleccionadas = () => {
+    if (seleccionadas.size === 0) return
+    setConfirmarBulk(true)
+  }
+
+  const handleBulkDeleteCategorias = async () => {
     const ids = Array.from(seleccionadas)
     if (ids.length === 0) return
-    if (!confirm(`¿Eliminar ${ids.length} categoría(s)?`)) return
     setEliminandoBulk(true)
     try {
       const r = await fetch('/api/categorias/bulk-delete', {
@@ -468,15 +485,33 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
                           >
                             Editar
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => eliminar(c.id, c.nombre, c.productosCount)}
-                            disabled={eliminandoId === c.id || c.productosCount > 0}
-                            className="text-sm text-red-600 hover:text-red-800 disabled:opacity-30 disabled:cursor-not-allowed"
-                            title={c.productosCount > 0 ? 'Tiene productos asociados' : 'Eliminar'}
-                          >
-                            {eliminandoId === c.id ? 'Eliminando…' : 'Eliminar'}
-                          </button>
+                          {c.productosCount > 0 ? (
+                            <button
+                              type="button"
+                              disabled
+                              className="text-sm text-red-600 hover:text-red-800 disabled:opacity-30 disabled:cursor-not-allowed"
+                              title="Tiene productos asociados"
+                            >
+                              Eliminar
+                            </button>
+                          ) : (
+                            <ConfirmarAccion
+                              trigger={
+                                <button
+                                  type="button"
+                                  disabled={eliminandoId === c.id}
+                                  className="text-sm text-red-600 hover:text-red-800 disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                  {eliminandoId === c.id ? 'Eliminando…' : 'Eliminar'}
+                                </button>
+                              }
+                              titulo={`¿Eliminar la categoría "${c.nombre}"?`}
+                              descripcion="Esta acción no se puede deshacer."
+                              accion="Eliminar"
+                              variant="danger"
+                              onConfirm={() => eliminar(c.id, c.nombre, c.productosCount)}
+                            />
+                          )}
                         </div>
                       </div>
 
@@ -590,6 +625,15 @@ export default function PanelCategorias({ categoriasIniciales }: Propiedades) {
         onEliminar={eliminarSeleccionadas}
         onLimpiar={limpiarSeleccionCats}
         trabajando={eliminandoBulk}
+      />
+      <ConfirmarAccion
+        trigger={<button ref={bulkTriggerRef} type="button" className="hidden" aria-hidden="true" />}
+        titulo={`Eliminar ${seleccionadas.size} categoría(s)`}
+        descripcion="Esta acción no se puede deshacer."
+        accion="Eliminar"
+        variant="danger"
+        onConfirm={handleBulkDeleteCategorias}
+        disabled={eliminandoBulk}
       />
     </div>
   )
