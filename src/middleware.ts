@@ -64,6 +64,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // No interceptar rutas API (ya manejan su propia auth con obtenerSesion)
+  if (request.nextUrl.pathname.startsWith('/api/')) {
+    return NextResponse.next()
+  }
+
   return auth.middleware({ loginUrl: '/auth/sign-in' })(request)
 }
 
