@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import ConfirmarAccion from '../comunes/ConfirmarAccion'
+import { useToast } from '@/componentes/comunes/ProveedorToast'
 
 interface PropiedadesBoton {
   id: number
@@ -11,6 +12,7 @@ interface PropiedadesBoton {
 
 export default function BotonEliminarProducto({ id, nombre }: PropiedadesBoton) {
   const router = useRouter()
+  const { toast } = useToast()
   const [eliminando, setEliminando] = useState(false)
 
   const manejarEliminacion = async () => {
@@ -23,11 +25,11 @@ export default function BotonEliminarProducto({ id, nombre }: PropiedadesBoton) 
       if (respuesta.ok) {
         router.refresh()
       } else {
-        alert('Error al eliminar el producto')
+        toast({ titulo: 'Error al eliminar el producto', variant: 'error' })
       }
     } catch (error) {
       console.error('Error:', error)
-      alert('Error al eliminar el producto')
+      toast({ titulo: 'Error al eliminar el producto', variant: 'error' })
     } finally {
       setEliminando(false)
     }

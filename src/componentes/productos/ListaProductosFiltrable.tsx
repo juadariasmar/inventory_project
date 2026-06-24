@@ -2,8 +2,10 @@
 
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import BarraSeleccionMultiple from '@/componentes/comunes/BarraSeleccionMultiple'
+import { useToast } from '@/componentes/comunes/ProveedorToast'
+import ConfirmarAccion from '@/componentes/comunes/ConfirmarAccion'
 import BotonEliminarProducto from '@/componentes/productos/BotonEliminarProducto'
 import BotonVenderProducto from '@/componentes/productos/BotonVenderProducto'
 import MenuDesplegableAcciones from '@/componentes/comunes/MenuDesplegableAcciones'
@@ -80,6 +82,8 @@ export default function ListaProductosFiltrable({
   )
   const [seleccionados, setSeleccionados] = useState<Set<number>>(new Set())
   const [eliminandoBulk, setEliminandoBulk] = useState(false)
+  const [confirmarBulk, setConfirmarBulk] = useState(false)
+  const bulkTriggerRef = useRef<HTMLButtonElement>(null)
 
   // Persistir filtros en URL (sin recargar)
   useEffect(() => {
@@ -92,6 +96,15 @@ export default function ListaProductosFiltrable({
     const qs = params.toString()
     router.replace(qs ? `/productos?${qs}` : '/productos', { scroll: false })
   }, [q, cat, estado, rangoAntiguedad, campoOrden, dir, router])
+
+  const { toast } = useToast()
+
+  useEffect(() => {
+    if (confirmarBulk && bulkTriggerRef.current) {
+      bulkTriggerRef.current.click()
+      setConfirmarBulk(false)
+    }
+  }, [confirmarBulk])
 
   const productosFiltrados = useMemo(() => {
     const busq = q.trim().toLowerCase()
@@ -205,16 +218,14 @@ export default function ListaProductosFiltrable({
   }
   const limpiarSeleccion = () => setSeleccionados(new Set())
 
-  const eliminarSeleccionados = async () => {
+  const eliminarSeleccionados = () => {
+    if (seleccionados.size === 0) return
+    setConfirmarBulk(true)
+  }
+
+  const handleBulkDelete = async () => {
     const ids = Array.from(seleccionados)
     if (ids.length === 0) return
-    if (
-      !confirm(
-        `¿Eliminar ${ids.length} producto(s)?\n\nSe borrarán también todos sus movimientos. Si alguno tiene ventas o cotizaciones asociadas, no se borrará ninguno.`
-      )
-    ) {
-      return
-    }
     setEliminandoBulk(true)
     try {
       const r = await fetch('/api/productos/bulk-delete', {
@@ -227,10 +238,10 @@ export default function ListaProductosFiltrable({
         router.refresh()
       } else {
         const e = await r.json().catch(() => ({}))
-        alert(e.error || 'No se pudo eliminar.')
+        toast({ titulo: 'No se pudo eliminar', descripcion: e.error || 'No se pudo eliminar.', variant: 'error' })
       }
     } catch {
-      alert('Error al eliminar.')
+      toast({ titulo: 'Error al eliminar', variant: 'error' })
     } finally {
       setEliminandoBulk(false)
     }
@@ -607,6 +618,15 @@ export default function ListaProductosFiltrable({
           trabajando={eliminandoBulk}
         />
       )}
+      <ConfirmarAccion
+        trigger={<button ref={bulkTriggerRef} type="button" className="hidden" aria-hidden="true" />}
+        titulo={`Eliminar ${seleccionados.size} producto(s)`}
+        descripcion="Se borrarán también todos sus movimientos. Si alguno tiene ventas o cotizaciones asociadas, no se borrará ninguno."
+        accion="Eliminar"
+        variant="danger"
+        onConfirm={handleBulkDelete}
+        disabled={eliminandoBulk}
+      />
     </div>
   )
 }
