@@ -1,21 +1,21 @@
 import type { NextConfig } from "next";
 
+const isProd = process.env.NODE_ENV === 'production'
+
 const cspDirectives = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  "script-src-elem 'self' 'unsafe-inline' https://va.vercel-scripts.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  // Neon Auth (autenticación), Vercel Analytics/Speed Insights y Google OAuth
-  // requieren peticiones salientes desde el cliente; 'self' a secas las bloquea
-  // y rompe la hidratación de los componentes de auth-ui.
   "connect-src 'self' https://*.neon.tech wss://*.neon.tech https://*.vercel-insights.com https://vitals.vercel-insights.com https://accounts.google.com",
   "frame-src 'self' https://accounts.google.com",
   "frame-ancestors 'self'",
   "base-uri 'self'",
   "form-action 'self' https://accounts.google.com",
   "object-src 'none'",
-  "upgrade-insecure-requests",
+  ...(isProd ? ["upgrade-insecure-requests"] : []),
 ].join("; ")
 
 const securityHeaders = [
@@ -27,15 +27,17 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
   },
-  {
-    // Fuerza HTTPS por 2 años en el dominio y subdominios.
-    // Activar 'preload' solo cuando el dominio esté listo para la lista HSTS preload.
-    key: "Strict-Transport-Security",
-    value: "max-age=63072000; includeSubDomains",
-  },
+  ...(isProd
+    ? [{
+        key: "Strict-Transport-Security",
+        value: "max-age=63072000; includeSubDomains",
+      }]
+    : []),
 ]
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: process.cwd(),
+  serverExternalPackages: ["@prisma/client", "@prisma/adapter-neon", "@neondatabase/serverless", "ws"],
   async headers() {
     return [
       {
