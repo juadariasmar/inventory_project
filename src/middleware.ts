@@ -81,7 +81,8 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - auth/ (public auth routes like /auth/sign-in, /auth/reset-password)
+     * - invitacion (public invitation acceptance page)
      */
-    '/((?!_next/static|_next/image|favicon.ico|auth/).*)',
+    '/((?!_next/static|_next/image|favicon.ico|auth/|invitacion).*)',
   ],
 }
