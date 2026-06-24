@@ -55,12 +55,12 @@ export default function AvatarUsuario({ sesion }: AvatarUsuarioProps) {
               <p className="text-xs text-gray-500">{iniciales}</p>
             </div>
             <Link
-              href="/account/profile"
+              href="/account/seguridad"
               onClick={() => setAbierto(false)}
               className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             >
               <User className="w-4 h-4" />
-              Cuenta
+              Seguridad
             </Link>
             <button
               type="button"
