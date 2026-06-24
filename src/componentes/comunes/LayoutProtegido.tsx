@@ -23,6 +23,10 @@ export default async function LayoutProtegido({ children }: PropiedadesLayout) {
     )
   }
 
+  if (!sesion.user.onboardingCompletado) {
+    redirect('/onboarding')
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <BarraNavegacion sesion={sesion} />
