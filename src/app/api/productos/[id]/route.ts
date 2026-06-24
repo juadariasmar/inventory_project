@@ -52,6 +52,7 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
   try {
     const { id } = await params
     const productoId = parseInt(id)
+    const sesion = await obtenerSesion()
     if (isNaN(productoId) || productoId <= 0) {
       return NextResponse.json({ error: 'ID inválido.' }, { status: 400 })
     }
@@ -122,13 +123,15 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
     const delta = nuevaCantidad - actual.cantidad
 
     const producto = await prisma.$transaction(async (tx) => {
+      const nuevoPrecio = parseFloat(datos.precio)
+
       const actualizado = await tx.producto.update({
         where: { id: productoId },
         data: {
           nombre: datos.nombre,
           descripcion: datos.descripcion || null,
           codigo: datos.codigo,
-          precio: parseFloat(datos.precio),
+          precio: nuevoPrecio,
           cantidad: nuevaCantidad,
           stockMinimo: parseInt(datos.stockMinimo),
           categoriaId,
@@ -143,6 +146,18 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
             cantidad: delta,
             notas: 'Ajuste por edición',
             empresaId: actual.empresaId,
+          },
+        })
+      }
+
+      if (actual.precio !== nuevoPrecio) {
+        await tx.historialPrecio.create({
+          data: {
+            productoId,
+            precioAnterior: actual.precio,
+            precioNuevo: nuevoPrecio,
+            empresaId: actual.empresaId,
+            cambiadoPorId: sesion?.user?.id ?? null,
           },
         })
       }
