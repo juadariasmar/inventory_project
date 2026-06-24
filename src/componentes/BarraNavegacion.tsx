@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import UserButtonCliente from '@/componentes/comunes/UserButtonCliente'
+import AvatarUsuario from '@/componentes/comunes/AvatarUsuario'
 
 interface SubEnlace {
   href: string
@@ -83,6 +83,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
       etiqueta: 'Administración',
       visible: esAdmin,
       items: [
+        { href: '/empresa/configuracion', etiqueta: 'Empresa', visible: true },
         { href: '/usuarios', etiqueta: 'Usuarios', visible: true },
         { href: '/auditoria', etiqueta: 'Auditoría', visible: true },
         { href: '/admin/configuracion', etiqueta: 'Configuración', visible: true },
@@ -198,9 +199,11 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
           </div>
 
           {/* Mi cuenta (escritorio) */}
-          <div className="hidden md:flex items-center">
+          <div className="hidden md:flex items-center gap-1">
             {sesion?.user && (
-                <UserButtonCliente size="icon" />
+              <>
+                <AvatarUsuario sesion={sesion} />
+              </>
             )}
           </div>
 
@@ -274,7 +277,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
           </div>
           {sesion?.user && (
             <div className="border-t border-blue-500 pt-3 pb-3 px-4 flex justify-center">
-              <UserButtonCliente size="icon" />
+              <AvatarUsuario sesion={sesion} />
             </div>
           )}
         </div>

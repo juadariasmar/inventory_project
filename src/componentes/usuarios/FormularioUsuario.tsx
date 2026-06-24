@@ -20,6 +20,7 @@ interface DatosUsuario {
 
 interface PropiedadesFormulario {
   usuario?: DatosUsuario
+  empresaNombre?: string | null
 }
 
 const PERMISOS_DISPONIBLES: { valor: PermisoTipo; etiqueta: string; descripcion: string }[] = [
@@ -45,7 +46,7 @@ const PERMISOS_DISPONIBLES: { valor: PermisoTipo; etiqueta: string; descripcion:
   },
 ]
 
-export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
+export default function FormularioUsuario({ usuario, empresaNombre }: PropiedadesFormulario) {
   const router = useRouter()
   const esEdicion = !!usuario?.id
 
@@ -133,6 +134,16 @@ export default function FormularioUsuario({ usuario }: PropiedadesFormulario) {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        {empresaNombre && (
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Empresa
+            </label>
+            <p className="px-3 py-2 text-sm text-gray-600 bg-gray-50 rounded-md border border-gray-200">
+              {empresaNombre}
+            </p>
+          </div>
+        )}
         <div>
           <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-1">
             Nombre completo *
