@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import ConfirmarAccion from '../comunes/ConfirmarAccion'
+import { useToast } from '@/componentes/comunes/ProveedorToast'
 
 interface PropiedadesBoton {
   id: number
@@ -11,6 +12,7 @@ interface PropiedadesBoton {
 
 export default function BotonEliminarProveedor({ id, nombre }: PropiedadesBoton) {
   const router = useRouter()
+  const { toast } = useToast()
   const [eliminando, setEliminando] = useState(false)
 
   const manejarEliminacion = async () => {
@@ -24,11 +26,11 @@ export default function BotonEliminarProveedor({ id, nombre }: PropiedadesBoton)
         router.refresh()
       } else {
         const errorData = await respuesta.json().catch(() => ({}))
-        alert(errorData.error || 'Error al eliminar el proveedor')
+        toast({ titulo: errorData.error || 'Error al eliminar el proveedor', variant: 'error' })
       }
     } catch (error) {
       console.error('Error:', error)
-      alert('Error al eliminar el proveedor')
+      toast({ titulo: 'Error al eliminar el proveedor', variant: 'error' })
     } finally {
       setEliminando(false)
     }

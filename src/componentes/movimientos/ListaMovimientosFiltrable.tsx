@@ -2,8 +2,10 @@
 
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import BarraSeleccionMultiple from '@/componentes/comunes/BarraSeleccionMultiple'
+import { useToast } from '@/componentes/comunes/ProveedorToast'
+import ConfirmarAccion from '@/componentes/comunes/ConfirmarAccion'
 import { formatearFechaHora } from '@/lib/fechas'
 
 interface MovimientoFilaProps {
@@ -33,6 +35,8 @@ export default function ListaMovimientosFiltrable({
   const searchParams = useSearchParams()
   const [seleccionados, setSeleccionados] = useState<Set<number>>(new Set())
   const [eliminandoBulk, setEliminandoBulk] = useState(false)
+  const [confirmarBulk, setConfirmarBulk] = useState(false)
+  const bulkTriggerRef = useRef<HTMLButtonElement>(null)
 
   const [q, setQ] = useState(searchParams.get('q') ?? '')
   const [tipo, setTipo] = useState<TipoFiltro>(
@@ -57,6 +61,15 @@ export default function ListaMovimientosFiltrable({
     const qs = params.toString()
     router.replace(qs ? `/movimientos?${qs}` : '/movimientos', { scroll: false })
   }, [q, tipo, desde, hasta, campoOrden, dir, router])
+
+  const { toast } = useToast()
+
+  useEffect(() => {
+    if (confirmarBulk && bulkTriggerRef.current) {
+      bulkTriggerRef.current.click()
+      setConfirmarBulk(false)
+    }
+  }, [confirmarBulk])
 
   const filtrados = useMemo(() => {
     const busq = q.trim().toLowerCase()
@@ -146,15 +159,14 @@ export default function ListaMovimientosFiltrable({
   }
   const limpiarSeleccion = () => setSeleccionados(new Set())
 
-  const eliminarSeleccionados = async () => {
+  const eliminarSeleccionados = () => {
+    if (seleccionados.size === 0) return
+    setConfirmarBulk(true)
+  }
+
+  const handleBulkDelete = async () => {
     const ids = Array.from(seleccionados)
     if (ids.length === 0) return
-    if (
-      !confirm(
-        `¿Eliminar ${ids.length} movimiento(s)?\n\nSolo se borrarán los manuales. Esto NO ajusta el stock de los productos.`
-      )
-    )
-      return
     setEliminandoBulk(true)
     try {
       const r = await fetch('/api/movimientos/bulk-delete', {
@@ -167,10 +179,10 @@ export default function ListaMovimientosFiltrable({
         router.refresh()
       } else {
         const e = await r.json().catch(() => ({}))
-        alert(e.error || 'No se pudo eliminar.')
+        toast({ titulo: 'No se pudo eliminar', descripcion: e.error || 'No se pudo eliminar.', variant: 'error' })
       }
     } catch {
-      alert('Error al eliminar.')
+      toast({ titulo: 'Error al eliminar', variant: 'error' })
     } finally {
       setEliminandoBulk(false)
     }
@@ -448,6 +460,15 @@ export default function ListaMovimientosFiltrable({
           trabajando={eliminandoBulk}
         />
       )}
+      <ConfirmarAccion
+        trigger={<button ref={bulkTriggerRef} type="button" className="hidden" aria-hidden="true" />}
+        titulo={`Eliminar ${seleccionados.size} movimiento(s)`}
+        descripcion="Solo se borrarán los manuales. Esto NO ajusta el stock de los productos."
+        accion="Eliminar"
+        variant="danger"
+        onConfirm={handleBulkDelete}
+        disabled={eliminandoBulk}
+      />
     </div>
   )
 }

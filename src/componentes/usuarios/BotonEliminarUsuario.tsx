@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import ConfirmarAccion from '../comunes/ConfirmarAccion'
+import { useToast } from '@/componentes/comunes/ProveedorToast'
 
 interface PropiedadesBoton {
   id: string
@@ -16,6 +17,7 @@ export default function BotonEliminarUsuario({
   esActual,
 }: PropiedadesBoton) {
   const router = useRouter()
+  const { toast } = useToast()
   const [eliminando, setEliminando] = useState(false)
 
   const manejarEliminacion = async () => {
@@ -26,11 +28,11 @@ export default function BotonEliminarUsuario({
         router.refresh()
       } else {
         const errorData = await respuesta.json()
-        alert(errorData.error || 'Error al eliminar el usuario')
+        toast({ titulo: errorData.error || 'Error al eliminar el usuario', variant: 'error' })
       }
     } catch (error) {
       console.error('Error:', error)
-      alert('Error al eliminar el usuario')
+      toast({ titulo: 'Error al eliminar el usuario', variant: 'error' })
     } finally {
       setEliminando(false)
     }
