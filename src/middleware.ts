@@ -19,11 +19,27 @@ const ratelimit = redisUrl && redisToken ? new Ratelimit({
 }) : null;
 
 export async function middleware(request: NextRequest) {
-  // Aplicar rate limiting solo al endpoint de credenciales.
-  if (
-    request.nextUrl.pathname.includes('/api/auth/') &&
-    request.method === 'POST'
-  ) {
+  const esPost = request.method === 'POST'
+  const path = request.nextUrl.pathname
+
+  // Rate limiting: solo endpoints sensibles con mutación.
+  const requiereRateLimit = esPost && (
+    path.includes('/api/auth/') ||
+    path === '/api/invitaciones/aceptar' ||
+    path === '/api/admin/restablecer' ||
+    path === '/api/empresas' ||
+    path === '/api/usuarios' ||
+    path === '/api/invitaciones' ||
+    path === '/api/categorias' ||
+    path === '/api/productos' ||
+    path === '/api/movimientos' ||
+    path === '/api/ventas' ||
+    path === '/api/cotizaciones' ||
+    path === '/api/proveedores' ||
+    path === '/api/ordenes-compra'
+  )
+
+  if (requiereRateLimit) {
     const ip =
       request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
       request.headers.get('x-real-ip') ||

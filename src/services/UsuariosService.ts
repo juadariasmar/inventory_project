@@ -1,5 +1,6 @@
 import { prisma } from '../lib/db'
 import { AppError } from '../lib/AppError'
+import { randomUUID } from 'crypto'
 
 // Removed manual password validation since Neon Auth manages credentials
 
@@ -26,7 +27,7 @@ export const UsuariosService = {
 
     return await prisma.usuario.create({
       data: {
-        neonAuthId: `pending-${Date.now()}`,
+        neonAuthId: `pending-${randomUUID()}`,
         email: datos.email,
         nombre: datos.nombre,
         rol: datos.rol === 'ADMIN' ? 'ADMIN' : 'USUARIO',
@@ -52,7 +53,13 @@ export const UsuariosService = {
     const datosActualizar: any = {}
 
     if (datos.nombre) datosActualizar.nombre = datos.nombre
-    if (datos.email) datosActualizar.email = datos.email
+    if (datos.email) {
+      const existente = await prisma.usuario.findUnique({ where: { email: datos.email } })
+      if (existente && existente.id !== id) {
+        throw new AppError('El email ya está en uso por otro usuario', 409)
+      }
+      datosActualizar.email = datos.email
+    }
     if (datos.rol === 'ADMIN' || datos.rol === 'USUARIO') datosActualizar.rol = datos.rol
     if (['PENDIENTE', 'ACTIVO', 'SUSPENDIDO'].includes(datos.estado)) datosActualizar.estado = datos.estado
 
