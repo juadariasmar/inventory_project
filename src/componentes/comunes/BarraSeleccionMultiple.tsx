@@ -21,7 +21,7 @@ export default function BarraSeleccionMultiple({
   if (cantidad === 0) return null
   return (
     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-gray-900 text-white shadow-2xl rounded-full px-4 py-2 flex items-center gap-3">
-      <span className="text-sm">
+      <span className="text-sm" role="status" aria-live="polite">
         <strong>{cantidad}</strong> {etiquetaItem}
         {cantidad !== 1 ? 's' : ''} seleccionado{cantidad !== 1 ? 's' : ''}
       </span>

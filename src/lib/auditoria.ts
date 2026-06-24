@@ -22,6 +22,8 @@ export type EntidadAuditoria =
   | 'Proveedor'
   | 'OrdenCompra'
   | 'Sesion'
+  | 'Empresa'
+  | 'ConfiguracionEmpresa'
 
 export const ACCIONES: AccionAuditoria[] = [
   'CREAR',
@@ -41,6 +43,8 @@ export const ENTIDADES: EntidadAuditoria[] = [
   'Proveedor',
   'OrdenCompra',
   'Sesion',
+  'Empresa',
+  'ConfiguracionEmpresa',
 ]
 
 interface ParametrosAuditoria {

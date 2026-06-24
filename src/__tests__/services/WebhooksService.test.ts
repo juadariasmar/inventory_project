@@ -8,7 +8,8 @@ jest.mock('../../lib/db', () => ({
       create: jest.fn()
     },
     empresa: {
-      findFirst: jest.fn()
+      findFirst: jest.fn(),
+      create: jest.fn()
     }
   }
 }))
@@ -18,6 +19,7 @@ describe('WebhooksService', () => {
     jest.clearAllMocks()
     delete process.env.ADMIN_EMAILS
     ;(prisma.empresa.findFirst as jest.Mock).mockResolvedValue({ id: 'empresa-default-id' })
+    ;(prisma.empresa.create as jest.Mock).mockResolvedValue({ id: 'empresa-auto-creada' })
   })
 
   describe('validarFirma', () => {
@@ -70,18 +72,21 @@ describe('WebhooksService', () => {
       expect(prisma.usuario.create).not.toHaveBeenCalled()
     })
 
-    it('debe crear el usuario en estado PENDIENTE (con empresa por defecto) si no existe', async () => {
+    it('debe crear usuario ADMIN/ACTIVO con empresa propia si no existe', async () => {
       const payload = { id: 'neon-123', email: 'test@ejemplo.com', name: 'Test Name' }
       ;(prisma.usuario.findUnique as jest.Mock).mockResolvedValue(null)
       await WebhooksService.procesarEventoUsuarioCreado(payload)
+      expect(prisma.empresa.create).toHaveBeenCalledWith({
+        data: { nombre: 'Empresa de test@ejemplo.com' }
+      })
       expect(prisma.usuario.create).toHaveBeenCalledWith({
         data: {
           neonAuthId: 'neon-123',
           email: 'test@ejemplo.com',
           nombre: 'Test Name',
-          estado: 'PENDIENTE',
-          rol: 'USUARIO',
-          empresaId: 'empresa-default-id'
+          estado: 'ACTIVO',
+          rol: 'ADMIN',
+          empresaId: 'empresa-auto-creada'
         }
       })
     })
@@ -97,7 +102,7 @@ describe('WebhooksService', () => {
           nombre: 'Jefe',
           estado: 'ACTIVO',
           rol: 'ADMIN',
-          empresaId: 'empresa-default-id'
+          empresaId: 'empresa-auto-creada'
         }
       })
     })
@@ -106,6 +111,9 @@ describe('WebhooksService', () => {
       const payload = { id: 'neon-123', email: 'test@ejemplo.com' }
       ;(prisma.usuario.findUnique as jest.Mock).mockResolvedValue(null)
       await WebhooksService.procesarEventoUsuarioCreado(payload)
+      expect(prisma.empresa.create).toHaveBeenCalledWith({
+        data: { nombre: 'Empresa de test@ejemplo.com' }
+      })
       expect(prisma.usuario.create).toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ nombre: 'test@ejemplo.com' }) })
       )
