@@ -36,6 +36,32 @@ enum EstadoUsuario {
   SUSPENDIDO // bloqueado por el admin
 }
 
+enum EstadoInvitacion {
+  PENDIENTE
+  ACEPTADA
+  EXPIRADA
+  CANCELADA
+}
+
+model Invitacion {
+  id          String           @id @default(cuid())
+  email       String
+  empresaId   String
+  empresa     Empresa          @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  token       String           @unique @default(cuid())
+  rol         Rol              @default(USUARIO)
+  estado      EstadoInvitacion @default(PENDIENTE)
+  expiraEn    DateTime
+  aceptadaEn  DateTime?
+  creadoEn    DateTime         @default(now())
+  creadoPorId String?
+  creadoPor   Usuario?         @relation("InvitacionCreadaPor", fields: [creadoPorId], references: [id], onDelete: SetNull)
+
+  @@index([token])
+  @@index([empresaId])
+  @@index([email])
+}
+
 model Empresa {
   id       String   @id @default(cuid())
   nombre   String
@@ -51,6 +77,7 @@ model Empresa {
   proveedores        Proveedor[]
   ordenesCompra      OrdenCompra[]
   configuracion      ConfiguracionEmpresa?
+  invitaciones       Invitacion[]
 }
 
 model ConfiguracionEmpresa {
@@ -87,6 +114,8 @@ model Usuario {
 
   empresaId String
   empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  invitacionesCreadas Invitacion[] @relation("InvitacionCreadaPor")
 
   @@index([empresaId])
 }
