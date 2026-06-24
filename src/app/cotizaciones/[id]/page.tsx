@@ -45,6 +45,7 @@ export default async function PaginaDetalleCotizacion({ params }: Props) {
       vendedor: { select: { id: true, nombre: true, email: true } },
       canceladaPor: { select: { id: true, nombre: true, email: true } },
       venta: { select: { id: true } },
+      cliente: { select: { nombre: true } },
       items: {
         include: { producto: { select: { nombre: true, codigo: true } } },
       },
@@ -141,7 +142,7 @@ export default async function PaginaDetalleCotizacion({ params }: Props) {
           <div className="bg-white rounded-lg shadow-md p-4">
             <div className="text-xs text-gray-500 uppercase">Cliente</div>
             <div className="text-base text-gray-800 mt-1">
-              {cotizacion.cliente || <span className="text-gray-400 italic">No especificado</span>}
+              {cotizacion.cliente?.nombre || <span className="text-gray-400 italic">No especificado</span>}
             </div>
           </div>
           <div className="bg-white rounded-lg shadow-md p-4">

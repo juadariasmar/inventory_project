@@ -4,15 +4,12 @@ import { AppError } from '../../../../lib/AppError'
 
 export async function POST(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization')
-    let token = null
-    
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      token = authHeader.substring(7)
-    }
+    const signature = req.headers.get('x-webhook-signature')
+
+    const rawBody = await req.text()
 
     try {
-      await WebhooksService.validarFirma(token)
+      await WebhooksService.validarFirma(rawBody, signature)
     } catch {
       return NextResponse.json({ error: 'Firma de webhook inválida' }, { status: 401 })
     }
@@ -20,12 +17,11 @@ export async function POST(req: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let payload: any
     try {
-      payload = await req.json()
+      payload = JSON.parse(rawBody)
     } catch {
       return NextResponse.json({ error: 'Payload inválido' }, { status: 400 })
     }
 
-    // Neon Auth events usually have a type and data
     const eventType = payload.type
     const eventData = payload.data || payload
 

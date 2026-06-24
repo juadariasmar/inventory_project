@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { esAdmin, obtenerSesion } from '@/lib/permisos';
+import { esSuperAdmin, obtenerSesion } from '@/lib/permisos';
 import { extraerIp } from '@/lib/auditoria';
 import { EmpresasService } from '@/services/EmpresasService';
 import { AppError } from '@/lib/AppError';
@@ -8,9 +8,9 @@ interface Parametros {
   params: Promise<{ id: string }>;
 }
 
-// GET - Obtener detalle de una empresa (solo ADMIN activo)
+// GET - Obtener detalle de una empresa (solo superadmin)
 export async function GET(request: NextRequest, { params }: Parametros) {
-  if (!(await esAdmin())) {
+  if (!(await esSuperAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
 
@@ -27,9 +27,9 @@ export async function GET(request: NextRequest, { params }: Parametros) {
   }
 }
 
-// PUT - Actualizar una empresa (solo ADMIN activo)
+// PUT - Actualizar una empresa (solo superadmin)
 export async function PUT(request: NextRequest, { params }: Parametros) {
-  if (!(await esAdmin())) {
+  if (!(await esSuperAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
 
@@ -51,9 +51,9 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
   }
 }
 
-// DELETE - Eliminar una empresa (solo ADMIN activo)
+// DELETE - Eliminar una empresa (solo superadmin)
 export async function DELETE(request: NextRequest, { params }: Parametros) {
-  if (!(await esAdmin())) {
+  if (!(await esSuperAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
   }
 
