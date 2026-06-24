@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import ConfirmarAccion from '../comunes/ConfirmarAccion'
 
 interface PropiedadesBoton {
   id: string
@@ -18,14 +19,6 @@ export default function BotonEliminarUsuario({
   const [eliminando, setEliminando] = useState(false)
 
   const manejarEliminacion = async () => {
-    if (esActual) {
-      alert('No puedes eliminar tu propio usuario.')
-      return
-    }
-    if (!confirm(`¿Estás seguro de eliminar el usuario "${email}"?`)) {
-      return
-    }
-
     setEliminando(true)
     try {
       const respuesta = await fetch(`/api/usuarios/${id}`, { method: 'DELETE' })
@@ -43,16 +36,33 @@ export default function BotonEliminarUsuario({
     }
   }
 
+  if (esActual) {
+    return (
+      <span
+        className="text-sm text-gray-400 cursor-not-allowed"
+        title="No puedes eliminar tu propio usuario"
+      >
+        Eliminar
+      </span>
+    )
+  }
+
   return (
-    <button
-      onClick={manejarEliminacion}
-      disabled={eliminando || esActual}
-      className={`text-sm ${
-        esActual ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:text-red-800'
-      } disabled:opacity-50`}
-      title={esActual ? 'No puedes eliminar tu propio usuario' : 'Eliminar'}
-    >
-      {eliminando ? 'Eliminando...' : 'Eliminar'}
-    </button>
+    <ConfirmarAccion
+      titulo="Eliminar usuario"
+      descripcion={`¿Estás seguro de eliminar el usuario "${email}"? Esta acción no se puede deshacer.`}
+      accion="Eliminar"
+      variant="danger"
+      onConfirm={manejarEliminacion}
+      trigger={
+        <button
+          type="button"
+          disabled={eliminando}
+          className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50"
+        >
+          {eliminando ? 'Eliminando...' : 'Eliminar'}
+        </button>
+      }
+    />
   )
 }
