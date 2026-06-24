@@ -39,7 +39,7 @@ export default function AvatarUsuario({ sesion }: AvatarUsuarioProps) {
       <button
         type="button"
         onClick={() => setAbierto((v) => !v)}
-        className="w-8 h-8 rounded-full bg-blue-500 text-white text-xs font-bold hover:bg-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+        className="w-8 h-8 rounded-full bg-primary text-primary-foreground text-xs font-bold hover:bg-primary-hover transition-fast focus:outline-none focus:ring-2 focus:ring-white"
         title={nombre}
         aria-label="Menú de cuenta"
         aria-expanded={abierto}

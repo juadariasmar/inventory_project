@@ -30,6 +30,10 @@ export async function POST(request: NextRequest, { params }: Parametros) {
       { status: 403 }
     )
   }
+  const empresaId = sesion.user.empresaId
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
+  }
 
   try {
     const { id } = await params
@@ -42,8 +46,8 @@ export async function POST(request: NextRequest, { params }: Parametros) {
     const motivo = typeof datos.motivo === 'string' ? datos.motivo.trim() : ''
 
     const venta = await prisma.venta.findUnique({
-      where: { id: ventaId },
-      include: { items: true },
+      where: { id: ventaId, empresaId },
+      include: { items: { select: { productoId: true, cantidad: true } } },
     })
     if (!venta) {
       return NextResponse.json(
