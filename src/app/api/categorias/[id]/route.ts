@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
-import { esAdmin } from '@/lib/permisos'
+import { esAdmin, obtenerSesion } from '@/lib/permisos'
 import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
 
 interface Parametros {
@@ -14,6 +14,11 @@ interface Parametros {
 export async function PUT(request: NextRequest, { params }: Parametros) {
   if (!(await esAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+  }
+  const sesion = await obtenerSesion()
+  const empresaId = sesion?.user?.empresaId
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
   }
   try {
     const { id } = await params
@@ -46,7 +51,7 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
     }
 
     const actual = await prisma.categoria.findUnique({
-      where: { id: categoriaId },
+      where: { id: categoriaId, empresaId },
     })
     if (!actual) {
       return NextResponse.json(
@@ -58,6 +63,7 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
     if (prefijo !== actual.prefijo || nombre !== actual.nombre) {
       const conflicto = await prisma.categoria.findFirst({
         where: {
+          empresaId,
           id: { not: categoriaId },
           OR: [{ prefijo }, { nombre }],
         },
@@ -72,7 +78,7 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
     }
 
     const actualizada = await prisma.categoria.update({
-      where: { id: categoriaId },
+      where: { id: categoriaId, empresaId },
       data: { nombre, prefijo },
     })
 
@@ -104,12 +110,17 @@ export async function DELETE(request: NextRequest, { params }: Parametros) {
   if (!(await esAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
+  const sesion = await obtenerSesion()
+  const empresaId = sesion?.user?.empresaId
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
+  }
   try {
     const { id } = await params
+    const categoriaId = parseInt(id)
 
-    // Verificar si hay productos asociados
     const productosAsociados = await prisma.producto.count({
-      where: { categoriaId: parseInt(id) },
+      where: { categoriaId, empresaId },
     })
 
     if (productosAsociados > 0) {
@@ -120,11 +131,11 @@ export async function DELETE(request: NextRequest, { params }: Parametros) {
     }
 
     const categoriaExistente = await prisma.categoria.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: categoriaId, empresaId },
     })
 
     await prisma.categoria.delete({
-      where: { id: parseInt(id) },
+      where: { id: categoriaId, empresaId },
     })
 
     await registrarAuditoria({

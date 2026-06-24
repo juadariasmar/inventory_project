@@ -16,9 +16,17 @@ export async function GET(request: NextRequest, { params }: Parametros) {
   }
   try {
     const { id } = await params
+    const sesion = await obtenerSesion()
+    if (!sesion?.user || sesion.user.estado !== 'ACTIVO') {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+    }
+    const empresaId = sesion.user.empresaId
+    if (!empresaId) {
+      return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
+    }
     const producto = await prisma.producto.findUnique({
-      where: { id: parseInt(id) },
-      include: { categoria: true },
+      where: { id: parseInt(id), empresaId },
+      select: { id: true, nombre: true, descripcion: true, codigo: true, precio: true, cantidad: true, stockMinimo: true, creadoEn: true, categoria: { select: { id: true, nombre: true, prefijo: true } } },
     })
 
     if (!producto) {
@@ -207,12 +215,17 @@ export async function DELETE(request: NextRequest, { params }: Parametros) {
   if (!(await esAdmin())) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
+  const sesion = await obtenerSesion()
+  const empresaId = sesion?.user?.empresaId
+  if (!empresaId) {
+    return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
+  }
   try {
     const { id } = await params
     const productoId = parseInt(id)
 
     const productoExistente = await prisma.producto.findUnique({
-      where: { id: productoId },
+      where: { id: productoId, empresaId },
     })
 
     if (!productoExistente) {
@@ -223,8 +236,8 @@ export async function DELETE(request: NextRequest, { params }: Parametros) {
     }
 
     await prisma.$transaction(async (tx) => {
-      await tx.movimiento.deleteMany({ where: { productoId } })
-      await tx.producto.delete({ where: { id: productoId } })
+      await tx.movimiento.deleteMany({ where: { productoId, empresaId } })
+      await tx.producto.delete({ where: { id: productoId, empresaId } })
     })
 
     await registrarAuditoria({

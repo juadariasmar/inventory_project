@@ -18,7 +18,7 @@ export default function TarjetaEstadistica({
           {icono}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">{titulo}</p>
+          <p className="text-muted-foreground text-sm font-medium uppercase tracking-wider">{titulo}</p>
           <p className="text-3xl font-black text-foreground tracking-tight mt-1 break-words leading-tight">
             {valor}
           </p>
