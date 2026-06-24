@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import ConfirmarAccion from '../comunes/ConfirmarAccion'
 
 interface PropiedadesBoton {
   id: string
@@ -18,14 +19,7 @@ export default function BotonCambiarEstadoUsuario({
   const [procesando, setProcesando] = useState(false)
   const [error, setError] = useState('')
 
-  const cambiarEstado = async (
-    nuevoEstado: 'ACTIVO' | 'SUSPENDIDO',
-    confirmar?: string
-  ) => {
-    if (confirmar && !window.confirm(confirmar)) {
-      return
-    }
-
+  const cambiarEstado = async (nuevoEstado: 'ACTIVO' | 'SUSPENDIDO') => {
     setProcesando(true)
     setError('')
     try {
@@ -48,40 +42,66 @@ export default function BotonCambiarEstadoUsuario({
     }
   }
 
-  // El propio usuario logueado no puede suspenderse a sí mismo.
   if (estado === 'ACTIVO' && esActual) {
     return null
   }
 
-  let etiqueta: string
-  let claseColor: string
-  let accion: () => void
-
   if (estado === 'PENDIENTE') {
-    etiqueta = 'Aprobar'
-    claseColor = 'text-green-600 hover:text-green-800'
-    accion = () => cambiarEstado('ACTIVO')
-  } else if (estado === 'ACTIVO') {
-    etiqueta = 'Suspender'
-    claseColor = 'text-amber-600 hover:text-amber-800'
-    accion = () =>
-      cambiarEstado('SUSPENDIDO', '¿Estás seguro de suspender este usuario?')
-  } else {
-    etiqueta = 'Reactivar'
-    claseColor = 'text-green-600 hover:text-green-800'
-    accion = () => cambiarEstado('ACTIVO')
+    return (
+      <>
+        <button
+          onClick={() => cambiarEstado('ACTIVO')}
+          disabled={procesando}
+          className="text-sm text-green-600 hover:text-green-800 disabled:opacity-50"
+        >
+          {procesando ? 'Procesando...' : 'Aprobar'}
+        </button>
+        {error && (
+          <span role="alert" className="text-xs text-red-600">
+            {error}
+          </span>
+        )}
+      </>
+    )
+  }
+
+  if (estado === 'SUSPENDIDO') {
+    return (
+      <>
+        <button
+          onClick={() => cambiarEstado('ACTIVO')}
+          disabled={procesando}
+          className="text-sm text-green-600 hover:text-green-800 disabled:opacity-50"
+        >
+          {procesando ? 'Procesando...' : 'Reactivar'}
+        </button>
+        {error && (
+          <span role="alert" className="text-xs text-red-600">
+            {error}
+          </span>
+        )}
+      </>
+    )
   }
 
   return (
     <>
-      <button
-        onClick={accion}
-        disabled={procesando}
-        className={`text-sm ${claseColor} disabled:opacity-50`}
-        title={etiqueta}
-      >
-        {procesando ? 'Procesando...' : etiqueta}
-      </button>
+      <ConfirmarAccion
+        titulo="Suspender usuario"
+        descripcion="¿Estás seguro de suspender este usuario? No podrá acceder al sistema hasta que sea reactivado."
+        accion="Suspender"
+        variant="danger"
+        onConfirm={() => cambiarEstado('SUSPENDIDO')}
+        trigger={
+          <button
+            type="button"
+            disabled={procesando}
+            className="text-sm text-amber-600 hover:text-amber-800 disabled:opacity-50"
+          >
+            {procesando ? 'Procesando...' : 'Suspender'}
+          </button>
+        }
+      />
       {error && (
         <span role="alert" className="text-xs text-red-600">
           {error}
