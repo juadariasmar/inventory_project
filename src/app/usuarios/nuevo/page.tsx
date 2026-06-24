@@ -2,13 +2,19 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
 import FormularioUsuario from '@/componentes/usuarios/FormularioUsuario'
+import { prisma } from '@/lib/db'
 import { obtenerSesion } from '@/lib/permisos'
 
 export default async function PaginaNuevoUsuario() {
   const sesion = await obtenerSesion()
-  if (!sesion?.user || sesion.user.rol !== 'ADMIN') {
+  if (!sesion?.user?.empresaId || sesion.user.rol !== 'ADMIN') {
     redirect('/')
   }
+
+  const empresa = await prisma.empresa.findUnique({
+    where: { id: sesion.user.empresaId },
+    select: { nombre: true },
+  })
 
   return (
     <LayoutProtegido>
@@ -24,7 +30,7 @@ export default async function PaginaNuevoUsuario() {
         <h1 className="text-2xl font-bold text-gray-800">Nuevo Usuario</h1>
 
         <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 max-w-2xl">
-          <FormularioUsuario />
+          <FormularioUsuario empresaNombre={empresa?.nombre} />
         </div>
       </div>
     </LayoutProtegido>
