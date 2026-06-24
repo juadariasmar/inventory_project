@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import AvatarUsuario from '@/componentes/comunes/AvatarUsuario'
+import { TemaToggle } from '@/componentes/comunes/TemaToggle'
 import { Bell } from 'lucide-react'
 
 interface SubEnlace {
@@ -143,7 +144,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
   }
 
   return (
-    <nav className="bg-blue-600 text-white shadow-lg">
+    <nav className="bg-primary text-white shadow-lg">
       <div ref={contenedorRef} className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <Link href="/" className="text-xl font-bold" onClick={cerrarMenu}>
@@ -160,8 +161,8 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
                     href={item.href}
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       esActivo(item.href)
-                        ? 'bg-blue-700 text-white'
-                        : 'text-blue-100 hover:bg-blue-500'
+                        ? 'bg-primary-hover text-white'
+                        : 'text-white/90 hover:bg-primary-hover'
                     }`}
                   >
                     {item.etiqueta}
@@ -179,8 +180,8 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
                     aria-expanded={abierto}
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors inline-flex items-center gap-1 ${
                       activo
-                        ? 'bg-blue-700 text-white'
-                        : 'text-blue-100 hover:bg-blue-500'
+                        ? 'bg-primary-hover text-white'
+                        : 'text-white/90 hover:bg-primary-hover'
                     }`}
                   >
                     {item.etiqueta}
@@ -197,7 +198,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
                           onClick={() => setDropdownAbierto(null)}
                           className={`block px-4 py-2 text-sm transition-colors ${
                             esActivo(sub.href)
-                              ? 'bg-blue-50 text-blue-700 font-medium'
+                              ? 'bg-primary/10 text-primary font-medium'
                               : 'text-gray-700 hover:bg-gray-100'
                           }`}
                         >
@@ -215,9 +216,10 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
           <div className="hidden md:flex items-center gap-1">
             {sesion?.user && (
               <>
+                <TemaToggle className="text-white/80 hover:text-white hover:bg-white/10" />
                 <Link
                   href="/notificaciones"
-                  className="relative p-2 text-blue-100 hover:bg-blue-500 rounded-md transition-colors"
+                  className="relative p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-fast"
                   title="Notificaciones"
                 >
                   <Bell className="w-5 h-5" />
@@ -236,7 +238,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
           <button
             type="button"
             onClick={() => setMenuAbierto((v) => !v)}
-            className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-blue-100 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-white"
+            className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-white/90 hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-white"
             aria-controls="menu-movil"
             aria-expanded={menuAbierto}
             aria-label="Abrir menú"
@@ -256,7 +258,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
 
       {/* Menú móvil colapsable */}
       {menuAbierto && (
-        <div id="menu-movil" className="md:hidden border-t border-blue-500">
+        <div id="menu-movil" className="md:hidden border-t border-primary/30">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {items.map((item) => {
               if (item.tipo === 'enlace') {
@@ -267,8 +269,8 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
                     onClick={cerrarMenu}
                     className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
                       esActivo(item.href)
-                        ? 'bg-blue-700 text-white'
-                        : 'text-blue-100 hover:bg-blue-500'
+                        ? 'bg-primary-hover text-white'
+                        : 'text-white/90 hover:bg-primary-hover'
                     }`}
                   >
                     {item.etiqueta}
@@ -277,7 +279,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
               }
               return (
                 <div key={item.id} className="pt-2">
-                  <div className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-blue-200">
+                  <div className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-white/60">
                     {item.etiqueta}
                   </div>
                   <div className="space-y-1">
@@ -288,8 +290,8 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
                         onClick={cerrarMenu}
                         className={`block px-6 py-2 rounded-md text-base font-medium transition-colors ${
                           esActivo(sub.href)
-                            ? 'bg-blue-700 text-white'
-                            : 'text-blue-100 hover:bg-blue-500'
+                            ? 'bg-primary-hover text-white'
+                            : 'text-white/90 hover:bg-primary-hover'
                         }`}
                       >
                         {sub.etiqueta}
