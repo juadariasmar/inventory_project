@@ -1,145 +1,379 @@
-/* El CSS de auth-ui se importa en una cascade layer de baja prioridad para que
-   las utilidades de Tailwind (.hidden, lg:block, md:flex, etc.) siempre ganen
-   sobre el `.hidden` global SIN capa que trae auth-ui y que dejaba invisibles
-   las tablas responsivas (hidden lg:block) de toda la app. */
+/* ── Capas de cascada ── */
 @layer authui, theme, base, components, utilities;
 @import "@neondatabase/auth-ui/css" layer(authui);
 @import "tailwindcss";
 
+/* ══════════════════════════════════════════════════
+   SISTEMA DE DISEÑO — Modo Claro (por defecto)
+   ══════════════════════════════════════════════════ */
 :root {
-  /* -- Tokens del sistema de inventarios -- */
-  --background: #f3f4f6; /* gray-100 */
-  --foreground: #111827; /* gray-900 */
-  --color-primary: #2563eb; /* blue-600 */
-  --color-primary-hover: #1d4ed8; /* blue-700 */
-  --color-surface: #ffffff;
-  --color-error: #b91c1c; /* red-700 */
-  --color-error-hover: #991b1b; /* red-800 */
-  --color-danger: var(--color-error); /* alias semantico */
-  --color-success: #047857; /* emerald-700 */
-  --color-success-hover: #065f46; /* emerald-800 */
-  --color-border: #d1d5db; /* gray-300 — contraste AA para bordes */
-  --color-focus: var(--color-primary);
+  /* ── Superficies ── */
+  --background: oklch(0.985 0.002 260);
+  --foreground: oklch(0.145 0.005 260);
+  --surface: oklch(1 0 0);
+  --surface-alt: oklch(0.975 0.002 260);
 
-  /* -- Tokens OKLCH para @neondatabase/auth-ui --
-     Estos tokens son consumidos por los componentes de auth-ui
-     para botones, links, textos secundarios y fondos.
-     Sin ellos, el botón "Registrarse" y los links quedan invisibles. */
-  --primary: oklch(0.49 0.22 264);          /* azul-600: botones principales */
-  --primary-foreground: oklch(0.985 0 0);   /* blanco: texto sobre botones */
-  --secondary: oklch(0.95 0.01 264);        /* azul muy claro: botones secundarios */
-  --secondary-foreground: oklch(0.30 0.15 264); /* azul oscuro: texto sobre secundario */
-  --muted: oklch(0.95 0 0);                 /* gris claro: fondos atenuados */
-  --muted-foreground: oklch(0.45 0 0);      /* gris medio: texto secundario visible */
-  --accent: oklch(0.93 0.02 264);           /* azul hover suave */
-  --accent-foreground: oklch(0.25 0.12 264); /* azul oscuro legible */
-  --destructive: oklch(0.55 0.22 28);       /* rojo: acciones destructivas */
-  --border: oklch(0.90 0 0);                /* gris borde */
-  --input: oklch(0.90 0 0);                 /* gris input */
-  --ring: oklch(0.55 0.20 264);             /* azul focus ring */
-  --radius: 0.5rem;
-  --card: oklch(1 0 0);                     /* blanco: fondo de tarjetas */
-  --card-foreground: oklch(0.145 0 0);      /* negro: texto en tarjetas */
+  /* ── Primario ── */
+  --color-primary: oklch(0.545 0.215 261);
+  --color-primary-hover: oklch(0.475 0.215 261);
+  --color-primary-foreground: oklch(0.99 0 0);
+
+  /* ── Secundario ── */
+  --color-secondary: oklch(0.955 0.008 261);
+  --color-secondary-hover: oklch(0.915 0.008 261);
+  --color-secondary-foreground: oklch(0.30 0.08 261);
+
+  /* ── Estados semánticos ── */
+  --color-success: oklch(0.545 0.175 155);
+  --color-success-hover: oklch(0.475 0.175 155);
+  --color-success-foreground: oklch(0.99 0 0);
+
+  --color-warning: oklch(0.70 0.19 83);
+  --color-warning-hover: oklch(0.625 0.19 83);
+  --color-warning-foreground: oklch(0.25 0.03 83);
+
+  --color-error: oklch(0.505 0.215 25);
+  --color-error-hover: oklch(0.44 0.215 25);
+  --color-error-foreground: oklch(0.99 0 0);
+  --color-danger: var(--color-error);
+
+  --color-info: oklch(0.595 0.12 235);
+  --color-info-hover: oklch(0.525 0.12 235);
+  --color-info-foreground: oklch(0.99 0 0);
+
+  /* ── Neutros ── */
+  --color-muted: oklch(0.965 0.002 260);
+  --color-muted-foreground: oklch(0.52 0.01 260);
+  --color-border: oklch(0.885 0.01 260);
+  --color-border-strong: oklch(0.815 0.01 260);
+  --color-ring: oklch(0.545 0.215 261);
+
+  /* ── Sombras (multi-capa) ── */
+  --shadow-xs: 0 1px 2px 0 oklch(0 0 0 / 0.04);
+  --shadow-sm: 0 1px 3px 0 oklch(0 0 0 / 0.06), 0 1px 2px -1px oklch(0 0 0 / 0.06);
+  --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.06), 0 2px 4px -2px oklch(0 0 0 / 0.06);
+  --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.08), 0 4px 6px -4px oklch(0 0 0 / 0.06);
+  --shadow-xl: 0 20px 25px -5px oklch(0 0 0 / 0.10), 0 8px 10px -6px oklch(0 0 0 / 0.08);
+
+  /* ── Radios ── */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius: var(--radius-md);
+
+  /* ── Tipografía ── */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+
+  /* ── Transiciones ── */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ══════════════════════════════════════════════════
+     Tokens para @neondatabase/auth-ui (sin prefijo)
+     Deben existir para que los componentes de auth-ui
+     encuentren sus variables CSS.
+     ══════════════════════════════════════════════════ */
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-primary-foreground);
+  --secondary: var(--color-secondary);
+  --secondary-foreground: var(--color-secondary-foreground);
+  --muted: var(--color-muted);
+  --muted-foreground: var(--color-muted-foreground);
+  --accent: oklch(0.94 0.02 261);
+  --accent-foreground: oklch(0.30 0.12 261);
+  --destructive: var(--color-error);
+  --border: var(--color-border);
+  --input: var(--color-border);
+  --ring: var(--color-ring);
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
 }
 
+/* ══════════════════════════════════════════════════
+   MODO OSCURO
+   ══════════════════════════════════════════════════ */
+:root.dark,
+.dark {
+  --background: oklch(0.155 0.006 261);
+  --foreground: oklch(0.95 0.002 261);
+  --surface: oklch(0.185 0.006 261);
+  --surface-alt: oklch(0.215 0.006 261);
+
+  --color-primary: oklch(0.645 0.215 261);
+  --color-primary-hover: oklch(0.575 0.215 261);
+  --color-primary-foreground: oklch(0.12 0.02 261);
+
+  --color-secondary: oklch(0.255 0.01 261);
+  --color-secondary-hover: oklch(0.30 0.01 261);
+  --color-secondary-foreground: oklch(0.88 0.005 261);
+
+  --color-success: oklch(0.625 0.175 155);
+  --color-success-hover: oklch(0.55 0.175 155);
+  --color-success-foreground: oklch(0.10 0.02 155);
+
+  --color-warning: oklch(0.72 0.18 83);
+  --color-warning-hover: oklch(0.65 0.18 83);
+  --color-warning-foreground: oklch(0.18 0.02 83);
+
+  --color-error: oklch(0.58 0.215 25);
+  --color-error-hover: oklch(0.51 0.215 25);
+  --color-error-foreground: oklch(0.99 0 0);
+
+  --color-info: oklch(0.665 0.12 235);
+  --color-info-hover: oklch(0.595 0.12 235);
+  --color-info-foreground: oklch(0.10 0.02 235);
+
+  --color-muted: oklch(0.235 0.006 261);
+  --color-muted-foreground: oklch(0.62 0.01 261);
+  --color-border: oklch(0.275 0.01 261);
+  --color-border-strong: oklch(0.345 0.01 261);
+  --color-ring: oklch(0.645 0.215 261);
+
+  --color-danger: var(--color-error);
+
+  --shadow-xs: 0 1px 2px 0 oklch(0 0 0 / 0.25);
+  --shadow-sm: 0 1px 3px 0 oklch(0 0 0 / 0.35), 0 1px 2px -1px oklch(0 0 0 / 0.35);
+  --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.35), 0 2px 4px -2px oklch(0 0 0 / 0.35);
+  --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.40), 0 4px 6px -4px oklch(0 0 0 / 0.35);
+  --shadow-xl: 0 20px 25px -5px oklch(0 0 0 / 0.45), 0 8px 10px -6px oklch(0 0 0 / 0.35);
+
+  /* auth-ui tokens en dark */
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-primary-foreground);
+  --secondary: var(--color-secondary);
+  --secondary-foreground: var(--color-secondary-foreground);
+  --muted: var(--color-muted);
+  --muted-foreground: var(--color-muted-foreground);
+  --accent: oklch(0.27 0.02 261);
+  --accent-foreground: oklch(0.85 0.005 261);
+  --destructive: var(--color-error);
+  --border: var(--color-border);
+  --input: var(--color-border);
+  --ring: var(--color-ring);
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+}
+
+/* ══════════════════════════════════════════════════
+   MAPEO A UTILIDADES TAILWIND v4
+   ══════════════════════════════════════════════════ */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+
   --color-primary: var(--color-primary);
   --color-primary-hover: var(--color-primary-hover);
-  --color-surface: var(--color-surface);
-  --color-error: var(--color-error);
-  --color-error-hover: var(--color-error-hover);
-  --color-danger: var(--color-danger);
+  --color-primary-foreground: var(--color-primary-foreground);
+
+  --color-secondary: var(--color-secondary);
+  --color-secondary-hover: var(--color-secondary-hover);
+  --color-secondary-foreground: var(--color-secondary-foreground);
+
   --color-success: var(--color-success);
   --color-success-hover: var(--color-success-hover);
+  --color-success-foreground: var(--color-success-foreground);
+
+  --color-warning: var(--color-warning);
+  --color-warning-hover: var(--color-warning-hover);
+  --color-warning-foreground: var(--color-warning-foreground);
+
+  --color-error: var(--color-error);
+  --color-error-hover: var(--color-error-hover);
+  --color-error-foreground: var(--color-error-foreground);
+  --color-danger: var(--color-danger);
+
+  --color-info: var(--color-info);
+  --color-info-hover: var(--color-info-hover);
+  --color-info-foreground: var(--color-info-foreground);
+
+  --color-muted: var(--color-muted);
+  --color-muted-foreground: var(--color-muted-foreground);
   --color-border: var(--color-border);
-  --color-focus: var(--color-focus);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-border-strong: var(--color-border-strong);
+  --color-ring: var(--color-ring);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
 }
 
+/* ══════════════════════════════════════════════════
+   ESTILOS BASE GLOBALES
+   ══════════════════════════════════════════════════ */
 @layer base {
   * {
     @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground antialiased;
+
+  html {
+    @apply antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
   }
-  /* Estilos globales para mejorar la accesibilidad del foco */
-  a:focus-visible, 
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Focus visible: anillo de foco accesible */
+  a:focus-visible,
   button:focus-visible,
   input:focus-visible,
   select:focus-visible,
-  textarea:focus-visible {
-    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background transition-shadow duration-200;
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+    transition: box-shadow var(--duration-fast) var(--ease-out);
   }
+
+  /* Tipografía semántica */
+  h1 { @apply text-3xl font-bold tracking-tight; }
+  h2 { @apply text-2xl font-semibold tracking-tight; }
+  h3 { @apply text-xl font-semibold; }
+  h4 { @apply text-lg font-medium; }
 }
 
-/* Forzar color oscuro en campos editables para evitar texto gris claro
-   en dispositivos móviles con tema oscuro del sistema. */
+/* ══════════════════════════════════════════════════
+   FORMULARIOS
+   ══════════════════════════════════════════════════ */
 input,
 textarea,
 select {
-  color: #111827;
-  background-color: #ffffff;
+  color: var(--foreground);
+  background-color: var(--surface);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #6b7280;
+  color: oklch(0.62 0.01 261);
   opacity: 1;
 }
 
-/* Ocultar el icono nativo de "revelar contraseña" de Edge/IE para evitar
-   que aparezca duplicado junto al toggle propio del aplicativo. */
+:root.dark input::placeholder,
+:root.dark textarea::placeholder,
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: oklch(0.52 0.01 261);
+}
+
 input::-ms-reveal,
 input::-ms-clear {
   display: none;
 }
 
+/* ══════════════════════════════════════════════════
+   UTILIDADES PERSONALIZADAS
+   ══════════════════════════════════════════════════ */
+
 @utility glass {
-  background-color: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: oklch(1 0 0 / 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid oklch(0 0 0 / 0.08);
+}
+
+@utility glass-dark {
+  background-color: oklch(0.185 0.006 261 / 0.80);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid oklch(1 0 0 / 0.06);
 }
 
 @utility shadow-premium {
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 8px -1px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--shadow-sm);
 }
 
 @utility transition-premium {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--duration-normal) var(--ease-in-out);
 }
 
+@utility transition-fast {
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+/* ── Animaciones ── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
 @keyframes collapsible-down {
   from { height: 0; opacity: 0; }
-  to { height: var(--radix-collapsible-content-height); opacity: 1; }
+  to   { height: var(--radix-collapsible-content-height); opacity: 1; }
 }
 
 @keyframes collapsible-up {
   from { height: var(--radix-collapsible-content-height); opacity: 1; }
-  to { height: 0; opacity: 0; }
+  to   { height: 0; opacity: 0; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 @utility animate-fade-in {
-  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: fadeIn 0.3s var(--ease-in-out) forwards;
+}
+
+@utility animate-fade-in-scale {
+  animation: fadeInScale 0.2s var(--ease-out) forwards;
 }
 
 @utility animate-collapsible-down {
-  animation: collapsible-down 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: collapsible-down 0.2s var(--ease-in-out);
 }
 
 @utility animate-collapsible-up {
-  animation: collapsible-up 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: collapsible-up 0.2s var(--ease-in-out);
 }
 
+@utility animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, oklch(1 0 0 / 0.5) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* ── Scrollbar sutil ── */
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar { width: 6px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 9999px;
+}
+
+/* ══════════════════════════════════════════════════
+   PREFERENCIAS DE MOVIMIENTO REDUCIDO
+   ══════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -148,4 +382,3 @@ input::-ms-clear {
     scroll-behavior: auto !important;
   }
 }
-
