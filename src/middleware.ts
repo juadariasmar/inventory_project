@@ -3,7 +3,9 @@ import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 import { auth } from '@/lib/auth/server'
 
-// Fallback en memoria por si Upstash no está configurado (ej. desarrollo local)
+// NOTA: Este fallback en memoria SOLO funciona en desarrollo local.
+// En producción (Vercel Edge), el mapa se reinicia en cada ejecución.
+// Siempre configurar UPSTASH_REDIS_REST_URL y UPSTASH_REDIS_REST_TOKEN en producción.
 const intentosFallidosFallback = new Map<string, { count: number; resetAt: number }>()
 const MAX_INTENTOS = 5
 const VENTANA_MS = 60 * 1000 // 1 minuto

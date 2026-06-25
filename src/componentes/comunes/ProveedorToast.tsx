@@ -76,6 +76,7 @@ export default function ProveedorToast({ children }: { children: ReactNode }) {
             <Toast
               key={t.id}
               open
+              role="alert"
               onOpenChange={(open: boolean) => { if (!open) eliminar(t.id) }}
               className={`fixed bottom-4 right-4 z-[100] w-[90vw] max-w-sm bg-white rounded-lg shadow-2xl p-4 ${colores[t.variant || 'info']} data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out`}
             >

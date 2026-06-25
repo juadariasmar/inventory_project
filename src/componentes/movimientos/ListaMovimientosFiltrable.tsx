@@ -24,7 +24,7 @@ interface Propiedades {
 }
 
 type TipoFiltro = 'todos' | 'entrada' | 'salida'
-type CampoOrden = 'fecha' | 'producto' | 'cantidad'
+type CampoOrden = 'fecha' | 'producto' | 'cantidad' | 'tipo'
 type Dir = 'asc' | 'desc'
 
 export default function ListaMovimientosFiltrable({
