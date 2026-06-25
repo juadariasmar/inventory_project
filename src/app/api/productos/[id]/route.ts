@@ -191,8 +191,8 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
         : `Producto "${producto.nombre}" modificado`,
       datosAntes: { nombre: actual.nombre, cantidad: actual.cantidad, precio: actual.precio },
       datosDespues: { nombre: producto.nombre, cantidad: producto.cantidad, precio: producto.precio },
-      ip: extraerIp(request),
-      empresaId: producto.empresaId,
+      ip: extraerIp(request) ?? '0.0.0.0',
+      empresaId: producto.empresaId ?? actual.empresaId,
     })
 
     revalidatePath('/movimientos')
@@ -279,7 +279,7 @@ export async function DELETE(request: NextRequest, { params }: Parametros) {
       recursoId: productoId,
       descripcion: `Producto "${productoExistente.nombre}" eliminado (stock final: ${productoExistente.cantidad})`,
       datosAntes: { nombre: productoExistente.nombre, cantidad: productoExistente.cantidad, codigo: productoExistente.codigo },
-      ip: extraerIp(request),
+      ip: extraerIp(request) ?? '0.0.0.0',
       empresaId,
     })
 
