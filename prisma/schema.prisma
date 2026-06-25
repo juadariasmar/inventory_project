@@ -373,6 +373,25 @@ model Auditoria {
   @@index([accion])
 }
 
+model HistorialMovimientos {
+  id          Int      @id @default(autoincrement())
+  usuarioId   String
+  accion      String   // CREAR | MODIFICAR | ELIMINAR
+  recursoId   Int      // ID del producto afectado
+  descripcion String   // descripcion legible del cambio
+  datosAntes  Json?    // snapshot del recurso antes del cambio
+  datosDespues Json?   // snapshot del recurso despues del cambio
+  ip          String?
+  creadoEn    DateTime @default(now())
+
+  empresaId String
+
+  @@index([empresaId, creadoEn(sort: Desc)])
+  @@index([usuarioId])
+  @@index([recursoId])
+  @@index([accion])
+}
+
 enum EstadoOrdenCompra {
   BORRADOR // creada, editable, aún no recibida
   RECIBIDA // recibida: generó movimientos de entrada (inmutable)
