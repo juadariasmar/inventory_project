@@ -9,7 +9,11 @@ export const MovimientosService = {
     const movimientos = await prisma.movimiento.findMany({
       where: { empresaId },
       include: { producto: true },
-      orderBy: { creadoEn: 'desc' },
+      // Use composite ordering so that cursor uniquely identifies a position
+      orderBy: [
+        { creadoEn: 'desc' },
+        { id: 'desc' },
+      ],
       take: limite + 1,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     });
@@ -29,7 +33,8 @@ export const MovimientosService = {
   async registrarMovimiento(data: any, usuarioId: string, ip: string, empresaId: string) {
     if (!empresaId) throw new AppError('empresaId es requerido', 400);
     const { productoId: rawProductoId, tipo, cantidad: rawCantidad, notas } = data;
-    
+
+    // Parse and validate integers – reject fractions
     const productoId = parseInt(rawProductoId, 10);
     const cantidad = parseInt(rawCantidad, 10);
 
@@ -37,12 +42,22 @@ export const MovimientosService = {
       throw new AppError('El tipo de movimiento debe ser "entrada" o "salida".', 400);
     }
 
-    if (!productoId || isNaN(productoId) || isNaN(cantidad) || cantidad <= 0) {
-      throw new AppError('Se requiere un productoId valido y una cantidad mayor a 0.', 400);
+    if (
+      !productoId ||
+      isNaN(productoId) ||
+      !Number.isInteger(Number(rawProductoId)) ||
+      isNaN(cantidad) ||
+      cantidad <= 0 ||
+      !Number.isInteger(Number(rawCantidad))
+    ) {
+      throw new AppError(
+        'Se requiere un productoId válido y una cantidad entera mayor a 0.',
+        400
+      );
     }
 
     return await prisma.$transaction(async (tx) => {
-      // Bloqueo pesimista de fila
+      // Pessimistic lock on the product row for this empresa
       await tx.$queryRaw`SELECT id FROM "Producto" WHERE id = ${productoId} AND "empresaId" = ${empresaId} FOR UPDATE`;
 
       const producto = await tx.producto.findUnique({
@@ -63,9 +78,23 @@ export const MovimientosService = {
           _sum: { cantidad: true }
         });
         const stockReservado = reservas._sum.cantidad || 0;
-        
-        StockService.validarDisponibilidad(producto as Parameters<typeof StockService.validarDisponibilidad>[0], cantidad, stockReservado);
+
+        StockService.validarDisponibilidad(
+          producto as Parameters<typeof StockService.validarDisponibilidad>[0],
+          cantidad,
+          stockReservado
+        );
       }
+
+      // Update product *before* creating the movement so that the
+      // returned movimiento.producto reflects the latest stock.
+      await tx.producto.update({
+        where: { id: productoId },
+        data:
+          tipo === 'entrada'
+            ? { cantidad: { increment: cantidad } }
+            : { cantidad: { decrement: cantidad } },
+      });
 
       const movimiento = await tx.movimiento.create({
         data: {
@@ -76,13 +105,6 @@ export const MovimientosService = {
           empresaId
         },
         include: { producto: true }
-      });
-
-      await tx.producto.update({
-        where: { id: productoId },
-        data: tipo === 'entrada'
-          ? { cantidad: { increment: cantidad } }
-          : { cantidad: { decrement: cantidad } },
       });
 
       await tx.auditoria.create({
