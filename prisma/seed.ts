@@ -61,7 +61,7 @@ async function main() {
 
   for (const { nombre, prefijo } of categorias) {
     await prisma.categoria.upsert({
-      where: { nombre },
+      where: { empresaId_nombre: { empresaId: empresaAdmin.id, nombre } },
       update: {},
       create: { nombre, prefijo, empresaId: empresaAdmin.id },
     })
