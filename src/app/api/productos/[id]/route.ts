@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { esAdmin, obtenerSesion } from '@/lib/permisos'
 import { extraerIp, registrarAuditoria } from '@/lib/auditoria'
+import { HistorialService } from '@/services/HistorialService'
 
 interface Parametros {
   params: Promise<{ id: string }>
@@ -181,6 +182,19 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
       ip: extraerIp(request),
     })
 
+    await HistorialService.registrar({
+      usuarioId: sesion?.user?.id ?? 'sistema',
+      accion: 'MODIFICAR',
+      recursoId: producto.id,
+      descripcion: delta > 0
+        ? `Producto "${producto.nombre}" modificado: cantidad +${delta}`
+        : `Producto "${producto.nombre}" modificado`,
+      datosAntes: { nombre: actual.nombre, cantidad: actual.cantidad, precio: actual.precio },
+      datosDespues: { nombre: producto.nombre, cantidad: producto.cantidad, precio: producto.precio },
+      ip: extraerIp(request),
+      empresaId: producto.empresaId,
+    })
+
     revalidatePath('/movimientos')
     revalidatePath('/movimientos/nuevo')
     revalidatePath('/productos')
@@ -257,6 +271,16 @@ export async function DELETE(request: NextRequest, { params }: Parametros) {
       entidadId: productoId,
       datos: { antes: productoExistente },
       ip: extraerIp(request),
+    })
+
+    await HistorialService.registrar({
+      usuarioId: sesion?.user?.id ?? 'sistema',
+      accion: 'ELIMINAR',
+      recursoId: productoId,
+      descripcion: `Producto "${productoExistente.nombre}" eliminado (stock final: ${productoExistente.cantidad})`,
+      datosAntes: { nombre: productoExistente.nombre, cantidad: productoExistente.cantidad, codigo: productoExistente.codigo },
+      ip: extraerIp(request),
+      empresaId,
     })
 
     revalidatePath('/movimientos')
