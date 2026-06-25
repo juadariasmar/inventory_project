@@ -64,54 +64,23 @@ export async function siguienteCodigoConsecutivoPorCategoria(
     throw new Error('Categoría no encontrada o no pertenece a la empresa')
   }
   const prefijo = categoria.prefijo
-  const productos = await prisma.producto.findMany({
-    where: { categoriaId, empresaId },
-    select: { codigo: true },
-  })
-  const patron = new RegExp(`^${escapeRegex(prefijo)}-(\\d+)$`)
-  let max = 0
-  const usados = new Set<string>()
-  for (const p of productos) {
-    usados.add(p.codigo)
-    const m = patron.exec(p.codigo)
-    if (m) {
-      const n = parseInt(m[1], 10)
-      if (n > max) max = n
-    }
-  }
-  let n = max + 1
-  let candidato = `${prefijo}-${String(n).padStart(ANCHO, '0')}`
-  while (usados.has(candidato)) {
-    n++
-    candidato = `${prefijo}-${String(n).padStart(ANCHO, '0')}`
-  }
-  return candidato
+  const result = await prisma.$queryRawUnsafe<{ max_seq: bigint | null }[]>(
+    `SELECT MAX(CAST(SUBSTRING(codigo, '${prefijo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-(\\d+)') AS INTEGER)) AS max_seq FROM "Producto" WHERE "categoriaId" = $1 AND "empresaId" = $2`,
+    categoriaId,
+    empresaId
+  )
+  const max = Number(result[0]?.max_seq ?? 0)
+  return `${prefijo}-${String(max + 1).padStart(ANCHO, '0')}`
 }
-
-function escapeRegex(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
 
 // Fallback global (sin categoria). Mantenido por compatibilidad pero no
 // deberia llamarse ahora que la categoria es obligatoria.
 export async function siguienteCodigoConsecutivo(empresaId: string): Promise<string> {
   if (!empresaId) throw new Error('empresaId es requerido')
-  const productos = await prisma.producto.findMany({ where: { empresaId }, select: { codigo: true } })
-  let max = 0
-  const usados = new Set<string>()
-  for (const p of productos) {
-    usados.add(p.codigo)
-    if (/^\d+$/.test(p.codigo)) {
-      const n = parseInt(p.codigo, 10)
-      if (n > max) max = n
-    }
-  }
-  let n = max + 1
-  let candidato = String(n).padStart(ANCHO, '0')
-  while (usados.has(candidato)) {
-    n++
-    candidato = String(n).padStart(ANCHO, '0')
-  }
-  return candidato
+  const result = await prisma.$queryRawUnsafe<{ max_seq: bigint | null }[]>(
+    `SELECT MAX(CAST(codigo AS INTEGER)) AS max_seq FROM "Producto" WHERE "empresaId" = $1 AND codigo ~ '^\\d+$'`,
+    empresaId
+  )
+  const max = Number(result[0]?.max_seq ?? 0)
+  return String(max + 1).padStart(ANCHO, '0')
 }

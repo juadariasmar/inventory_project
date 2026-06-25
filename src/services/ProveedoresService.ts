@@ -93,7 +93,7 @@ export const ProveedoresService = {
   async eliminar(id: number, ip: string, empresaId: string) {
     const antes = await this.obtenerPorId(id, empresaId);
 
-    const ordenes = await prisma.ordenCompra.count({ where: { proveedorId: id } });
+    const ordenes = await prisma.ordenCompra.count({ where: { proveedorId: id, empresaId } });
     if (ordenes > 0) {
       throw new AppError('No se puede eliminar un proveedor con órdenes de compra asociadas', 409);
     }

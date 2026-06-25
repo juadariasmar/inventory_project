@@ -46,27 +46,30 @@ export const CotizacionesService = {
       if (idsBloqueo.length > 0) {
         await tx.$queryRaw`SELECT id FROM "Producto" WHERE id IN (${Prisma.join(idsBloqueo)}) AND "empresaId" = ${empresaId} ORDER BY id FOR UPDATE`
       }
+      const prods = await tx.producto.findMany({
+        where: { id: { in: idsBloqueo } },
+        select: { id: true, cantidad: true, nombre: true, empresaId: true },
+      })
+      const mapaProds = new Map(prods.map((p) => [p.id, p]))
+
+      const reservas = await tx.itemCotizacion.groupBy({
+        by: ['productoId'],
+        where: {
+          productoId: { in: idsBloqueo },
+          cotizacion: { estado: 'PENDIENTE', validaHasta: { gt: ahora }, empresaId },
+        },
+        _sum: { cantidad: true },
+      })
+      const mapaReservas = new Map(reservas.map((r) => [r.productoId, r._sum.cantidad ?? 0]))
+
       for (const it of itemsValidados) {
-        const prod = await tx.producto.findUnique({
-          where: { id: it.productoId },
-          select: { cantidad: true, nombre: true, empresaId: true },
-        })
-        if (prod?.empresaId !== empresaId) {
-           throw new AppError(`Producto no pertenece a la empresa`, 403);
+        const prod = mapaProds.get(it.productoId)
+        if (!prod || prod.empresaId !== empresaId) {
+          throw new AppError(`Producto no pertenece a la empresa`, 403)
         }
-        const reservasActuales = await tx.itemCotizacion.aggregate({
-          where: {
-            productoId: it.productoId,
-            cotizacion: { estado: 'PENDIENTE', validaHasta: { gt: ahora }, empresaId },
-          },
-          _sum: { cantidad: true },
-        })
-        const disponibleTx = Math.max(
-          0,
-          (prod?.cantidad ?? 0) - (reservasActuales._sum.cantidad ?? 0)
-        )
+        const disponibleTx = Math.max(0, prod.cantidad - (mapaReservas.get(it.productoId) ?? 0))
         if (it.cantidad > disponibleTx) {
-          throw new AppError(`Stock insuficiente para "${prod?.nombre ?? it.productoId}". Solicitas ${it.cantidad}, disponible ${disponibleTx} (físico − reservado en otras cotizaciones).`, 400)
+          throw new AppError(`Stock insuficiente para "${prod.nombre}". Solicitas ${it.cantidad}, disponible ${disponibleTx} (físico − reservado en otras cotizaciones).`, 400)
         }
       }
 
