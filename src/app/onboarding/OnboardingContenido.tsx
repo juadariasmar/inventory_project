@@ -28,7 +28,7 @@ export default function OnboardingContenido() {
             ¡Hey! Bienvenido a tu empresa
           </h1>
           <p className="text-gray-500 text-lg">
-            Tu empresa se ha creado automaticamente. Elige por donde empezar:
+            Tu empresa se ha creado automáticamente. Elige por dónde empezar:
           </p>
         </div>
 
