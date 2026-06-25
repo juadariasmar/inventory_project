@@ -236,6 +236,17 @@ export async function DELETE(request: NextRequest, { params }: Parametros) {
     }
 
     await prisma.$transaction(async (tx) => {
+      if (productoExistente.cantidad > 0) {
+        await tx.movimiento.create({
+          data: {
+            productoId,
+            empresaId,
+            tipo: 'salida',
+            cantidad: productoExistente.cantidad,
+            notas: `Producto "${productoExistente.nombre}" eliminado del inventario`,
+          },
+        })
+      }
       await tx.movimiento.deleteMany({ where: { productoId, empresaId } })
       await tx.producto.delete({ where: { id: productoId, empresaId } })
     })
