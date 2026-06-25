@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       recursoId: producto.id,
       descripcion: `Producto "${producto.nombre}" creado (stock inicial: ${producto.cantidad})`,
       datosDespues: { nombre: producto.nombre, cantidad: producto.cantidad, precio: producto.precio, codigo: producto.codigo },
-      ip,
+      ip: ip ?? '0.0.0.0',
       empresaId,
     })
 
