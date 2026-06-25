@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+desktop.ini
 
 # debug
 npm-debug.log*
@@ -48,7 +49,6 @@ next-env.d.ts
 *.db-journal
 
 # ===== Android / Gradle (módulo /android) =====
-# Artefactos de compilación que NO deben versionarse (se regeneran al compilar)
 android/.gradle/
 android/build/
 android/app/build/
@@ -66,19 +66,54 @@ android/app/release/
 /playwright-report/
 /playwright/.cache/
 
-# Agent and temporary files
+# AI Agent config directories
+.claude/
+.codex/
+.cursor/
+.gemini/
+.superpowers/
+.zed/
+.agents/
+.opencode/
+.vscode/
+.aider*
+.aider.tags.cache.v4/
+
+# AI / Agent generated files
+opencode.json
+skills-lock.json
+session-*.md
 task-*.md
 task-*.diff
-check-db.ts
-implementation_plan.md
-docs/superpowers/
-
-
 _ai_docs/
+_ai_scripts/
+docs/superpowers/
+docs/AUDITORIA.md
+docs/PLAN_IMPLEMENTACION.md
+AUDITORIA.md
+implementation_plan.md
+check-db.ts
 
+# Temp / dev scripts
+append-env.js
+start_proxy.py
+verify.js
 
-#Ignore vscode AI rules
-.github\instructions\codacy.instructions.md
+# Diff / patch artifacts
+diff*.patch
+diff_output.txt
 
+# Binaries
+pandoc-*.deb
+
+# Neon metadata
+.neon
+
+# MCP config
+.mcp.json
+
+# VSCode AI rules
+.github/instructions/codacy.instructions.md
+
+# Logs
 dev.log
-.aider*
