@@ -49,7 +49,7 @@ export default function AvatarUsuario({ sesion }: AvatarUsuarioProps) {
       {abierto && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setAbierto(false)} />
-          <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg ring-1 ring-black/5 z-50 overflow-hidden">
+          <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-border z-50 overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100">
               <p className="text-sm font-medium text-gray-900 truncate">{nombre}</p>
               <p className="text-xs text-gray-500">{iniciales}</p>

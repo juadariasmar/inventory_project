@@ -159,7 +159,6 @@
 .dark .border-t { border-color: var(--color-border) !important; }
 .dark .border-b { border-color: var(--color-border) !important; }
 .dark .ring-gray-200 { border-color: var(--color-border) !important; }
-.dark .ring-opacity-5 { opacity: 0.15 !important; }
 .dark .shadow-sm, .dark .shadow-md, .dark .shadow-lg, .dark .shadow-xl { box-shadow: var(--shadow-md) !important; }
 .dark .text-primary { color: oklch(0.68 0.08 255) !important; }
 .dark .bg-red-50 { background-color: oklch(0.48 0.12 25 / 0.12) !important; }
