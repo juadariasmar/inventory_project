@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 
 export interface FilaInventario {
   productoId: number
@@ -122,16 +123,20 @@ export default function InventarioGeneralAgrupado({ datos }: Propiedades) {
           <button
             type="button"
             onClick={expandirTodas}
-            className="px-3 py-1.5 border border-gray-300 hover:bg-gray-50 rounded-md text-gray-700"
+            title="Expandir todas"
+            className="p-1.5 border border-gray-300 hover:bg-gray-50 rounded-md text-gray-700"
           >
-            Expandir todo
+            <ChevronDown className="w-4 h-4" />
+            <span className="sr-only">Expandir todas</span>
           </button>
           <button
             type="button"
             onClick={colapsarTodas}
-            className="px-3 py-1.5 border border-gray-300 hover:bg-gray-50 rounded-md text-gray-700"
+            title="Contraer todas"
+            className="p-1.5 border border-gray-300 hover:bg-gray-50 rounded-md text-gray-700"
           >
-            Colapsar todo
+            <ChevronUp className="w-4 h-4" />
+            <span className="sr-only">Contraer todas</span>
           </button>
         </div>
       </div>
