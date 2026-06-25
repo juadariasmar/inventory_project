@@ -27,15 +27,6 @@ export async function POST(request: NextRequest) {
 
   try {
     const datos = await request.json().catch(() => ({}))
-    const expectedToken = process.env.RESET_TOKEN
-
-    if (!expectedToken || datos.token !== expectedToken) {
-      return NextResponse.json(
-        { error: 'Token de seguridad inválido o faltante.' },
-        { status: 403 }
-      )
-    }
-
     if (datos.confirmacion !== 'RESTABLECER') {
       return NextResponse.json(
         { error: 'Confirmación inválida. Escribe exactamente "RESTABLECER".' },

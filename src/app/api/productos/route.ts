@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache'
 import { esAdmin, obtenerSesion } from '@/lib/permisos'
 import { extraerIp } from '@/lib/auditoria'
 import { ProductosService } from '@/services/ProductosService'
+import { HistorialService } from '@/services/HistorialService'
 import { AppError } from '@/lib/AppError'
 
 // GET - Obtener todos los productos (con paginacion por cursor)
@@ -52,6 +53,16 @@ export async function POST(request: NextRequest) {
     const ip = extraerIp(request)
     
     const producto = await ProductosService.crear(datos, ip, empresaId)
+
+    await HistorialService.registrar({
+      usuarioId: sesion?.user?.id ?? 'sistema',
+      accion: 'CREAR',
+      recursoId: producto.id,
+      descripcion: `Producto "${producto.nombre}" creado (stock inicial: ${producto.cantidad})`,
+      datosDespues: { nombre: producto.nombre, cantidad: producto.cantidad, precio: producto.precio, codigo: producto.codigo },
+      ip,
+      empresaId,
+    })
 
     revalidatePath('/movimientos')
     revalidatePath('/movimientos/nuevo')
