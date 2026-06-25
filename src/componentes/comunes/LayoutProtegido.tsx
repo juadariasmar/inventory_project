@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { obtenerSesion } from '@/lib/permisos'
 import BarraNavegacion from '../BarraNavegacion'
 import PendienteAprobacion from './PendienteAprobacion'
+import CarritoFlotante from '../ventas/CarritoFlotante'
 
 interface PropiedadesLayout {
   children: React.ReactNode
@@ -33,6 +34,7 @@ export default async function LayoutProtegido({ children }: PropiedadesLayout) {
       <main id="main-content" className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {children}
       </main>
+      <CarritoFlotante />
     </div>
   )
 }

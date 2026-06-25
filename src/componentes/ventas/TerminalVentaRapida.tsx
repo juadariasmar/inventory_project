@@ -10,14 +10,12 @@ import {
   cantidadTotalCarrito,
   EVENTO_CARRITO_CAMBIO,
   ItemCarrito,
-  limpiarCarrito,
   obtenerCarrito,
+  limpiarCarrito,
   quitarDelCarrito,
   totalCarrito,
+  STORAGE_KEY_CARRITO,
 } from '@/lib/carrito'
-
-// Si @/lib/carrito no exporta STORAGE_KEY_CARRITO, descomenta la siguiente línea
-// const STORAGE_KEY_CARRITO = 'carrito'
 
 interface ProductoLite {
   id: number
@@ -56,9 +54,6 @@ export default function TerminalVentaRapida({
   const [exito, setExito] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [abierto, setAbierto] = useState(false)
-
-  // Clave usada posteriormente en el estado inicial del carrito
-  const STORAGE_KEY_CARRITO = 'carrito'
 
   const [carrito, setCarrito] = useState<ItemCarrito[]>(() => {
     if (typeof window !== 'undefined') {
