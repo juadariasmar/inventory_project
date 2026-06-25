@@ -97,10 +97,10 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
       etiqueta: 'Administración',
       visible: esAdmin,
       items: [
-        { href: '/admin', etiqueta: 'Empresas', visible: true },
+        { href: '/admin/empresas', etiqueta: 'Empresas', visible: true },
         { href: '/usuarios', etiqueta: 'Usuarios', visible: true },
         { href: '/auditoria', etiqueta: 'Auditoría', visible: true },
-        { href: '/admin/configuracion', etiqueta: 'Configuración', visible: true },
+        { href: '/admin/empresas/configuracion', etiqueta: 'Configuraci├│n', visible: true },
       ],
     },
   ].filter((it) => it.visible) as Item[]
@@ -144,15 +144,15 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
   }
 
   return (
-    <nav className="bg-primary text-white shadow-lg">
+    <nav className="bg-primary text-white shadow-lg" role="navigation" aria-label="Navegación principal">
       <div ref={contenedorRef} className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="text-xl font-bold" onClick={cerrarMenu}>
+          <Link href="/" className="text-xl font-bold flex-shrink-0" onClick={cerrarMenu}>
             Inventarios
           </Link>
 
-          {/* Enlaces escritorio */}
-          <div className="hidden md:flex items-center space-x-1">
+          {/* Enlaces escritorio (solo pantallas grandes) */}
+          <div className="hidden lg:flex items-center space-x-1 overflow-x-auto scrollbar-thin">
             {items.map((item) => {
               if (item.tipo === 'enlace') {
                 return (
@@ -186,7 +186,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
                   >
                     {item.etiqueta}
                     <span className={`text-xs transition-transform ${abierto ? 'rotate-180' : ''}`}>
-                      ▾
+                      Ôû¥
                     </span>
                   </button>
                   {abierto && (
@@ -212,8 +212,8 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
             })}
           </div>
 
-          {/* Mi cuenta (escritorio) */}
-          <div className="hidden md:flex items-center gap-1">
+          {/* Mi cuenta (escritorio grandes) */}
+          <div className="hidden lg:flex items-center gap-1">
             {sesion?.user && (
               <>
                 <TemaToggle className="text-white/80 hover:text-white hover:bg-white/10" />
@@ -234,11 +234,11 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
             )}
           </div>
 
-          {/* Botón hamburguesa (móvil) */}
+          {/* Botón hamburguesa (tablets y móvil) */}
           <button
             type="button"
             onClick={() => setMenuAbierto((v) => !v)}
-            className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-white/90 hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-white"
+            className="lg:hidden inline-flex items-center justify-center p-2 rounded-md text-white/90 hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-white"
             aria-controls="menu-movil"
             aria-expanded={menuAbierto}
             aria-label="Abrir menú"
@@ -256,9 +256,9 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
         </div>
       </div>
 
-      {/* Menú móvil colapsable */}
+      {/* Men├║ m├│vil colapsable */}
       {menuAbierto && (
-        <div id="menu-movil" className="md:hidden border-t border-primary/30">
+        <div id="menu-movil" className="lg:hidden border-t border-primary/30">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {items.map((item) => {
               if (item.tipo === 'enlace') {
@@ -303,7 +303,21 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
             })}
           </div>
           {sesion?.user && (
-            <div className="border-t border-blue-500 pt-3 pb-3 px-4 flex justify-center">
+            <div className="border-t border-blue-500 pt-3 pb-3 px-4 flex items-center justify-center gap-4">
+              <TemaToggle className="text-white/80 hover:text-white hover:bg-white/10" />
+              <Link
+                href="/notificaciones"
+                className="relative p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-fast"
+                title="Notificaciones"
+                onClick={cerrarMenu}
+              >
+                <Bell className="w-5 h-5" />
+                {contadorNotif > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 rounded-full">
+                    {contadorNotif > 9 ? '9+' : contadorNotif}
+                  </span>
+                )}
+              </Link>
               <AvatarUsuario sesion={sesion} />
             </div>
           )}
