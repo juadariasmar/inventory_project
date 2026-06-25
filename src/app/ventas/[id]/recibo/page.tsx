@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import BotonVolverCerrar from '@/componentes/ventas/BotonVolverCerrar'
 import { notFound, redirect } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { obtenerSesion } from '@/lib/permisos'
@@ -52,9 +52,7 @@ export default async function PaginaReciboVenta({ params }: Props) {
     <div className="min-h-screen bg-gray-100 print:bg-white py-6 px-4">
       {/* Barra superior con acciones (oculta al imprimir) */}
       <div className="max-w-2xl mx-auto mb-4 flex justify-between items-center print:hidden">
-        <Link href="/venta-rapida" className="text-blue-600 hover:underline text-sm">
-          ← Volver a Ventas
-        </Link>
+        <BotonVolverCerrar />
         <div className="flex items-center gap-2">
           {puedeCancelar && <BotonCancelarVenta ventaId={venta.id} />}
           <BotonImprimir />
