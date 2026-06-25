@@ -32,19 +32,6 @@ function esDatos(valor: unknown): valor is Datos {
   )
 }
 
-function esDatos(valor: unknown): valor is Datos {
-  if (typeof valor !== 'object' || valor === null) return false
-  const d = valor as Record<string, unknown>
-  return (
-    (d.antes === undefined || typeof d.antes === 'object') &&
-    (d.despues === undefined || typeof d.despues === 'object') &&
-    (d.productoNuevaCantidad === undefined || typeof d.productoNuevaCantidad === 'number') &&
-    (d.contrasenaCambiada === undefined || typeof d.contrasenaCambiada === 'boolean') &&
-    (d.email === undefined || typeof d.email === 'string') &&
-    (d.motivo === undefined || typeof d.motivo === 'string')
-  )
-}
-
 function precio(valor: unknown): string {
   if (typeof valor !== 'number' || !Number.isFinite(valor)) return String(valor ?? '')
   return `$${valor.toLocaleString('es-MX')}`
