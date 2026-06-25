@@ -190,7 +190,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
                     </span>
                   </button>
                   {abierto && (
-                    <div className="absolute left-0 top-full mt-1 min-w-[180px] bg-white text-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50 overflow-hidden">
+                    <div className="absolute left-0 top-full mt-1 min-w-[180px] bg-white text-gray-800 rounded-md shadow-lg border border-border z-50 overflow-hidden">
                       {item.items.filter((s) => s.visible).map((sub) => (
                         <Link
                           key={sub.href}
