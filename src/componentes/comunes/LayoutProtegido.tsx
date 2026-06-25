@@ -16,7 +16,7 @@ export default async function LayoutProtegido({ children }: PropiedadesLayout) {
 
   if (sesion.user.estado === 'PENDIENTE') {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="min-h-screen bg-gray-50 flex flex-col overflow-x-hidden">
         <BarraNavegacion sesion={sesion} />
         <PendienteAprobacion />
       </div>
@@ -28,7 +28,7 @@ export default async function LayoutProtegido({ children }: PropiedadesLayout) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <BarraNavegacion sesion={sesion} />
       <main id="main-content" className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {children}
