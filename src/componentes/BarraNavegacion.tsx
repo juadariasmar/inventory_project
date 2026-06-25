@@ -152,7 +152,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
           </Link>
 
           {/* Enlaces escritorio (solo pantallas grandes) */}
-          <div className="hidden lg:flex items-center space-x-1 overflow-x-auto scrollbar-thin">
+          <div className="hidden lg:flex items-center space-x-1">
             {items.map((item) => {
               if (item.tipo === 'enlace') {
                 return (
@@ -186,7 +186,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
                   >
                     {item.etiqueta}
                     <span className={`text-xs transition-transform ${abierto ? 'rotate-180' : ''}`}>
-                      Ôû¥
+                      ▼
                     </span>
                   </button>
                   {abierto && (
