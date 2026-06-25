@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/db'
 import { HistorialService } from '@/services/HistorialService'
+
+let empresaId: string
 let productoId: number
 let categoriaId: number
 const usuarioId = 'qa-test-user'
