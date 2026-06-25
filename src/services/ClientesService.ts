@@ -107,6 +107,6 @@ export const ClientesService = {
     if (datos.direccion !== undefined) data.direccion = datos.direccion || null
     if (datos.notas !== undefined) data.notas = datos.notas || null
 
-    return prisma.cliente.update({ where: { id }, data })
+    return prisma.cliente.update({ where: { id, empresaId }, data })
   },
 }
