@@ -36,9 +36,13 @@ export function calcularSugerenciaCompra(
   stockMinimo: number,
   cantidadActual: number,
 ): number {
-  const umbralSalida = stockMinimo + MARGEN_ALERTA_STOCK + 1
-  const objetivo = Math.max(stockMinimo * 2, umbralSalida)
-  return Math.max(0, objetivo - cantidadActual)
+  // Clamp to non‑negative values to avoid nonsensical suggestions.
+  const sMin = Math.max(0, stockMinimo)
+  const current = Math.max(0, cantidadActual)
+
+  const umbralSalida = sMin + MARGEN_ALERTA_STOCK + 1
+  const objetivo = Math.max(sMin * 2, umbralSalida)
+  return Math.max(0, objetivo - current)
 }
 
 // Sugiere cuantas unidades comprar basandose en el consumo diario promedio
@@ -51,14 +55,19 @@ export function calcularSugerenciaCompraInteligente(
   cantidadActual: number,
   consumoDiarioPromedio: number,
 ): number {
-  if (consumoDiarioPromedio <= 0) {
-    return calcularSugerenciaCompra(stockMinimo, cantidadActual)
+  const sMin = Math.max(0, stockMinimo)
+  const current = Math.max(0, cantidadActual)
+  const consumo = Math.max(0, consumoDiarioPromedio)
+
+  if (consumo <= 0) {
+    return calcularSugerenciaCompra(sMin, current)
   }
-  const umbralSalida = stockMinimo + MARGEN_ALERTA_STOCK + 1
+
+  const umbralSalida = sMin + MARGEN_ALERTA_STOCK + 1
   const objetivoCobertura =
-    Math.ceil(consumoDiarioPromedio * DIAS_COBERTURA_OBJETIVO) + stockMinimo
+    Math.ceil(consumo * DIAS_COBERTURA_OBJETIVO) + sMin
   const objetivo = Math.max(umbralSalida, objetivoCobertura)
-  return Math.max(0, objetivo - cantidadActual)
+  return Math.max(0, objetivo - current)
 }
 
 export type EstadoStock = 'sin_stock' | 'stock_bajo' | 'normal'
