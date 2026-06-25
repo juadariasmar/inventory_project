@@ -9,11 +9,7 @@ export const MovimientosService = {
     const movimientos = await prisma.movimiento.findMany({
       where: { empresaId },
       include: { producto: true },
-      // Use composite ordering so that cursor uniquely identifies a position
-      orderBy: [
-        { creadoEn: 'desc' },
-        { id: 'desc' },
-      ],
+      orderBy: { id: 'desc' },
       take: limite + 1,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     });
