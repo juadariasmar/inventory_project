@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import BarraSeleccionMultiple from '@/componentes/comunes/BarraSeleccionMultiple'
+import { Lock } from 'lucide-react'
 import { useToast } from '@/componentes/comunes/ProveedorToast'
 import ConfirmarAccion from '@/componentes/comunes/ConfirmarAccion'
 import { formatearFechaHora } from '@/lib/fechas'
@@ -327,10 +328,10 @@ export default function ListaMovimientosFiltrable({
                             />
                           ) : (
                             <span
-                              className="text-gray-300 text-xs"
+                              className="text-gray-300"
                               title="Movimiento de venta — no borrable"
                             >
-                              🔒
+                              <Lock className="w-4 h-4" aria-hidden="true" />
                             </span>
                           )}
                         </td>

@@ -178,16 +178,18 @@ model Usuario {
 
 model Categoria {
   id        Int        @id @default(autoincrement())
-  nombre    String     @unique
+  nombre    String
   // Prefijo usado para los codigos de los productos de esta categoria
   // (ej. "BEB", "ALI"). Se rellena en migracion para todas las categorias
   // existentes y es obligatorio para nuevas.
-  prefijo   String     @unique
+  prefijo   String
   productos Producto[]
 
   empresaId String
   empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
+  @@unique([empresaId, nombre])
+  @@unique([empresaId, prefijo])
   @@index([empresaId])
 }
 
@@ -255,7 +257,7 @@ model Movimiento {
   empresaId String
   empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
-  @@index([empresaId, creadoEn(sort: Desc)])
+  @@index([empresaId, tipo, creadoEn(sort: Desc)])
   @@index([ventaId])
   @@index([ordenCompraId])
 }
