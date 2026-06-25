@@ -42,7 +42,7 @@ export default function BotonCambiarEstadoUsuario({
     }
   }
 
-  if (estado === 'ACTIVO' && esActual) {
+  if (esActual) {
     return null
   }
 

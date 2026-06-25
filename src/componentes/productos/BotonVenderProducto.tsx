@@ -48,6 +48,7 @@ export default function BotonVenderProducto({
       type="button"
       onClick={agregar}
       disabled={stockActual <= 0}
+      aria-label={stockActual <= 0 ? `Sin stock para ${nombre}` : `Agregar ${nombre} a la venta`}
       className="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-hover transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 min-h-[44px] inline-flex items-center justify-center font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
       title={stockActual <= 0 ? 'Sin stock' : 'Agregar a la venta actual'}
     >

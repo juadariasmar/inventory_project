@@ -53,13 +53,29 @@ export default function TerminalVentaRapida({
   const [exito, setExito] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [abierto, setAbierto] = useState(false)
-  const [carrito, setCarrito] = useState<ItemCarrito[]>([])
+  const [carrito, setCarrito] = useState<ItemCarrito[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = sessionStorage.getItem(STORAGE_KEY_CARRITO)
+        if (!raw) return []
+        const parsed = JSON.parse(raw)
+        if (!Array.isArray(parsed)) return []
+        return parsed.filter(
+          (it): it is ItemCarrito =>
+            typeof it === 'object' && it !== null &&
+            typeof it.productoId === 'number' &&
+            typeof it.cantidad === 'number'
+        )
+      } catch {
+        return []
+      }
+    }
+    return []
+  })
   const contenedorRef = useRef<HTMLDivElement>(null)
 
-  // Sincronizar carrito desde sessionStorage al montar y cuando cambie.
+  // Sincronizar carrito desde sessionStorage cuando cambie.
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCarrito(obtenerCarrito())
     const onCambio = () => setCarrito(obtenerCarrito())
     window.addEventListener(EVENTO_CARRITO_CAMBIO, onCambio)
     return () => window.removeEventListener(EVENTO_CARRITO_CAMBIO, onCambio)
