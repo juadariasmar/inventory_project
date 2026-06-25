@@ -43,7 +43,7 @@ export default function FormularioProducto({
     descripcion: producto?.descripcion || '',
     codigo: producto?.codigo || '',
     precio: producto?.precio?.toString() || '',
-    cantidad: producto?.cantidad?.toString() || '0',
+    cantidad: producto?.cantidad?.toString() ?? '',
     stockMinimo: producto?.stockMinimo?.toString() || '1',
     categoriaId: categoriaInicial,
   })
@@ -183,6 +183,7 @@ export default function FormularioProducto({
           name="cantidad"
           value={datos.cantidad}
           onChange={manejarCambio}
+          placeholder="0"
           min={esEdicion ? producto?.cantidad ?? 0 : 0}
           hint={
             esEdicion
