@@ -6,6 +6,9 @@ import { auth } from '@/lib/auth/server'
 // NOTA: Este fallback en memoria SOLO funciona en desarrollo local.
 // En producción (Vercel Edge), el mapa se reinicia en cada ejecución.
 // Siempre configurar UPSTASH_REDIS_REST_URL y UPSTASH_REDIS_REST_TOKEN en producción.
+// NOTA: Este fallback en memoria SOLO funciona en desarrollo local.
+// En producción (Vercel Edge), el mapa se reinicia en cada ejecución.
+// Siempre configurar UPSTASH_REDIS_REST_URL y UPSTASH_REDIS_REST_TOKEN en producción.
 const intentosFallidosFallback = new Map<string, { count: number; resetAt: number }>()
 const MAX_INTENTOS = 5
 const VENTANA_MS = 60 * 1000 // 1 minuto
