@@ -97,46 +97,73 @@ export default async function PaginaDetalleEmpresa({ params }: PaginaProps) {
           {empresa.usuarios.length === 0 ? (
             <p className="text-sm text-gray-500">Esta empresa no tiene usuarios.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200 text-left text-gray-500">
-                    <th className="pb-3 pr-4 font-medium">Nombre</th>
-                    <th className="pb-3 pr-4 font-medium">Email</th>
-                    <th className="pb-3 pr-4 font-medium">Rol</th>
-                    <th className="pb-3 font-medium">Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {empresa.usuarios.map((usuario) => (
-                    <tr key={usuario.id} className="border-b border-gray-100">
-                      <td className="py-3 pr-4 font-medium text-gray-900">{usuario.nombre}</td>
-                      <td className="py-3 pr-4 text-gray-500">{usuario.email}</td>
-                      <td className="py-3 pr-4">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                          usuario.rol === 'ADMIN'
-                            ? 'bg-purple-100 text-purple-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {usuario.rol}
-                        </span>
-                      </td>
-                      <td className="py-3">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                          usuario.estado === 'ACTIVO'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : usuario.estado === 'SUSPENDIDO'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {usuario.estado}
-                        </span>
-                      </td>
+            <>
+              {/* Vista escritorio */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200 text-left text-gray-500">
+                      <th className="pb-3 pr-4 font-medium">Nombre</th>
+                      <th className="pb-3 pr-4 font-medium">Email</th>
+                      <th className="pb-3 pr-4 font-medium">Rol</th>
+                      <th className="pb-3 font-medium">Estado</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {empresa.usuarios.map((usuario) => (
+                      <tr key={usuario.id} className="border-b border-gray-100">
+                        <td className="py-3 pr-4 font-medium text-gray-900">{usuario.nombre}</td>
+                        <td className="py-3 pr-4 text-gray-500">{usuario.email}</td>
+                        <td className="py-3 pr-4">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                            usuario.rol === 'ADMIN'
+                              ? 'bg-purple-100 text-purple-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {usuario.rol}
+                          </span>
+                        </td>
+                        <td className="py-3">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                            usuario.estado === 'ACTIVO'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : usuario.estado === 'SUSPENDIDO'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {usuario.estado}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Vista móvil */}
+              <div className="md:hidden divide-y divide-gray-200">
+                {empresa.usuarios.map((usuario) => (
+                  <div key={usuario.id} className="py-3">
+                    <p className="font-semibold text-gray-900 text-sm">{usuario.nombre}</p>
+                    <p className="text-xs text-gray-500">{usuario.email}</p>
+                    <div className="flex gap-2 mt-1.5">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                        usuario.rol === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {usuario.rol}
+                      </span>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                        usuario.estado === 'ACTIVO' ? 'bg-emerald-100 text-emerald-800'
+                        : usuario.estado === 'SUSPENDIDO' ? 'bg-red-100 text-red-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {usuario.estado}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </section>
 
