@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     const productos = await prisma.producto.findMany({
       where: { id: { in: ids }, empresaId },
-      select: { id: true, nombre: true, codigo: true },
+      select: { id: true, nombre: true, codigo: true, cantidad: true },
     })
     if (productos.length === 0) {
       return NextResponse.json(
@@ -82,6 +82,18 @@ export async function POST(request: NextRequest) {
 
     const idsValidos = productos.map((p) => p.id)
     await prisma.$transaction(async (tx) => {
+      const conStock = productos.filter((p) => p.cantidad > 0)
+      if (conStock.length > 0) {
+        await tx.movimiento.createMany({
+          data: conStock.map((p) => ({
+            productoId: p.id,
+            empresaId,
+            tipo: 'salida' as const,
+            cantidad: p.cantidad,
+            notas: `Producto "${p.nombre}" eliminado del inventario (borrado masivo)`,
+          })),
+        })
+      }
       await tx.movimiento.deleteMany({ where: { productoId: { in: idsValidos }, empresaId } })
       await tx.producto.deleteMany({ where: { id: { in: idsValidos }, empresaId } })
     })

@@ -21,6 +21,12 @@ export default async function PaginaNuevoProducto() {
   return (
     <LayoutProtegido>
       <div className="space-y-6">
+        <Link
+          href="/productos"
+          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600"
+        >
+          ← Volver a productos
+        </Link>
         <div className="flex items-center space-x-2 text-sm text-gray-500">
           <Link href="/productos" className="hover:text-blue-600">
             Productos

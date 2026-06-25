@@ -5,8 +5,15 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import BarraSeleccionMultiple from '@/componentes/comunes/BarraSeleccionMultiple'
 import { useToast } from '@/componentes/comunes/ProveedorToast'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from '@radix-ui/react-alert-dialog'
 import ConfirmarAccion from '@/componentes/comunes/ConfirmarAccion'
-import BotonEliminarProducto from '@/componentes/productos/BotonEliminarProducto'
 import BotonVenderProducto from '@/componentes/productos/BotonVenderProducto'
 import MenuDesplegableAcciones from '@/componentes/comunes/MenuDesplegableAcciones'
 import { estadoStock, etiquetaEstadoStock, type EstadoStock } from '@/lib/inventario'
@@ -84,6 +91,8 @@ export default function ListaProductosFiltrable({
   const [eliminandoBulk, setEliminandoBulk] = useState(false)
   const [confirmarBulk, setConfirmarBulk] = useState(false)
   const bulkTriggerRef = useRef<HTMLButtonElement>(null)
+  const [productoAEliminar, setProductoAEliminar] = useState<{ id: number; nombre: string } | null>(null)
+  const [eliminandoSimple, setEliminandoSimple] = useState(false)
 
   // Persistir filtros en URL (sin recargar)
   useEffect(() => {
@@ -474,10 +483,14 @@ export default function ListaProductosFiltrable({
                               </div>
                             )}
                             {esAdmin && (
-                              <div className="px-4 py-2 hover:bg-gray-100">
-                                <BotonEliminarProducto id={producto.id} nombre={producto.nombre} />
-                              </div>
-                            )}
+                                <button
+                                  type="button"
+                                  onClick={() => setProductoAEliminar({ id: producto.id, nombre: producto.nombre })}
+                                  className="w-full text-left px-4 py-2 text-error hover:bg-gray-100"
+                                >
+                                  Eliminar
+                                </button>
+                              )}
                           </MenuDesplegableAcciones>
                         </td>
                       </tr>
@@ -568,10 +581,14 @@ export default function ListaProductosFiltrable({
                           </div>
                         )}
                         {esAdmin && (
-                          <div className="px-4 py-2 hover:bg-gray-100">
-                            <BotonEliminarProducto id={producto.id} nombre={producto.nombre} />
-                          </div>
-                        )}
+                            <button
+                              type="button"
+                              onClick={() => setProductoAEliminar({ id: producto.id, nombre: producto.nombre })}
+                              className="w-full text-left px-4 py-2 text-error hover:bg-gray-100"
+                            >
+                              Eliminar
+                            </button>
+                          )}
                       </MenuDesplegableAcciones>
                     </div>
                   </div>
@@ -627,6 +644,53 @@ export default function ListaProductosFiltrable({
         onConfirm={handleBulkDelete}
         disabled={eliminandoBulk}
       />
+      {productoAEliminar && (
+        <AlertDialog open onOpenChange={(abierto) => { if (!abierto) setProductoAEliminar(null) }}>
+          <AlertDialogContent className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[90vw] max-w-md rounded-xl bg-white p-6 shadow-2xl focus:outline-none">
+            <AlertDialogTitle className="text-lg font-bold text-gray-900">
+              Eliminar producto
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-gray-600 mt-2">
+              ¿Eliminar "{productoAEliminar.nombre}"? Se borrarán también sus movimientos.
+            </AlertDialogDescription>
+            <div className="mt-6 flex justify-end gap-3">
+              <AlertDialogCancel asChild>
+                <button
+                  type="button"
+                  disabled={eliminandoSimple}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <button
+                  type="button"
+                  disabled={eliminandoSimple}
+                  onClick={async () => {
+                    setEliminandoSimple(true)
+                    try {
+                      const r = await fetch(`/api/productos/${productoAEliminar.id}`, { method: 'DELETE' })
+                      if (r.ok) {
+                        setProductoAEliminar(null)
+                        router.refresh()
+                      } else {
+                        const e = await r.json().catch(() => ({}))
+                        toast({ titulo: 'Error al eliminar', descripcion: e.error, variant: 'error' })
+                      }
+                    } finally {
+                      setEliminandoSimple(false)
+                    }
+                  }}
+                  className="px-4 py-2 text-sm font-semibold text-white rounded-lg bg-error hover:bg-error-hover focus:outline-none focus:ring-2 focus:ring-error focus:ring-offset-2 disabled:opacity-50"
+                >
+                  {eliminandoSimple ? 'Eliminando...' : 'Eliminar'}
+                </button>
+              </AlertDialogAction>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   )
 }
