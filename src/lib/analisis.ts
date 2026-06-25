@@ -427,7 +427,7 @@ async function obtenerVentasPorCategoria(empresaId: string, dias = 30, top = 8):
 
   const productosIds = items.map((i) => i.productoId)
   const productos = await prisma.producto.findMany({
-    where: { id: { in: productosIds } },
+    where: { id: { in: productosIds }, empresaId },
     select: { id: true, categoria: { select: { nombre: true } } },
   })
   const mapaCategoria = new Map(productos.map((p) => [p.id, p.categoria?.nombre ?? 'Sin categoría']))
