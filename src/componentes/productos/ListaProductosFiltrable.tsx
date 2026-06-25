@@ -43,7 +43,7 @@ const CLASES_ESTADO: Record<EstadoStock, string> = {
 }
 
 type Estado = 'todos' | EstadoStock
-type CampoOrden = 'nombre' | 'codigo' | 'precio' | 'stock' | 'antiguedad'
+type CampoOrden = 'nombre' | 'codigo' | 'precio' | 'stock' | 'antiguedad' | 'categoria'
 type Dir = 'asc' | 'desc'
 type RangoAntiguedad = 'todos' | 'd7' | 'd30' | 'd90' | 'viejos'
 

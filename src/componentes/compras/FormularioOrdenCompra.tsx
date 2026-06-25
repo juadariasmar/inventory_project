@@ -72,9 +72,12 @@ export default function FormularioOrdenCompra({
         if (l.clave !== clave) return l
         const actualizada = { ...l, [campo]: valor }
         // Al elegir producto, sugerir el precio como costo si está vacío.
-        if (campo === 'productoId' && !l.costoUnitario) {
-          const producto = mapaProductos.get(parseInt(valor, 10))
-          if (producto) actualizada.costoUnitario = String(producto.precio)
+        if (campo === 'productoId' && !l.costoUnitario && valor) {
+          const productoId = parseInt(valor, 10)
+          if (!Number.isNaN(productoId)) {
+            const producto = mapaProductos.get(productoId)
+            if (producto) actualizada.costoUnitario = String(producto.precio)
+          }
         }
         return actualizada
       })

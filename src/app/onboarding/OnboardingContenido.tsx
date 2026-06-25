@@ -25,10 +25,10 @@ export default function OnboardingContenido() {
             <Sparkles className="w-8 h-8 text-indigo-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            ¡Bienvenido a tu empresa!
+            ¡Hey! Bienvenido a tu empresa
           </h1>
           <p className="text-gray-500 text-lg">
-            Tu empresa se ha creado automaticamente. Elige por donde empezar:
+            Tu empresa se ha creado automáticamente. Elige por dónde empezar:
           </p>
         </div>
 
