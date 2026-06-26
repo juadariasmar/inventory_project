@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function PaginaAdmin() {
   const sesion = await obtenerSesion()
-  if (!sesion?.user || sesion.user.rol !== 'ADMIN') {
+  if (!sesion?.user || sesion.user.rol !== 'SUPER_ADMIN') {
     redirect('/')
   }
 

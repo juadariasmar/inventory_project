@@ -31,16 +31,19 @@ function aplicarTemaAlDOM(tema: Tema) {
   }
 }
 
+function inicializarTema(): Tema {
+  if (typeof window === 'undefined') return 'light'
+  const inicial = obtenerTemaInicial()
+  aplicarTemaAlDOM(inicial)
+  return inicial
+}
+
 export function ProveedorTema({ children }: { children: React.ReactNode }) {
-  const [tema, setTema] = useState<Tema>('light')
-  const [montado, setMontado] = useState(false)
+  const [tema, setTema] = useState<Tema>(inicializarTema)
 
   useEffect(() => {
-    const inicial = obtenerTemaInicial()
-    setTema(inicial)
-    aplicarTemaAlDOM(inicial)
-    setMontado(true)
-  }, [])
+    aplicarTemaAlDOM(tema)
+  }, [tema])
 
   const toggleTema = useCallback(() => {
     setTema((prev) => {
@@ -51,10 +54,6 @@ export function ProveedorTema({ children }: { children: React.ReactNode }) {
     })
   }, [])
 
-  if (!montado) {
-    return <>{children}</>
-  }
-
   return (
     <Contexto.Provider value={{ tema, toggleTema }}>
       {children}
@@ -62,6 +61,6 @@ export function ProveedorTema({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function usarTema() {
+export function useTema() {
   return useContext(Contexto)
 }

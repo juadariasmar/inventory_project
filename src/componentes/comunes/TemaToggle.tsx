@@ -1,10 +1,10 @@
 'use client'
 
 import { Sun, Moon } from 'lucide-react'
-import { usarTema } from './ProveedorTema'
+import { useTema } from './ProveedorTema'
 
 export function TemaToggle({ className = '' }: { className?: string }) {
-  const { tema, toggleTema } = usarTema()
+  const { tema, toggleTema } = useTema()
 
   return (
     <button

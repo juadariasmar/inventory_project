@@ -62,6 +62,10 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
     const { id } = await params
     const productoId = parseInt(id)
     const sesion = await obtenerSesion()
+    const empresaIdPut = sesion?.user?.empresaId
+    if (!empresaIdPut) {
+      return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
+    }
     if (isNaN(productoId) || productoId <= 0) {
       return NextResponse.json({ error: 'ID inválido.' }, { status: 400 })
     }
@@ -88,7 +92,7 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
     }
 
     const actual = await prisma.producto.findUnique({
-      where: { id: productoId },
+      where: { id: productoId, empresaId: empresaIdPut },
     })
 
     if (!actual) {
@@ -117,8 +121,8 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
       )
     }
     if (categoriaId !== actual.categoriaId) {
-      const existe = await prisma.categoria.findUnique({
-        where: { id: categoriaId },
+      const existe = await prisma.categoria.findFirst({
+        where: { id: categoriaId, empresaId: empresaIdPut },
         select: { id: true },
       })
       if (!existe) {
@@ -135,7 +139,7 @@ export async function PUT(request: NextRequest, { params }: Parametros) {
       const nuevoPrecio = parseFloat(datos.precio)
 
       const actualizado = await tx.producto.update({
-        where: { id: productoId },
+        where: { id: productoId, empresaId: empresaIdPut },
         data: {
           nombre: datos.nombre,
           descripcion: datos.descripcion || null,

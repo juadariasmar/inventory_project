@@ -7,7 +7,7 @@ import type { Prisma } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
   const sesion = await obtenerSesion()
-  if (!sesion?.user || sesion.user.rol !== 'ADMIN') {
+  if (!sesion?.user || (sesion.user.rol !== 'SUPER_ADMIN' && sesion.user.rol !== 'ADMIN')) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
   const empresaId = sesion.user.empresaId

@@ -11,7 +11,7 @@ interface UsuarioFilaProps {
   id: string
   email: string
   nombre: string
-  rol: 'ADMIN' | 'USUARIO'
+  rol: string
   estado: 'PENDIENTE' | 'ACTIVO' | 'SUSPENDIDO'
   creadoEn: string | Date
 }
@@ -21,7 +21,7 @@ interface Propiedades {
   usuarioActualId: string
 }
 
-type RolFiltro = 'todos' | 'ADMIN' | 'USUARIO'
+type RolFiltro = 'todos' | 'ADMIN' | 'USUARIO' | 'SUPER_ADMIN'
 type CampoOrden = 'nombre' | 'usuario' | 'rol' | 'estado' | 'creado'
 type Dir = 'asc' | 'desc'
 

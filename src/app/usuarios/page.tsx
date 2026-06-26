@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function PaginaUsuarios() {
   const sesion = await obtenerSesion()
-  if (!sesion?.user?.empresaId || sesion.user.rol !== 'ADMIN') {
+  if (!sesion?.user?.empresaId) {
     redirect('/')
   }
   const empresaId = sesion.user.empresaId

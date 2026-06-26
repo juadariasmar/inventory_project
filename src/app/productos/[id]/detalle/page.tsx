@@ -73,10 +73,18 @@ export default async function PaginaDetalleProducto({ params }: Props) {
     <LayoutProtegido>
       <div className="space-y-6">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/productos" className="hover:text-blue-600">Productos</Link>
-          <span>/</span>
-          <span className="text-gray-800">{producto.nombre}</span>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <Link href="/productos" className="hover:text-blue-600">Productos</Link>
+            <span>/</span>
+            <span className="text-gray-800">{producto.nombre}</span>
+          </div>
+          <Link
+            href="/productos"
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-center text-sm self-start"
+          >
+            ← Volver a productos
+          </Link>
         </div>
 
         {/* Header con info y acciones */}

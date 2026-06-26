@@ -12,7 +12,7 @@ interface PaginaProps {
 
 export default async function PaginaDetalleEmpresa({ params }: PaginaProps) {
   const sesion = await obtenerSesion()
-  if (!sesion?.user || sesion.user.rol !== 'ADMIN') {
+  if (!sesion?.user || sesion.user.rol !== 'SUPER_ADMIN') {
     redirect('/')
   }
 
@@ -55,12 +55,20 @@ export default async function PaginaDetalleEmpresa({ params }: PaginaProps) {
   return (
     <LayoutProtegido>
       <div className="space-y-6">
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/" className="hover:text-blue-600">Panel</Link>
-          <span>/</span>
-          <Link href="/admin" className="hover:text-blue-600">Administración</Link>
-          <span>/</span>
-          <span className="text-gray-800">{empresa.nombre}</span>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <Link href="/" className="hover:text-blue-600">Panel</Link>
+            <span>/</span>
+            <Link href="/admin" className="hover:text-blue-600">Administración</Link>
+            <span>/</span>
+            <span className="text-gray-800">{empresa.nombre}</span>
+          </div>
+          <Link
+            href="/admin"
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-center text-sm self-start"
+          >
+            ← Volver a empresas
+          </Link>
         </div>
 
         <div>
