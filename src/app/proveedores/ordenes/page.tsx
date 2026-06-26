@@ -39,6 +39,9 @@ export default async function PaginaOrdenesCompra() {
   return (
     <LayoutProtegido>
       <div className="space-y-6">
+        <Link href="/proveedores" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">
+          ← Volver a proveedores
+        </Link>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <h1 className="text-2xl font-bold text-gray-800">Órdenes de compra</h1>
           {esAdmin && (
