@@ -8,8 +8,9 @@ export const EmailService = {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     const link = `${baseUrl}/invitacion?token=${datos.token}`
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('--- EmailService: enviarInvitacion ---')
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('[EmailService] RESEND_API_KEY no configurado. Email no enviado.')
+      console.log('--- EmailService: enviarInvitacion (simulado) ---')
       console.log(`  Para: ${datos.email}`)
       console.log(`  De: ${datos.invitarPorNombre}`)
       console.log(`  Empresa: ${datos.empresaNombre}`)
@@ -39,7 +40,7 @@ export const EmailService = {
 
     if (!res.ok) {
       const error = await res.text()
-      console.error('Error enviando email:', error)
+      console.error('[EmailService] Error enviando email:', error)
     }
   },
 }
