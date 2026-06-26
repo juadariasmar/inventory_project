@@ -12,7 +12,7 @@ interface PaginaProps {
 
 export default async function PaginaDetalleEmpresa({ params }: PaginaProps) {
   const sesion = await obtenerSesion()
-  if (!sesion?.user || sesion.user.rol !== 'ADMIN') {
+  if (!sesion?.user || sesion.user.rol !== 'SUPER_ADMIN') {
     redirect('/')
   }
 
