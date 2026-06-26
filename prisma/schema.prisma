@@ -198,7 +198,7 @@ model Producto {
   id               Int               @id @default(autoincrement())
   nombre           String
   descripcion      String?
-  codigo           String            @unique
+  codigo           String
   precio           Float
   cantidad         Int               @default(0)
   stockMinimo      Int               @default(1)
@@ -216,8 +216,8 @@ model Producto {
   empresaId String
   empresa   Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 
+  @@unique([empresaId, codigo])
   @@index([empresaId])
-  @@index([empresaId, codigo])
 }
 
 model HistorialPrecio {

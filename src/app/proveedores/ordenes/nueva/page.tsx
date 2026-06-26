@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation'
 export default async function PaginaNuevaOrdenCompra() {
   const sesion = await obtenerSesion()
   if (!sesion?.user?.empresaId) redirect('/auth/sign-in')
-  if (sesion.user.rol !== 'ADMIN') redirect('/')
+  if (sesion.user.rol !== 'ADMIN' && sesion.user.rol !== 'SUPER_ADMIN') redirect('/')
   const empresaId = sesion.user.empresaId
 
   const [proveedores, productos] = await Promise.all([

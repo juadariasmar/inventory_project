@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function PaginaGestionarCategorias() {
   const sesion = await obtenerSesion()
-  if (!sesion?.user || sesion.user.rol !== 'ADMIN') {
+  if (!sesion?.user || (sesion.user.rol !== 'ADMIN' && sesion.user.rol !== 'SUPER_ADMIN')) {
     redirect('/')
   }
   const empresaId = sesion.user.empresaId

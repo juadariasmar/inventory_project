@@ -11,7 +11,7 @@ export default async function PaginaProveedores() {
   const sesion = await obtenerSesion()
   if (!sesion?.user?.empresaId) redirect('/auth/sign-in')
   const empresaId = sesion.user.empresaId
-  const esAdmin = sesion.user.rol === 'ADMIN'
+  const esAdmin = sesion.user.rol === 'ADMIN' || sesion.user.rol === 'SUPER_ADMIN'
 
   const proveedores = await prisma.proveedor.findMany({
     where: { empresaId },
