@@ -2,7 +2,7 @@
 # Despliegue alternativo en contenedores (caso AA5).
 
 # --- Stage 1: dependencias y build ---
-FROM node:20-alpine AS builder
+FROM node:26-alpine AS builder
 WORKDIR /app
 
 RUN apk add --no-cache libc6-compat openssl
@@ -19,7 +19,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # --- Stage 2: runtime ---
-FROM node:20-alpine AS runner
+FROM node:26-alpine AS runner
 WORKDIR /app
 
 RUN apk add --no-cache openssl && \
