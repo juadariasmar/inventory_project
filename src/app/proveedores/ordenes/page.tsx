@@ -39,19 +39,24 @@ export default async function PaginaOrdenesCompra() {
   return (
     <LayoutProtegido>
       <div className="space-y-6">
-        <Link href="/proveedores" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">
-          ← Volver a proveedores
-        </Link>
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
           <h1 className="text-2xl font-bold text-gray-800">Órdenes de compra</h1>
-          {esAdmin && (
+          <div className="flex gap-2">
             <Link
-              href="/proveedores/ordenes/nueva"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-center"
+              href="/proveedores"
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-center text-sm self-start"
             >
-              + Nueva orden
+              ← Volver a proveedores
             </Link>
-          )}
+            {esAdmin && (
+              <Link
+                href="/proveedores/ordenes/nueva"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-center"
+              >
+                + Nueva orden
+              </Link>
+            )}
+          </div>
         </div>
 
         {ordenes.length > 0 ? (
