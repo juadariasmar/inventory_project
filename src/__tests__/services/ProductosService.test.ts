@@ -41,7 +41,7 @@ describe('ProductosService — QA Suite', () => {
 
     it('retorna productos paginados correctamente', async () => {
       const codigo = `QA-PAG-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-      const p = await ProductosService.crear(
+      await ProductosService.crear(
         { nombre: 'Pagina Test', precio: 10, cantidad: 5, categoriaId, codigo },
         null,
         empresaId
