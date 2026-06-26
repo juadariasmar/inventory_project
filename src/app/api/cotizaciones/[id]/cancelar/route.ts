@@ -64,7 +64,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
     }
 
     const actualizada = await prisma.cotizacion.update({
-      where: { id: cotizacionId },
+      where: { id: cotizacionId, empresaId: sesion.user.empresaId! },
       data: {
         estado: 'CANCELADA',
         canceladaEn: new Date(),
