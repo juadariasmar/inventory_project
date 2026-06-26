@@ -34,7 +34,7 @@ export default async function PaginaVentas({ searchParams }: Props) {
   if (!sesion?.user?.empresaId) redirect('/auth/sign-in')
   const empresaId = sesion.user.empresaId
 
-  const esAdmin = sesion.user.rol === 'ADMIN'
+  const esAdmin = sesion.user.rol === 'ADMIN' || sesion.user.rol === 'SUPER_ADMIN'
   const puedeRealizarVentas = await tienePermiso('REALIZAR_VENTAS')
   // Acceso: admin o quien tenga REALIZAR_VENTAS para ver al menos las suyas.
   if (!esAdmin && !puedeRealizarVentas) redirect('/')
