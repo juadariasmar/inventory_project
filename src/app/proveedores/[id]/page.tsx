@@ -12,7 +12,7 @@ interface Props {
 export default async function PaginaEditarProveedor({ params }: Props) {
   const sesion = await obtenerSesion()
   if (!sesion?.user?.empresaId) redirect('/auth/sign-in')
-  if (sesion.user.rol !== 'ADMIN') redirect('/')
+  if (sesion.user.rol !== 'SUPER_ADMIN' && sesion.user.rol !== 'ADMIN') redirect('/')
   const empresaId = sesion.user.empresaId
 
   const { id } = await params

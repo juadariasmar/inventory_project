@@ -117,6 +117,7 @@ describe('Empresas API', () => {
 
     it('returns 403 if user does not exist', async () => {
       mockEsSuperAdminValue = false;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockSesion = null as any;
 
       const res = await GET();

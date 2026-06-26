@@ -4,6 +4,30 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('Iniciando seed...')
 
+  const empresaSuperAdmin = await prisma.empresa.upsert({
+    where: { id: 'empresa-super-admin-seed' },
+    update: {},
+    create: {
+      id: 'empresa-super-admin-seed',
+      nombre: 'Super Admin',
+    },
+  })
+  console.log('Empresa super admin lista:', empresaSuperAdmin.nombre)
+
+  const superAdmin = await prisma.usuario.upsert({
+    where: { email: process.env.SUPER_ADMIN_EMAIL || 'admin@ejemplo.com' },
+    update: { rol: 'SUPER_ADMIN', estado: 'ACTIVO', empresaId: empresaSuperAdmin.id },
+    create: {
+      neonAuthId: 'super-admin-neon-id-placeholder',
+      email: process.env.SUPER_ADMIN_EMAIL || 'admin@ejemplo.com',
+      nombre: 'Super Administrador',
+      rol: 'SUPER_ADMIN',
+      estado: 'ACTIVO',
+      empresaId: empresaSuperAdmin.id,
+    },
+  })
+  console.log('Super admin creado:', superAdmin.email, '(', superAdmin.rol, ')')
+
   const empresaAdmin = await prisma.empresa.upsert({
     where: { id: 'empresa-admin-seed' },
     update: {},
