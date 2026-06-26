@@ -78,6 +78,9 @@ export default async function PaginaCotizaciones({ searchParams }: Props) {
   return (
     <LayoutProtegido>
       <div className="space-y-6">
+        <Link href="/" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">
+          ← Volver a panel
+        </Link>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Cotizaciones</h1>
