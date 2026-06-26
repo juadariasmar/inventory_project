@@ -11,7 +11,7 @@ export async function PATCH() {
   const usuarioId = typeof sesion.user.id === 'string' ? sesion.user.id : String(sesion.user.id)
 
   await prisma.usuario.update({
-    where: { id: usuarioId },
+    where: { id: usuarioId, empresaId: sesion.user.empresaId! },
     data: { onboardingCompletado: true },
   })
 
