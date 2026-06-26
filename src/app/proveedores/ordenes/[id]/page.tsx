@@ -51,12 +51,20 @@ export default async function PaginaDetalleOrdenCompra({ params }: Props) {
   return (
     <LayoutProtegido>
       <div className="space-y-6">
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/proveedores/ordenes" className="hover:text-blue-600">
-            Órdenes de compra
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <Link href="/proveedores/ordenes" className="hover:text-blue-600">
+              Órdenes de compra
+            </Link>
+            <span>/</span>
+            <span className="text-gray-800">#{orden.id}</span>
+          </div>
+          <Link
+            href="/proveedores/ordenes"
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-center text-sm self-start"
+          >
+            ← Volver a órdenes de compra
           </Link>
-          <span>/</span>
-          <span className="text-gray-800">#{orden.id}</span>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
