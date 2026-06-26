@@ -59,18 +59,20 @@ export default async function PaginaEditarProducto({ params }: PropiedadesPagina
   return (
     <LayoutProtegido>
       <div className="space-y-6">
-        <Link
-          href="/productos"
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600"
-        >
-          ← Volver a productos
-        </Link>
-        <div className="flex items-center space-x-2 text-sm text-gray-500">
-          <Link href="/productos" className="hover:text-blue-600">
-            Productos
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+          <div className="flex items-center space-x-2 text-sm text-gray-500">
+            <Link href="/productos" className="hover:text-blue-600">
+              Productos
+            </Link>
+            <span>/</span>
+            <span>Editar</span>
+          </div>
+          <Link
+            href="/productos"
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-center text-sm self-start"
+          >
+            ← Volver a productos
           </Link>
-          <span>/</span>
-          <span>Editar</span>
         </div>
 
         <h1 className="text-2xl font-bold text-gray-800">

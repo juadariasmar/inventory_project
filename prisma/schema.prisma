@@ -13,6 +13,7 @@ datasource db {
 }
 
 enum Rol {
+  SUPER_ADMIN
   ADMIN
   USUARIO
 }
