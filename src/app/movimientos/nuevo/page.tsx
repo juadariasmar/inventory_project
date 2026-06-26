@@ -44,11 +44,11 @@ export default async function PaginaNuevoMovimiento() {
         <h1 className="text-2xl font-bold text-gray-800">Registrar Movimiento</h1>
 
         {productos.length > 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl">
             <FormularioMovimiento productos={productos} />
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
+          <div className="bg-white rounded-lg shadow-md p-8 text-center max-w-2xl">
             <p className="text-gray-500 mb-4">
               No hay productos registrados. Primero debes crear al menos un producto.
             </p>

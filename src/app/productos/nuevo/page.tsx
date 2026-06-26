@@ -37,7 +37,7 @@ export default async function PaginaNuevoProducto() {
 
         <h1 className="text-2xl font-bold text-gray-800">Nuevo Producto</h1>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl">
           {categorias.length === 0 ? (
             <div className="text-center space-y-3">
               <p className="text-gray-700">
