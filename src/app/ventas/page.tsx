@@ -104,14 +104,22 @@ export default async function PaginaVentas({ searchParams }: Props) {
                 : 'Tus ventas registradas.'}
             </p>
           </div>
-          {puedeRealizarVentas || esAdmin ? (
+          <div className="flex gap-2">
+            {puedeRealizarVentas || esAdmin ? (
+              <Link
+                href="/venta-rapida"
+                className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm self-start"
+              >
+                + Nueva venta
+              </Link>
+            ) : null}
             <Link
-              href="/venta-rapida"
-              className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm self-start"
+              href="/cotizaciones/nueva"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm self-start"
             >
-              + Nueva venta
+              + Nueva cotización
             </Link>
-          ) : null}
+          </div>
         </div>
 
         <FiltrosVentas esAdmin={esAdmin} vendedores={vendedores} />
