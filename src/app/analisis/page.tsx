@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { obtenerSesion } from '@/lib/permisos'
 import LayoutProtegido from '@/componentes/comunes/LayoutProtegido'
 import {
@@ -56,14 +57,22 @@ async function ContenidoAnalisis() {
   return (
     <div className="space-y-6">
         <AutoScroller />
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Análisis e informes</h1>
             <p className="text-sm text-gray-600">
               Reportes automáticos sobre el comportamiento del inventario
             </p>
           </div>
-          {puedeExportar && <BotonExportarAnalisis />}
+          <div className="flex gap-2">
+            <Link
+              href="/"
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-center text-sm self-start"
+            >
+              ← Volver a panel
+            </Link>
+            {puedeExportar && <BotonExportarAnalisis />}
+          </div>
         </div>
 
         {/* Inventario general */}
