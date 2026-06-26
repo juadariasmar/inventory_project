@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useMemo, useRef, useState, useEffect } from 'react'
 import { LogOut, User } from 'lucide-react'
 import { authClient } from '@/lib/auth/client'
+import { limpiarCarrito } from '@/lib/carrito'
 
 function obtenerIniciales(nombre: string): string {
   const partes = nombre.trim().split(/\s+/).filter(Boolean)
@@ -69,7 +70,7 @@ export default function AvatarUsuario({ sesion }: AvatarUsuarioProps) {
             </Link>
             <button
               type="button"
-              onClick={async () => { try { await authClient.signOut() } catch { /* si falla, cerramos igual */ }; setAbierto(false); window.location.href = '/auth/sign-in' }}
+              onClick={async () => { try { await authClient.signOut() } catch { /* si falla, cerramos igual */ }; limpiarCarrito(); setAbierto(false); window.location.href = '/auth/sign-in' }}
               className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             >
               <LogOut className="w-4 h-4" />
