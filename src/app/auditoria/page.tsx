@@ -87,14 +87,19 @@ export default async function PaginaAuditoria({ searchParams }: Props) {
   return (
     <LayoutProtegido>
       <div className="space-y-6">
-        <Link href="/" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">
-          ← Volver a panel
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Auditoría</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Registro de acciones realizadas en el sistema. Solo lectura.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">Auditoría</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Registro de acciones realizadas en el sistema. Solo lectura.
+            </p>
+          </div>
+          <Link
+            href="/"
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-center text-sm self-start"
+          >
+            ← Volver a panel
+          </Link>
         </div>
 
         <FiltrosAuditoria usuarios={usuarios} permiteExportar={puedeExportar} />
