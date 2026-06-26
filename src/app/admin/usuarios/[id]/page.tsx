@@ -11,7 +11,7 @@ export default async function PaginaEditarUsuario({
   params: Promise<{ id: string }>
 }) {
   const sesion = await obtenerSesion()
-  if (!sesion?.user?.empresaId || sesion.user.rol !== 'ADMIN') {
+  if (!sesion?.user?.empresaId || (sesion.user.rol !== 'ADMIN' && sesion.user.rol !== 'SUPER_ADMIN')) {
     redirect('/')
   }
   const empresaId = sesion.user.empresaId
@@ -52,7 +52,7 @@ export default async function PaginaEditarUsuario({
     <LayoutProtegido>
       <div className="space-y-6">
         <div className="flex items-center space-x-2 text-sm text-gray-500">
-          <Link href="/usuarios" className="hover:text-blue-600">
+          <Link href="/admin/usuarios" className="hover:text-blue-600">
             Usuarios
           </Link>
           <span>/</span>

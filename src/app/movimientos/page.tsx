@@ -20,7 +20,7 @@ export default async function PaginaMovimientos() {
     }),
     tienePermiso('REGISTRAR_MOVIMIENTOS'),
   ])
-  const esAdmin = sesion.user.rol === 'ADMIN'
+  const esAdmin = sesion.user.rol === 'ADMIN' || sesion.user.rol === 'SUPER_ADMIN'
 
   return (
     <LayoutProtegido>
