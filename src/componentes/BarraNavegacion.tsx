@@ -89,9 +89,9 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
       ],
     },
     { tipo: 'enlace', href: '/analisis', etiqueta: 'Análisis', visible: true },
-    { tipo: 'enlace', href: '/empresa/configuracion', etiqueta: 'Empresa', visible: true },
-    { tipo: 'enlace', href: '/usuarios', etiqueta: 'Usuarios', visible: true },
-    { tipo: 'enlace', href: '/auditoria', etiqueta: 'Auditoría', visible: true },
+    { tipo: 'enlace', href: '/empresa/configuracion', etiqueta: 'Empresa', visible: esAdmin },
+    { tipo: 'enlace', href: '/admin/usuarios', etiqueta: 'Usuarios', visible: esAdmin },
+    { tipo: 'enlace', href: '/admin/auditoria', etiqueta: 'Auditoría', visible: esAdmin },
     {
       tipo: 'dropdown',
       id: 'admin',

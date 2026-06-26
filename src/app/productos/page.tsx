@@ -27,7 +27,7 @@ export default async function PaginaProductos() {
       tienePermiso('REALIZAR_VENTAS'),
       tienePermiso('REGISTRAR_MOVIMIENTOS'),
     ])
-  const esAdmin = sesion.user.rol === 'ADMIN'
+  const esAdmin = sesion.user.rol === 'ADMIN' || sesion.user.rol === 'SUPER_ADMIN'
   const puedeVender = puedeRealizarVentas || puedeRegistrar
 
   return (

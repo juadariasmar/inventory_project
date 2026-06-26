@@ -49,7 +49,7 @@ export default function ListaUsuariosFiltrable({
     if (rol !== 'todos') params.set('rol', rol)
     if (campoOrden !== 'nombre' || dir !== 'asc') params.set('orden', `${campoOrden}-${dir}`)
     const qs = params.toString()
-    router.replace(qs ? `/usuarios?${qs}` : '/usuarios', { scroll: false })
+    router.replace(qs ? `/admin/usuarios?${qs}` : '/admin/usuarios', { scroll: false })
   }, [q, rol, campoOrden, dir, router])
 
   const filtrados = useMemo(() => {
