@@ -34,7 +34,7 @@ const CLASES_ACCION: Record<string, string> = {
 export default async function PaginaAuditoria({ searchParams }: Props) {
   const sesion = await obtenerSesion()
   const empresaId = sesion?.user?.empresaId
-  if (!empresaId) redirect('/auth/sign-in')
+  if (!empresaId || (sesion?.user?.rol !== 'ADMIN' && sesion?.user?.rol !== 'SUPER_ADMIN')) redirect('/auth/sign-in')
 
   const params = await searchParams
 

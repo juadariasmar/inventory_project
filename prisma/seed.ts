@@ -95,7 +95,7 @@ async function main() {
   const categoriaEjemplo = await prisma.categoria.findFirst()
   if (categoriaEjemplo) {
     await prisma.producto.upsert({
-      where: { codigo: 'E2E-TEST-001' },
+      where: { empresaId_codigo: { empresaId: empresaAdmin.id, codigo: 'E2E-TEST-001' } },
       update: {},
       create: {
         codigo: 'E2E-TEST-001',
