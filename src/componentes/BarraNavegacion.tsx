@@ -100,7 +100,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
         { href: '/admin/empresas', etiqueta: 'Empresas', visible: true },
         { href: '/usuarios', etiqueta: 'Usuarios', visible: true },
         { href: '/auditoria', etiqueta: 'Auditoría', visible: true },
-        { href: '/admin/empresas/configuracion', etiqueta: 'Configuraci├│n', visible: true },
+        { href: '/admin/configuracion', etiqueta: 'Configuración', visible: true },
       ],
     },
   ].filter((it) => it.visible) as Item[]
@@ -256,7 +256,7 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
         </div>
       </div>
 
-      {/* Men├║ m├│vil colapsable */}
+      {/* Menú móvil colapsable */}
       {menuAbierto && (
         <div id="menu-movil" className="lg:hidden border-t border-primary/30">
           <div className="px-2 pt-2 pb-3 space-y-1">
