@@ -114,13 +114,13 @@ export async function POST(request: NextRequest, { params }: Parametros) {
           },
         })
         await tx.producto.update({
-          where: { id: it.productoId },
+          where: { id: it.productoId, empresaId: cotizacion.empresaId },
           data: { cantidad: { decrement: it.cantidad } },
         })
       }
 
       const cotizacionActualizada = await tx.cotizacion.update({
-        where: { id: cotizacionId },
+        where: { id: cotizacionId, empresaId: cotizacion.empresaId },
         data: {
           estado: 'CONVERTIDA',
           ventaId: venta.id,

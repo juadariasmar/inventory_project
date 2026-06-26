@@ -72,7 +72,7 @@ export async function esAdmin() {
 export async function esSuperAdmin() {
   const sesion = await obtenerSesion()
   if (!sesion?.user) return false
-  return sesion.user.rol === 'SUPER_ADMIN'
+  return sesion.user.rol === 'SUPER_ADMIN' && sesion.user.estado === 'ACTIVO'
 }
 
 const obtenerPermisosUsuario = cache(async (usuarioId: string) => {
