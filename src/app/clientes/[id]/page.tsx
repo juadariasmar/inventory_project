@@ -31,12 +31,20 @@ export default async function PaginaCliente({ params }: PaginaProps) {
   return (
     <LayoutProtegido>
       <div className="space-y-6">
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/" className="hover:text-blue-600">Panel</Link>
-          <span>/</span>
-          <Link href="/clientes" className="hover:text-blue-600">Clientes</Link>
-          <span>/</span>
-          <span className="text-gray-800">{cliente.nombre}</span>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <Link href="/" className="hover:text-blue-600">Panel</Link>
+            <span>/</span>
+            <Link href="/clientes" className="hover:text-blue-600">Clientes</Link>
+            <span>/</span>
+            <span className="text-gray-800">{cliente.nombre}</span>
+          </div>
+          <Link
+            href="/clientes"
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-center text-sm self-start"
+          >
+            ← Volver a clientes
+          </Link>
         </div>
 
         <h1 className="text-2xl font-bold text-gray-800">{cliente.nombre}</h1>
