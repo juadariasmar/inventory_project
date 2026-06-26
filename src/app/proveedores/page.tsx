@@ -21,6 +21,9 @@ export default async function PaginaProveedores() {
   return (
     <LayoutProtegido>
       <div className="space-y-6">
+        <Link href="/" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">
+          ← Volver a panel
+        </Link>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <h1 className="text-2xl font-bold text-gray-800">Proveedores</h1>
           {esAdmin && (
