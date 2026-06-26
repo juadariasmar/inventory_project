@@ -53,11 +53,11 @@ export const obtenerSesion = cache(async () => {
   if (
     usuario &&
     esEmailAdministrador(usuario.email) &&
-    (usuario.rol !== 'ADMIN' || usuario.estado !== 'ACTIVO')
+    (usuario.rol !== 'SUPER_ADMIN' || usuario.estado !== 'ACTIVO')
   ) {
     usuario = await prisma.usuario.update({
       where: { id: usuario.id },
-      data: { rol: 'ADMIN', estado: 'ACTIVO' },
+      data: { rol: 'SUPER_ADMIN', estado: 'ACTIVO' },
     })
   }
 
@@ -66,13 +66,13 @@ export const obtenerSesion = cache(async () => {
 
 export async function esAdmin() {
   const sesion = await obtenerSesion()
-  return sesion?.user?.rol === 'ADMIN' && sesion?.user?.estado === 'ACTIVO'
+  return (sesion?.user?.rol === 'ADMIN' || sesion?.user?.rol === 'SUPER_ADMIN') && sesion?.user?.estado === 'ACTIVO'
 }
 
 export async function esSuperAdmin() {
   const sesion = await obtenerSesion()
   if (!sesion?.user) return false
-  return esEmailAdministrador(sesion.user.email)
+  return sesion.user.rol === 'SUPER_ADMIN'
 }
 
 const obtenerPermisosUsuario = cache(async (usuarioId: string) => {
@@ -86,7 +86,7 @@ const obtenerPermisosUsuario = cache(async (usuarioId: string) => {
 export async function tienePermiso(permiso: Permiso): Promise<boolean> {
   const sesion = await obtenerSesion()
   if (!sesion?.user || sesion.user.estado !== 'ACTIVO') return false
-  if (sesion.user.rol === 'ADMIN') return true
+  if (sesion.user.rol === 'SUPER_ADMIN' || sesion.user.rol === 'ADMIN') return true
 
   const idParaBuscar = typeof sesion.user.id === 'string' ? sesion.user.id : String(sesion.user.id)
   const permisos = await obtenerPermisosUsuario(idParaBuscar)
