@@ -25,16 +25,24 @@ export default async function PaginaMovimientos() {
   return (
     <LayoutProtegido>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
           <h1 className="text-2xl font-bold text-gray-800">Movimientos de Inventario</h1>
-          {puedeRegistrar && (
+          <div className="flex gap-2">
             <Link
-              href="/movimientos/nuevo"
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-center"
+              href="/"
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-center text-sm self-start"
             >
-              + Registrar Movimiento
+              ← Volver a panel
             </Link>
-          )}
+            {puedeRegistrar && (
+              <Link
+                href="/movimientos/nuevo"
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-center"
+              >
+                + Registrar Movimiento
+              </Link>
+            )}
+          </div>
         </div>
 
         <ListaMovimientosFiltrable movimientos={movimientos} esAdmin={esAdmin} />
