@@ -29,10 +29,10 @@ export default async function PaginaMovimientos() {
           <h1 className="text-2xl font-bold text-gray-800">Movimientos de Inventario</h1>
           <div className="flex gap-2">
             <Link
-              href="/"
+              href="/productos"
               className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-center text-sm self-start"
             >
-              ← Volver a panel
+              ← Volver a productos
             </Link>
             {puedeRegistrar && (
               <Link
