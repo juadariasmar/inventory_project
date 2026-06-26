@@ -87,6 +87,9 @@ export default async function PaginaAuditoria({ searchParams }: Props) {
   return (
     <LayoutProtegido>
       <div className="space-y-6">
+        <Link href="/" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">
+          ← Volver a panel
+        </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Auditoría</h1>
           <p className="text-sm text-gray-500 mt-1">
