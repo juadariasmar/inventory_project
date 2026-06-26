@@ -3,9 +3,8 @@ import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 import { auth } from '@/lib/auth/server'
 
-// NOTA: Este fallback en memoria SOLO funciona en desarrollo local.
-// En producción (Vercel Edge), el mapa se reinicia en cada ejecución.
-// Siempre configurar UPSTASH_REDIS_REST_URL y UPSTASH_REDIS_REST_TOKEN en producción.
+// NOTA: Este fallback en memoria funciona localmente y en Vercel (Node.js proxy).
+// Siempre configurar UPSTASH_REDIS_REST_URL y UPSTASH_REDIS_REST_TOKEN para rate limiting robusto.
 const intentosFallidosFallback = new Map<string, { count: number; resetAt: number }>()
 const MAX_INTENTOS = 5
 const VENTANA_MS = 60 * 1000 // 1 minuto
@@ -20,7 +19,7 @@ const ratelimit = redisUrl && redisToken ? new Ratelimit({
   analytics: true,
 }) : null;
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const esPost = request.method === 'POST'
   const path = request.nextUrl.pathname
 

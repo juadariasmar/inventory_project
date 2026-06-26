@@ -34,7 +34,7 @@ export default async function PaginaReciboVenta({ params }: Props) {
   if (!venta) notFound()
 
   // Solo admin o quien hizo la venta puede ver el recibo.
-  const esAdmin = sesion.user.rol === 'ADMIN'
+  const esAdmin = sesion.user.rol === 'ADMIN' || sesion.user.rol === 'SUPER_ADMIN'
   const esVendedor = venta.vendedorId !== null && sesion.user.id === venta.vendedorId
   if (!esAdmin && !esVendedor) redirect('/')
 

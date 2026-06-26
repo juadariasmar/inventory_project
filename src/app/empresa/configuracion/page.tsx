@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function PaginaConfiguracion() {
   const sesion = await obtenerSesion()
-  if (!sesion?.user) {
+  if (!sesion?.user || (sesion.user.rol !== 'ADMIN' && sesion.user.rol !== 'SUPER_ADMIN')) {
     redirect('/auth/sign-in')
   }
 
