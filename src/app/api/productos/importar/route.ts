@@ -211,7 +211,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const categorias = await prisma.categoria.findMany()
+    const categorias = await prisma.categoria.findMany({ where: { empresaId } })
     const mapaCategorias = new Map(
       categorias.map((c) => [c.nombre.toLowerCase().trim(), { id: c.id, prefijo: c.prefijo }])
     )
@@ -309,7 +309,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const existenteProd = await prisma.producto.findUnique({ where: { codigo } })
+      const existenteProd = await prisma.producto.findFirst({ where: { codigo, empresaId } })
       if (existenteProd) {
         resultados.push({ linea: numLinea, codigo, nombre, estado: 'error', mensaje: `Ya existe un producto con código "${codigo}".` })
         continue

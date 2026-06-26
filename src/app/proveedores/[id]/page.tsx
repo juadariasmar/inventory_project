@@ -12,7 +12,7 @@ interface Props {
 export default async function PaginaEditarProveedor({ params }: Props) {
   const sesion = await obtenerSesion()
   if (!sesion?.user?.empresaId) redirect('/auth/sign-in')
-  if (sesion.user.rol !== 'ADMIN') redirect('/')
+  if (sesion.user.rol !== 'SUPER_ADMIN' && sesion.user.rol !== 'ADMIN') redirect('/')
   const empresaId = sesion.user.empresaId
 
   const { id } = await params
@@ -27,12 +27,20 @@ export default async function PaginaEditarProveedor({ params }: Props) {
   return (
     <LayoutProtegido>
       <div className="space-y-6">
-        <div className="flex items-center space-x-2 text-sm text-gray-500">
-          <Link href="/proveedores" className="hover:text-blue-600">
-            Proveedores
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+          <div className="flex items-center space-x-2 text-sm text-gray-500">
+            <Link href="/proveedores" className="hover:text-blue-600">
+              Proveedores
+            </Link>
+            <span>/</span>
+            <span>{proveedor.nombre}</span>
+          </div>
+          <Link
+            href="/proveedores"
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-center text-sm self-start"
+          >
+            ← Volver a proveedores
           </Link>
-          <span>/</span>
-          <span>{proveedor.nombre}</span>
         </div>
 
         <h1 className="text-2xl font-bold text-gray-800">Editar proveedor</h1>

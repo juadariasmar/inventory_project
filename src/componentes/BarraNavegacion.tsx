@@ -37,9 +37,8 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
   const [contadorNotif, setContadorNotif] = useState(0)
   const contenedorRef = useRef<HTMLDivElement>(null)
 
-  const esAdmin = sesion?.user?.rol === 'ADMIN'
-  const puedeVerAnalisis =
-    esAdmin || (sesion?.user?.permisos?.includes('VER_ANALISIS') ?? false)
+  const esAdmin = sesion?.user?.rol === 'ADMIN' || sesion?.user?.rol === 'SUPER_ADMIN'
+  const esSuperAdmin = sesion?.user?.rol === 'SUPER_ADMIN'
   const puedeVender =
     esAdmin ||
     (sesion?.user?.permisos?.includes('REALIZAR_VENTAS') ?? false) ||
@@ -82,24 +81,24 @@ export default function BarraNavegacion({ sesion }: { sesion: { user?: { rol?: s
       tipo: 'dropdown',
       id: 'compras',
       etiqueta: 'Compras',
-      visible: esAdmin,
+      visible: true,
       items: [
         { href: '/proveedores', etiqueta: 'Proveedores', visible: true },
         { href: '/proveedores/ordenes', etiqueta: 'Órdenes de compra', visible: true },
         { href: '/compras/sugerencias', etiqueta: 'Sugerencias', visible: true },
       ],
     },
-    { tipo: 'enlace', href: '/analisis', etiqueta: 'Análisis', visible: puedeVerAnalisis },
+    { tipo: 'enlace', href: '/analisis', etiqueta: 'Análisis', visible: true },
     { tipo: 'enlace', href: '/empresa/configuracion', etiqueta: 'Empresa', visible: true },
+    { tipo: 'enlace', href: '/usuarios', etiqueta: 'Usuarios', visible: true },
+    { tipo: 'enlace', href: '/auditoria', etiqueta: 'Auditoría', visible: true },
     {
       tipo: 'dropdown',
       id: 'admin',
       etiqueta: 'Administración',
-      visible: esAdmin,
+      visible: esSuperAdmin,
       items: [
         { href: '/admin/empresas', etiqueta: 'Empresas', visible: true },
-        { href: '/usuarios', etiqueta: 'Usuarios', visible: true },
-        { href: '/auditoria', etiqueta: 'Auditoría', visible: true },
         { href: '/admin/configuracion', etiqueta: 'Configuración', visible: true },
       ],
     },

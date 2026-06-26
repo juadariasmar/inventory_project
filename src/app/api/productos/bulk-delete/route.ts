@@ -51,12 +51,12 @@ export async function POST(request: NextRequest) {
     // Buscar referencias bloqueantes (items de venta o cotizacion).
     const [conItemsVenta, conItemsCotizacion] = await Promise.all([
       prisma.itemVenta.findMany({
-        where: { productoId: { in: ids } },
+        where: { productoId: { in: ids }, venta: { empresaId } },
         select: { productoId: true },
         distinct: ['productoId'],
       }),
       prisma.itemCotizacion.findMany({
-        where: { productoId: { in: ids } },
+        where: { productoId: { in: ids }, cotizacion: { empresaId } },
         select: { productoId: true },
         distinct: ['productoId'],
       }),

@@ -7,7 +7,7 @@ import { obtenerSesion } from '@/lib/permisos'
 
 export default async function PaginaNuevoUsuario() {
   const sesion = await obtenerSesion()
-  if (!sesion?.user?.empresaId || sesion.user.rol !== 'ADMIN') {
+  if (!sesion?.user?.empresaId || (sesion.user.rol !== 'SUPER_ADMIN' && sesion.user.rol !== 'ADMIN')) {
     redirect('/')
   }
 
