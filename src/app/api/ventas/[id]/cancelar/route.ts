@@ -84,7 +84,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
       // Devolver stock + registrar movimiento por cada item.
       for (const item of venta.items) {
         await tx.producto.update({
-          where: { id: item.productoId },
+          where: { id: item.productoId, empresaId: venta.empresaId },
           data: { cantidad: { increment: item.cantidad } },
         })
         await tx.movimiento.create({
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
       }
 
       return tx.venta.update({
-        where: { id: ventaId },
+        where: { id: ventaId, empresaId },
         data: {
           canceladaEn: new Date(),
           canceladaPorId: adminId,
