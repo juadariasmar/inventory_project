@@ -29,16 +29,24 @@ export default async function PaginaCategorias() {
   return (
     <LayoutProtegido>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
           <h1 className="text-2xl font-bold text-gray-800">Categorías</h1>
-          {esAdmin && (
+          <div className="flex gap-2">
             <Link
-              href="/categorias/nueva"
-              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-center"
+              href="/productos"
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-center text-sm self-start"
             >
-              + Nueva Categoría
+              ← Volver a productos
             </Link>
-          )}
+            {esAdmin && (
+              <Link
+                href="/categorias/nueva"
+                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-center"
+              >
+                + Nueva Categoría
+              </Link>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -37,7 +37,9 @@ export default async function PaginaNuevaOrdenCompra() {
 
         <h1 className="text-2xl font-bold text-gray-800">Nueva orden de compra</h1>
 
-        <FormularioOrdenCompra proveedores={proveedores} productos={productos} />
+        <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl">
+          <FormularioOrdenCompra proveedores={proveedores} productos={productos} />
+        </div>
       </div>
     </LayoutProtegido>
   )
