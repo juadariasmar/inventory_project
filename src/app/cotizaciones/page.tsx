@@ -78,9 +78,6 @@ export default async function PaginaCotizaciones({ searchParams }: Props) {
   return (
     <LayoutProtegido>
       <div className="space-y-6">
-        <Link href="/" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">
-          ← Volver a panel
-        </Link>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Cotizaciones</h1>
@@ -90,12 +87,20 @@ export default async function PaginaCotizaciones({ searchParams }: Props) {
                 : 'Tus cotizaciones.'}
             </p>
           </div>
-          <Link
-            href="/cotizaciones/nueva"
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm self-start"
-          >
-            + Nueva cotización
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/"
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-center text-sm self-start"
+            >
+              ← Volver a panel
+            </Link>
+            <Link
+              href="/cotizaciones/nueva"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm self-start"
+            >
+              + Nueva cotización
+            </Link>
+          </div>
         </div>
 
         {/* Filtros por estado */}
