@@ -24,7 +24,7 @@ export default async function PaginaCategorias() {
   const empresaId = sesion.user.empresaId
 
   const categorias = await obtenerCategorias(empresaId)
-  const esAdmin = sesion.user.rol === 'ADMIN'
+  const esAdmin = sesion.user.rol === 'ADMIN' || sesion.user.rol === 'SUPER_ADMIN'
 
   return (
     <LayoutProtegido>

@@ -12,7 +12,7 @@ export default async function PaginaNuevaCotizacion() {
   const sesion = await obtenerSesion()
   if (!sesion?.user?.empresaId) redirect('/auth/sign-in')
   const empresaId = sesion.user.empresaId
-  const esAdmin = sesion.user.rol === 'ADMIN'
+  const esAdmin = sesion.user.rol === 'ADMIN' || sesion.user.rol === 'SUPER_ADMIN'
   if (!esAdmin && !(await tienePermiso('REALIZAR_VENTAS'))) redirect('/')
 
   const productos = await prisma.producto.findMany({

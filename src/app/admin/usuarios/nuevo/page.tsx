@@ -20,7 +20,7 @@ export default async function PaginaNuevoUsuario() {
     <LayoutProtegido>
       <div className="space-y-6">
         <div className="flex items-center space-x-2 text-sm text-gray-500">
-          <Link href="/usuarios" className="hover:text-blue-600">
+          <Link href="/admin/usuarios" className="hover:text-blue-600">
             Usuarios
           </Link>
           <span>/</span>

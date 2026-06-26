@@ -32,7 +32,7 @@ export default async function PaginaCotizaciones({ searchParams }: Props) {
   const sesion = await obtenerSesion()
   if (!sesion?.user?.empresaId) redirect('/auth/sign-in')
   const empresaId = sesion.user.empresaId
-  const esAdmin = sesion.user.rol === 'ADMIN'
+  const esAdmin = sesion.user.rol === 'ADMIN' || sesion.user.rol === 'SUPER_ADMIN'
   const puedeVender = await tienePermiso('REALIZAR_VENTAS')
   if (!esAdmin && !puedeVender) redirect('/')
 
