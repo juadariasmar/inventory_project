@@ -651,7 +651,7 @@ export default function ListaProductosFiltrable({
               Eliminar producto
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm text-gray-600 mt-2">
-              ¿Eliminar "{productoAEliminar.nombre}"? Se borrarán también sus movimientos.
+              {`¿Eliminar "${productoAEliminar.nombre}"? Se borrarán también sus movimientos.`}
             </AlertDialogDescription>
             <div className="mt-6 flex justify-end gap-3">
               <AlertDialogCancel asChild>

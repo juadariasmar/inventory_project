@@ -88,7 +88,7 @@ async function ContenidoDashboard() {
   const empresaId = sesion.user.empresaId
 
   const estadisticas = await obtenerEstadisticas(empresaId)
-  const esAdmin = sesion?.user?.rol === 'ADMIN'
+  const esAdmin = sesion?.user?.rol === 'ADMIN' || sesion?.user?.rol === 'SUPER_ADMIN'
 
   const puedeVerAnalisis = await tienePermiso('VER_ANALISIS')
   const puedeRegistrarMovimientos = esAdmin || (await tienePermiso('REGISTRAR_MOVIMIENTOS'))
