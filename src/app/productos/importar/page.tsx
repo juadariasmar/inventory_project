@@ -31,7 +31,7 @@ export default async function PaginaImportarProductos() {
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
+        <div className="bg-white rounded-lg shadow-md p-6 space-y-4 max-w-2xl">
           <h2 className="text-lg font-semibold text-gray-800">Cómo funciona</h2>
           <p className="text-sm text-gray-700">
             Sube cualquier archivo <strong>.csv</strong> o <strong>.xlsx</strong>{' '}
