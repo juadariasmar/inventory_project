@@ -76,8 +76,6 @@
     "typescript": "^5"
   },
   "overrides": {
-    "better-auth": "^1.6.2",
-    "@better-auth/passkey": "^1.6.2",
     "js-yaml": "^3.15.0",
     "uuid": "^11.1.1",
     "postcss": "^8.5.10"
