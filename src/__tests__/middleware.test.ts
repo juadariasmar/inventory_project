@@ -74,4 +74,18 @@ describe('Proxy Security Tests', () => {
       }
     }
   });
+
+  it('permite el acceso público a /sitemap.xml y /robots.txt sin pasar por auth.middleware', async () => {
+    const urls = [
+      'http://localhost/sitemap.xml',
+      'http://localhost/robots.txt'
+    ];
+
+    for (const url of urls) {
+      const req = createMockRequest(url, 'GET');
+      const res = await proxy(req);
+      // Puesto que el mock de auth.middleware devuelve null, si res no es null es porque retornó NextResponse.next()
+      expect(res).not.toBeNull();
+    }
+  });
 });
