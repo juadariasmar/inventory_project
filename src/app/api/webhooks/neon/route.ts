@@ -26,6 +26,10 @@ export async function POST(req: NextRequest) {
 
     if (eventType === 'user.created' || (!eventType && eventData.id)) {
       await WebhooksService.procesarEventoUsuarioCreado(eventData)
+    } else if (eventType === 'send.otp') {
+      await WebhooksService.procesarEventoSendOtp(eventData)
+    } else if (eventType === 'send.magic_link') {
+      await WebhooksService.procesarEventoSendMagicLink(eventData)
     } else {
       console.log(`[Webhooks] Evento desconocido ignorado: ${eventType}`)
     }
