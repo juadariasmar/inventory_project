@@ -1,6 +1,6 @@
 import { prisma } from '../lib/db'
 import { AppError } from '../lib/AppError'
-import { createHmac, timingSafeEqual } from 'crypto'
+import crypto, { createPublicKey } from 'crypto'
 import { z } from 'zod'
 
 const usuarioCreadoSchema = z.object({
@@ -10,24 +10,53 @@ const usuarioCreadoSchema = z.object({
 })
 
 export class WebhooksService {
-  static async validarFirma(payload: string, signatureHeader: string | null): Promise<boolean> {
-    const secreto = process.env.NEON_WEBHOOK_SECRET
+  static async validarFirma(rawBody: string, headers: Headers): Promise<boolean> {
+    const signature = headers.get('x-neon-signature')
+    const kid = headers.get('x-neon-signature-kid')
+    const timestamp = headers.get('x-neon-timestamp')
 
-    if (!secreto) {
-      throw new AppError('NEON_WEBHOOK_SECRET no configurado en el servidor', 500)
+    if (!signature || !kid || !timestamp) {
+      throw new AppError('Faltan headers de firma de Neon Auth', 401)
     }
 
-    if (!signatureHeader) {
-      throw new AppError('Firma de webhook inválida', 401)
+    const baseUrl = process.env.NEON_AUTH_BASE_URL
+    if (!baseUrl) {
+      throw new AppError('NEON_AUTH_BASE_URL no configurado', 500)
     }
 
-    const expected = createHmac('sha256', secreto).update(payload).digest('hex')
-    const sigBuf = Buffer.from(signatureHeader)
-    const expBuf = Buffer.from(expected)
+    // 1. Fetch JWKS and find the matching key
+    const res = await fetch(`${baseUrl}/.well-known/jwks.json`)
+    const jwks = await res.json()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const jwk = jwks.keys.find((k: any) => k.kid === kid)
+    if (!jwk) throw new AppError(`Key ${kid} not found en JWKS`, 401)
 
-    if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) {
-      throw new AppError('Firma de webhook inválida', 401)
-    }
+    // 2. Import the Ed25519 public key
+    const publicKey = createPublicKey({ key: jwk, format: 'jwk' })
+
+    // 3. Parse detached JWS (header..signature)
+    const [headerB64, emptyPayload, signatureB64] = signature.split('.')
+    if (emptyPayload !== '') throw new AppError('Expected detached JWS format', 401)
+
+    // 4. Reconstruct signing input (standard JWS, double base64url encoding)
+    const payloadB64 = Buffer.from(rawBody, 'utf8').toString('base64url')
+    const signaturePayload = `${timestamp}.${payloadB64}`
+    const signaturePayloadB64 = Buffer.from(signaturePayload, 'utf8').toString('base64url')
+    const signingInput = `${headerB64}.${signaturePayloadB64}`
+
+    // 5. Verify Ed25519 signature
+    const isValid = crypto.verify(
+      null,
+      Buffer.from(signingInput),
+      publicKey,
+      Buffer.from(signatureB64, 'base64url')
+    )
+
+    if (!isValid) throw new AppError('Firma de webhook inválida', 401)
+
+    // 6. Check timestamp freshness
+    const ageMs = Date.now() - parseInt(timestamp, 10)
+    if (ageMs > 5 * 60 * 1000) throw new AppError('Webhook timestamp expirado', 401)
 
     return true
   }
