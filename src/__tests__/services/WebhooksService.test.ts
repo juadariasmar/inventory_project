@@ -61,7 +61,7 @@ describe('WebhooksService', () => {
         })
       ) as jest.Mock
 
-      ;(crypto.createPublicKey as jest.Mock).mockReturnValue({} as any)
+      ;(crypto.createPublicKey as jest.Mock).mockReturnValue({} as unknown as crypto.KeyObject)
       ;(crypto.verify as jest.Mock).mockReturnValue(true)
     })
 
