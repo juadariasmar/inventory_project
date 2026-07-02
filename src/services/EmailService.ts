@@ -1,3 +1,5 @@
+import nodemailer from 'nodemailer'
+
 export const EmailService = {
   async enviarInvitacion(datos: {
     email: string
@@ -8,8 +10,8 @@ export const EmailService = {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     const link = `${baseUrl}/invitacion?token=${datos.token}`
 
-    if (!process.env.RESEND_API_KEY) {
-      console.warn('[EmailService] RESEND_API_KEY no configurado. Email no enviado.')
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
+      console.warn('[EmailService] SMTP credentials no configuradas. Email no enviado.')
       console.log('--- EmailService: enviarInvitacion (simulado) ---')
       console.log(`  Para: ${datos.email}`)
       console.log(`  De: ${datos.invitarPorNombre}`)
@@ -19,14 +21,17 @@ export const EmailService = {
       return
     }
 
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD,
       },
-      body: JSON.stringify({
-        from: process.env.EMAIL_FROM || 'noreply@inventario.app',
+    })
+
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL_FROM || process.env.SMTP_USER,
         to: datos.email,
         subject: `Invitación a ${datos.empresaNombre}`,
         html: `
@@ -35,11 +40,9 @@ export const EmailService = {
           <p><a href="${link}">${link}</a></p>
           <p>Este enlace expirará en 7 días.</p>
         `,
-      }),
-    })
-
-    if (!res.ok) {
-      const error = await res.text()
+      })
+      console.log(`[EmailService] Invitación enviada a ${datos.email}`)
+    } catch (error) {
       console.error('[EmailService] Error enviando email:', error)
     }
   },
