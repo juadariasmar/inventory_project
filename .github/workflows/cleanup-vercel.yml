@@ -1,0 +1,32 @@
+name: Limpieza de Preview Deploys en Vercel
+
+on:
+  workflow_dispatch: # Permite ejecución manual desde la interfaz de GitHub
+  schedule:
+    # Opción 1: Ejecutar todos los días a las 2:00 AM UTC (Predeterminado)
+    - cron: '0 2 * * *'
+    # Opción 2: Ejecutar día de por medio a las 2:00 AM UTC (Descomentar para alternar)
+    # - cron: '0 2 */2 * *'
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Instalar Dependencias
+        run: npm ci
+
+      - name: Ejecutar Script de Limpieza
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx tsx scripts/cleanup-vercel.ts
