@@ -41,8 +41,8 @@ export const InvitacionesService = {
       throw new AppError('Ya existe una invitación pendiente para este email', 400)
     }
 
-    const creador = await prisma.usuario.findUnique({
-      where: { id: usuarioId },
+    const creador = await prisma.usuario.findFirst({
+      where: { id: usuarioId, empresaId },
       select: { nombre: true },
     })
 
