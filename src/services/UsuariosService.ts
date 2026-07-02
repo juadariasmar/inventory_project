@@ -71,8 +71,8 @@ export const UsuariosService = {
       )
     }
 
-    const existe = await prisma.usuario.findUnique({ where: { id } })
-    if (!existe || existe.empresaId !== empresaId) throw new AppError('Usuario no encontrado o no pertenece a la empresa', 404)
+    const existe = await prisma.usuario.findFirst({ where: { id, empresaId } })
+    if (!existe) throw new AppError('Usuario no encontrado', 404)
 
     return await prisma.usuario.update({
       where: { id },
@@ -87,8 +87,8 @@ export const UsuariosService = {
       throw new AppError('No puedes eliminar tu propio usuario', 400)
     }
 
-    const existe = await prisma.usuario.findUnique({ where: { id } })
-    if (!existe || existe.empresaId !== empresaId) throw new AppError('Usuario no encontrado o no pertenece a la empresa', 404)
+    const existe = await prisma.usuario.findFirst({ where: { id, empresaId } })
+    if (!existe) throw new AppError('Usuario no encontrado', 404)
 
     await prisma.usuario.delete({ where: { id } })
     return true
