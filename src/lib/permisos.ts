@@ -3,6 +3,7 @@ import { Permiso } from '@prisma/client'
 import { prisma } from './db'
 import { cache } from 'react'
 import { esEmailAdministrador } from './adminEmails'
+import { AppError } from './AppError'
 
 export const obtenerSesion = cache(async () => {
   const { data } = await auth.getSession()
@@ -63,6 +64,25 @@ export const obtenerSesion = cache(async () => {
 
   return { ...data, user: { ...data.user, ...usuario } }
 })
+
+export async function validarAccesoEmpresa() {
+  const sesion = await obtenerSesion()
+  if (!sesion?.user) {
+    throw new AppError('No autorizado', 401)
+  }
+  if (sesion.user.estado !== 'ACTIVO') {
+    throw new AppError('Usuario inactivo o suspendido', 403)
+  }
+  if (!sesion.user.empresaId) {
+    throw new AppError('Usuario sin empresa asignada', 403)
+  }
+  return {
+    usuarioId: sesion.user.id,
+    empresaId: sesion.user.empresaId,
+    rol: sesion.user.rol,
+    usuario: sesion.user,
+  }
+}
 
 export async function esAdmin() {
   const sesion = await obtenerSesion()
