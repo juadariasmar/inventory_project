@@ -100,8 +100,8 @@ export class WebhooksService {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static async procesarEventoSendOtp(payload: any): Promise<void> {
-    const email = payload.email || payload.emailAddress || payload.to || payload.recipient
-    const otp = payload.otp || payload.code || payload.passcode
+    const email = payload.email || payload.emailAddress || payload.to || payload.recipient || payload.email_address
+    const otp = payload.otp || payload.code || payload.passcode || payload.otp_code || payload.otpCode || payload.token
 
     if (!email || !otp) {
       throw new AppError('Payload de send.otp incompleto', 400)
@@ -118,8 +118,8 @@ export class WebhooksService {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static async procesarEventoSendMagicLink(payload: any): Promise<void> {
-    const email = payload.email || payload.emailAddress || payload.to || payload.recipient
-    const url = payload.url || payload.link || payload.href
+    const email = payload.email || payload.emailAddress || payload.to || payload.recipient || payload.email_address
+    const url = payload.url || payload.link || payload.href || payload.link_url || payload.linkUrl
 
     if (!email || !url) {
       throw new AppError('Payload de send.magic_link incompleto', 400)
