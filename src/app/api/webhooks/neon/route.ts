@@ -4,13 +4,12 @@ import { AppError } from '../../../../lib/AppError'
 
 export async function POST(req: NextRequest) {
   try {
-    const signature = req.headers.get('x-webhook-signature')
-
     const rawBody = await req.text()
 
     try {
-      await WebhooksService.validarFirma(rawBody, signature)
-    } catch {
+      await WebhooksService.validarFirma(rawBody, req.headers)
+    } catch (e) {
+      console.error('[Webhooks] Firma inválida:', e)
       return NextResponse.json({ error: 'Firma de webhook inválida' }, { status: 401 })
     }
 
