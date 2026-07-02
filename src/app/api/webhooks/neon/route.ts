@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
       console.log(`[Webhooks] Evento desconocido ignorado: ${eventType}`)
     }
 
-    return NextResponse.json({ success: true }, { status: 200 })
+    return NextResponse.json({ success: true, allowed: true }, { status: 200 })
   } catch (error) {
     console.error('[Webhooks] Error inesperado procesando webhook:', error)
     if (error instanceof AppError) {
