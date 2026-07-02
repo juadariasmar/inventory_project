@@ -34,23 +34,57 @@ async function cleanup() {
     console.log(`[Limpieza Vercel] Se encontraron ${deployments.length} despliegues en total.`)
 
     const previewDeploys = deployments.filter((d) => d.target !== 'production')
-    
     previewDeploys.sort((a, b) => b.created - a.created)
 
+    const MAX_PREVIEWS = 10
     const twoDaysAgo = Date.now() - 2 * 24 * 60 * 60 * 1000
+    const previewDeploysToDelete: any[] = []
 
-    const toDelete = previewDeploys.slice(3).filter((d) => d.created < twoDaysAgo)
+    previewDeploys.forEach((deploy, index) => {
+      // Conservar los 3 más nuevos incondicionalmente para evitar PRs activos sin preview
+      if (index < 3) return
+
+      // Si superamos el límite total (MAX_PREVIEWS = 10), eliminar incondicionalmente
+      if (index >= MAX_PREVIEWS) {
+        previewDeploysToDelete.push(deploy)
+        return
+      }
+
+      // Si está en el rango intermedio pero tiene más de 48 horas, se elimina
+      if (deploy.created < twoDaysAgo) {
+        previewDeploysToDelete.push(deploy)
+      }
+    })
+
+    const productionDeploys = deployments.filter((d) => d.target === 'production')
+    productionDeploys.sort((a, b) => b.created - a.created)
+
+    const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000
+    const productionDeploysToDelete: any[] = []
+
+    productionDeploys.forEach((deploy, index) => {
+      // El deploy de producción activo actual (el más nuevo) NUNCA debe ser eliminado
+      if (index === 0) return
+
+      // Los despliegues de producción históricos de más de 72 horas se eliminan
+      if (deploy.created < threeDaysAgo) {
+        productionDeploysToDelete.push(deploy)
+      }
+    })
+
+    const toDelete = [...previewDeploysToDelete, ...productionDeploysToDelete]
 
     if (toDelete.length === 0) {
-      console.log('[Limpieza Vercel] No hay despliegues de preview antiguos que requieran ser eliminados.')
+      console.log('[Limpieza Vercel] No hay despliegues antiguos que requieran ser eliminados.')
       return
     }
 
-    console.log(`[Limpieza Vercel] Se eliminarán ${toDelete.length} despliegues de preview antiguos.`)
+    console.log(`[Limpieza Vercel] Se eliminarán ${toDelete.length} despliegues (${previewDeploysToDelete.length} previews y ${productionDeploysToDelete.length} de producción).`)
 
     for (const deploy of toDelete) {
       const dateStr = new Date(deploy.created).toLocaleDateString()
-      console.log(`[Limpieza Vercel] Eliminando deploy ID: ${deploy.uid} (${deploy.url}) creado el ${dateStr}...`)
+      const typeStr = deploy.target === 'production' ? 'producción' : 'preview'
+      console.log(`[Limpieza Vercel] Eliminando deploy (${typeStr}) ID: ${deploy.uid} (${deploy.url}) creado el ${dateStr}...`)
 
       const deleteRes = await fetch(
         `https://api.vercel.com/v13/deployments/${deploy.uid}`,
