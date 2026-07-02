@@ -4,4 +4,4 @@
 - **Concise Outputs:** Keep messages extremely brief. Avoid unnecessary preambles or explanations.
 - **Document Paths:** Save all superpowers plans to `_ai_docs/docs_inner/superpowers/plans/` and specs to `_ai_docs/docs_inner/superpowers/specs/`.
 - **Git Branch Management:** Every new fix, feature, or code modification MUST be developed in a completely new branch. Once the branch is pushed and merged, it must be deleted automatically. Branches that have already been worked on must never be recycled.
-
+- **PR Workflow (STRICT):** NEVER run `vercel --prod` or any production deploy command directly. The ONLY deploy path is: push branch → open PR → CI passes → user merges → Vercel auto-deploys via GitHub integration. The agent must NEVER bypass this flow.
