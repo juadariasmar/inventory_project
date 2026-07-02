@@ -20,8 +20,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sistema de Inventarios",
-  description: "Gestión de inventarios - Juan",
+  title: 'Inventario',
+  description: 'Sistema de Inventario multi-tenant',
+  verification: {
+    google: 'i2urvhi-0pG9XtLcaHzO57pUFemicFr-iGBKg7_ZvCI',
+  },
   robots: { index: false, follow: false },
 };
 
