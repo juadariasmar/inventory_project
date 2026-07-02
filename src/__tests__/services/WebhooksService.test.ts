@@ -1,6 +1,12 @@
 import { WebhooksService } from '../../services/WebhooksService'
 import { prisma } from '../../lib/db'
 import * as crypto from 'crypto'
+import { enviarCodigoVerificacion, enviarMagicLink } from '../../lib/mailer'
+
+jest.mock('../../lib/mailer', () => ({
+  enviarCodigoVerificacion: jest.fn(),
+  enviarMagicLink: jest.fn()
+}))
 
 jest.mock('crypto', () => {
   const original = jest.requireActual('crypto')
@@ -55,7 +61,7 @@ describe('WebhooksService', () => {
         })
       ) as jest.Mock
 
-      ;(crypto.createPublicKey as jest.Mock).mockReturnValue({} as any)
+      ;(crypto.createPublicKey as jest.Mock).mockReturnValue({} as unknown as crypto.KeyObject)
       ;(crypto.verify as jest.Mock).mockReturnValue(true)
     })
 
@@ -156,6 +162,32 @@ describe('WebhooksService', () => {
       expect(prisma.usuario.create).toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ nombre: 'test@ejemplo.com' }) })
       )
+    })
+  })
+
+  describe('procesarEventoSendOtp', () => {
+    it('debe lanzar error si el payload está incompleto', async () => {
+      await expect(WebhooksService.procesarEventoSendOtp({})).rejects.toThrow('Payload de send.otp incompleto')
+      expect(enviarCodigoVerificacion).not.toHaveBeenCalled()
+    })
+
+    it('debe llamar a enviarCodigoVerificacion con email y otp', async () => {
+      const payload = { email: 'user@example.com', otp: '123456' }
+      await WebhooksService.procesarEventoSendOtp(payload)
+      expect(enviarCodigoVerificacion).toHaveBeenCalledWith('user@example.com', '123456')
+    })
+  })
+
+  describe('procesarEventoSendMagicLink', () => {
+    it('debe lanzar error si el payload está incompleto', async () => {
+      await expect(WebhooksService.procesarEventoSendMagicLink({})).rejects.toThrow('Payload de send.magic_link incompleto')
+      expect(enviarMagicLink).not.toHaveBeenCalled()
+    })
+
+    it('debe llamar a enviarMagicLink con email y url', async () => {
+      const payload = { email: 'user@example.com', url: 'https://example.com/magic' }
+      await WebhooksService.procesarEventoSendMagicLink(payload)
+      expect(enviarMagicLink).toHaveBeenCalledWith('user@example.com', 'https://example.com/magic')
     })
   })
 })
