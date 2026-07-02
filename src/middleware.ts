@@ -81,8 +81,13 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Excluir archivos públicos de SEO (sitemap.xml y robots.txt)
+  if (path === '/sitemap.xml' || path === '/robots.txt') {
+    return NextResponse.next()
+  }
+
   // No interceptar rutas API (ya manejan su propia auth con obtenerSesion)
-  if (request.nextUrl.pathname.startsWith('/api/')) {
+  if (path.startsWith('/api/')) {
     return NextResponse.next()
   }
 
@@ -99,7 +104,9 @@ export const config = {
      * - favicon.ico (favicon file)
      * - auth/ (public auth routes like /auth/sign-in, /auth/reset-password)
      * - invitacion (public invitation acceptance page)
+     * - sitemap.xml (SEO sitemap)
+     * - robots.txt (SEO robots instructions)
      */
-    '/((?!_next/static|_next/image|favicon.ico|auth/|invitacion).*)',
+    '/((?!_next/static|_next/image|favicon.ico|auth/|invitacion|sitemap.xml|robots.txt).*)',
   ],
 }
