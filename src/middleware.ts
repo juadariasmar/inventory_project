@@ -19,7 +19,7 @@ const ratelimit = redisUrl && redisToken ? new Ratelimit({
   analytics: true,
 }) : null;
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const esPost = request.method === 'POST'
   const path = request.nextUrl.pathname
 

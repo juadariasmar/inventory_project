@@ -20,7 +20,7 @@ export async function POST(request: NextRequest, { params }: Parametros) {
   if (!sesion?.user) {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
   }
-  const esAdmin = sesion.user.rol === 'ADMIN'
+  const esAdmin = sesion.user.rol === 'ADMIN' || sesion.user.rol === 'SUPER_ADMIN'
   if (!esAdmin && !(await tienePermiso('REALIZAR_VENTAS'))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }

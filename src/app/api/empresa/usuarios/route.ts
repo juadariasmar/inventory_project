@@ -16,6 +16,6 @@ export async function GET() {
 
   return NextResponse.json({
     usuarios,
-    esAdmin: sesion.user.rol === 'ADMIN',
+    esAdmin: sesion.user.rol === 'ADMIN' || sesion.user.rol === 'SUPER_ADMIN',
   })
 }
