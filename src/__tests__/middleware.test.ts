@@ -1,4 +1,4 @@
-import { proxy } from '../../src/proxy';
+import { middleware as proxy } from '../../src/middleware';
 import { createMockRequest } from './utils/test-utils';
 
 jest.mock('../../src/lib/auth/server', () => ({
