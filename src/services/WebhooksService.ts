@@ -99,25 +99,22 @@ export class WebhooksService {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static async procesarEventoSendOtp(payload: any): Promise<void> {
-    const email = payload.user?.email || payload.user?.emailAddress || payload.user?.email_address || payload.email || payload.emailAddress || payload.to || payload.recipient || payload.email_address
-    
-    if (!email) {
+  static async procesarEventoSendOtp(userEmail: string | undefined, eventData: any): Promise<void> {
+    if (!userEmail) {
       throw new AppError('user.email no definido en el payload del webhook', 400)
     }
 
-    const eventData = payload.data || payload.payload || payload
     const otp = eventData.otp || eventData.code || eventData.passcode || eventData.otp_code || eventData.otpCode || eventData.token
 
     if (!otp) {
       throw new AppError('Payload de send.otp incompleto (falta otp/code)', 400)
     }
 
-    console.log('[Webhook] Preparando envío de email a:', email, '| Tipo: send.otp')
+    console.log('[Webhook] Preparando envío de email a:', userEmail, '| Tipo: send.otp')
 
     try {
-      await enviarCodigoVerificacion(email, otp)
-      console.log('[Webhook] Promesa de envío resuelta con éxito para:', email)
+      await enviarCodigoVerificacion(userEmail, otp)
+      console.log('[Webhook] Promesa de envío resuelta con éxito para:', userEmail)
     } catch (error) {
       console.error('[SMTP ERROR]:', error)
       throw error instanceof AppError ? error : new AppError('Error al enviar el OTP', 500)
@@ -125,25 +122,22 @@ export class WebhooksService {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static async procesarEventoSendMagicLink(payload: any): Promise<void> {
-    const email = payload.user?.email || payload.user?.emailAddress || payload.user?.email_address || payload.email || payload.emailAddress || payload.to || payload.recipient || payload.email_address
-
-    if (!email) {
+  static async procesarEventoSendMagicLink(userEmail: string | undefined, eventData: any): Promise<void> {
+    if (!userEmail) {
       throw new AppError('user.email no definido en el payload del webhook', 400)
     }
 
-    const eventData = payload.data || payload.payload || payload
-    const url = eventData.url || eventData.link || eventData.href || eventData.link_url || eventData.linkUrl
+    const url = eventData.link_url || eventData.url || eventData.link || eventData.href || eventData.linkUrl
 
     if (!url) {
       throw new AppError('Payload de send.magic_link incompleto (falta url/link)', 400)
     }
 
-    console.log('[Webhook] Preparando envío de email a:', email, '| Tipo: send.magic_link')
+    console.log('[Webhook] Preparando envío de email a:', userEmail, '| Tipo: send.magic_link')
 
     try {
-      await enviarMagicLink(email, url)
-      console.log('[Webhook] Promesa de envío resuelta con éxito para:', email)
+      await enviarMagicLink(userEmail, url)
+      console.log('[Webhook] Promesa de envío resuelta con éxito para:', userEmail)
     } catch (error) {
       console.error('[SMTP ERROR]:', error)
       throw error instanceof AppError ? error : new AppError('Error al enviar el magic link', 500)

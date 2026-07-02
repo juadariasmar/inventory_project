@@ -166,37 +166,40 @@ describe('WebhooksService', () => {
   })
 
   describe('procesarEventoSendOtp', () => {
-    it('debe lanzar error si el payload está incompleto', async () => {
-      await expect(WebhooksService.procesarEventoSendOtp({})).rejects.toThrow('user.email no definido en el payload del webhook')
+    it('debe lanzar error si userEmail es undefined', async () => {
+      await expect(WebhooksService.procesarEventoSendOtp(undefined, {})).rejects.toThrow('user.email no definido en el payload del webhook')
       expect(enviarCodigoVerificacion).not.toHaveBeenCalled()
     })
 
-    it('debe lanzar error si falta el otp', async () => {
-      await expect(WebhooksService.procesarEventoSendOtp({ email: 'user@example.com' })).rejects.toThrow('Payload de send.otp incompleto (falta otp/code)')
+    it('debe lanzar error si falta el otp en eventData', async () => {
+      await expect(WebhooksService.procesarEventoSendOtp('user@example.com', {})).rejects.toThrow('Payload de send.otp incompleto (falta otp/code)')
       expect(enviarCodigoVerificacion).not.toHaveBeenCalled()
     })
 
     it('debe llamar a enviarCodigoVerificacion con email y otp', async () => {
-      const payload = { email: 'user@example.com', otp: '123456' }
-      await WebhooksService.procesarEventoSendOtp(payload)
+      await WebhooksService.procesarEventoSendOtp('user@example.com', { otp: '123456' })
       expect(enviarCodigoVerificacion).toHaveBeenCalledWith('user@example.com', '123456')
     })
   })
 
   describe('procesarEventoSendMagicLink', () => {
-    it('debe lanzar error si el payload está incompleto', async () => {
-      await expect(WebhooksService.procesarEventoSendMagicLink({})).rejects.toThrow('user.email no definido en el payload del webhook')
+    it('debe lanzar error si userEmail es undefined', async () => {
+      await expect(WebhooksService.procesarEventoSendMagicLink(undefined, {})).rejects.toThrow('user.email no definido en el payload del webhook')
       expect(enviarMagicLink).not.toHaveBeenCalled()
     })
 
-    it('debe lanzar error si falta la url', async () => {
-      await expect(WebhooksService.procesarEventoSendMagicLink({ email: 'user@example.com' })).rejects.toThrow('Payload de send.magic_link incompleto (falta url/link)')
+    it('debe lanzar error si falta la url en eventData', async () => {
+      await expect(WebhooksService.procesarEventoSendMagicLink('user@example.com', {})).rejects.toThrow('Payload de send.magic_link incompleto (falta url/link)')
       expect(enviarMagicLink).not.toHaveBeenCalled()
     })
 
-    it('debe llamar a enviarMagicLink con email y url', async () => {
-      const payload = { email: 'user@example.com', url: 'https://example.com/magic' }
-      await WebhooksService.procesarEventoSendMagicLink(payload)
+    it('debe llamar a enviarMagicLink con email y url (link_url)', async () => {
+      await WebhooksService.procesarEventoSendMagicLink('user@example.com', { link_url: 'https://example.com/magic' })
+      expect(enviarMagicLink).toHaveBeenCalledWith('user@example.com', 'https://example.com/magic')
+    })
+
+    it('debe llamar a enviarMagicLink con email y url (url fallback)', async () => {
+      await WebhooksService.procesarEventoSendMagicLink('user@example.com', { url: 'https://example.com/magic' })
       expect(enviarMagicLink).toHaveBeenCalledWith('user@example.com', 'https://example.com/magic')
     })
   })

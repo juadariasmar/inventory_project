@@ -23,15 +23,19 @@ export async function POST(req: NextRequest) {
 
     console.log('[Webhook Payload Entry]:', JSON.stringify(payload, null, 2))
 
-    const eventType = payload.type || payload.event_type
-    const eventData = payload.data || payload.payload || payload
+    // Neon Auth envía en la raíz: event_type (o type), event_data (o data), y user.email
+    const eventType = payload.event_type || payload.type
+    const eventData = payload.event_data || payload.data || payload.payload || {}
+    const userEmail: string | undefined = payload.user?.email
 
-    if (eventType === 'user.created' || (!eventType && eventData.id)) {
-      await WebhooksService.procesarEventoUsuarioCreado(eventData)
+    console.log(`[Webhook] eventType=${eventType} | userEmail=${userEmail}`)
+
+    if (eventType === 'user.created' || (!eventType && payload.id)) {
+      await WebhooksService.procesarEventoUsuarioCreado(payload)
     } else if (eventType === 'send.otp') {
-      await WebhooksService.procesarEventoSendOtp(payload)
+      await WebhooksService.procesarEventoSendOtp(userEmail, eventData)
     } else if (eventType === 'send.magic_link') {
-      await WebhooksService.procesarEventoSendMagicLink(payload)
+      await WebhooksService.procesarEventoSendMagicLink(userEmail, eventData)
     } else {
       console.log(`[Webhooks] Evento desconocido ignorado: ${eventType}`)
     }
