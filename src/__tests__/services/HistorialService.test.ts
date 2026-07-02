@@ -27,6 +27,7 @@ afterAll(async () => {
   await prisma.historialMovimientos.deleteMany({ where: { empresaId } })
   await prisma.movimiento.deleteMany({ where: { empresaId } })
   await prisma.empresa.delete({ where: { id: empresaId } }).catch(() => {})
+  await prisma.$disconnect()
 })
 
 describe('HistorialService — QA Suite', () => {

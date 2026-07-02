@@ -33,8 +33,9 @@ describe('ProveedoresService', () => {
     }
     await prisma.proveedor.deleteMany({ where: { empresaId } });
     await prisma.proveedor.deleteMany({ where: { empresaId: otraEmpresaId } });
-    await prisma.empresa.delete({ where: { id: 'test-empresa-prov-1' } });
-    await prisma.empresa.delete({ where: { id: 'test-empresa-prov-2' } });
+    await prisma.empresa.delete({ where: { id: 'test-empresa-prov-1' } }).catch(() => {});
+    await prisma.empresa.delete({ where: { id: 'test-empresa-prov-2' } }).catch(() => {});
+    await prisma.$disconnect();
   });
 
   afterEach(() => {
