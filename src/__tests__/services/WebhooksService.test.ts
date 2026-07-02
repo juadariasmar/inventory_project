@@ -1,6 +1,15 @@
 import { WebhooksService } from '../../services/WebhooksService'
 import { prisma } from '../../lib/db'
-import { createHmac } from 'crypto'
+import * as crypto from 'crypto'
+
+jest.mock('crypto', () => {
+  const original = jest.requireActual('crypto')
+  return {
+    ...original,
+    createPublicKey: jest.fn(),
+    verify: jest.fn()
+  }
+})
 
 jest.mock('../../lib/db', () => ({
   prisma: {
@@ -15,10 +24,6 @@ jest.mock('../../lib/db', () => ({
   }
 }))
 
-function firmarPayload(payload: string, secreto: string): string {
-  return createHmac('sha256', secreto).update(payload).digest('hex')
-}
-
 describe('WebhooksService', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -28,35 +33,60 @@ describe('WebhooksService', () => {
   })
 
   describe('validarFirma', () => {
-    it('debe lanzar error si el secreto no esta configurado', async () => {
-      delete process.env.NEON_WEBHOOK_SECRET
-      await expect(WebhooksService.validarFirma('{}', 'firma')).rejects.toThrow('NEON_WEBHOOK_SECRET no configurado')
+    let mockHeaders: Headers
+
+    beforeEach(() => {
+      mockHeaders = new Headers()
+      mockHeaders.set('x-neon-signature', 'header..signature')
+      mockHeaders.set('x-neon-signature-kid', 'test-kid')
+      mockHeaders.set('x-neon-timestamp', Date.now().toString())
+      process.env.NEON_AUTH_BASE_URL = 'http://localhost:3000'
+
+      global.fetch = jest.fn(() =>
+        Promise.resolve({
+          json: () => Promise.resolve({
+            keys: [{
+              kid: 'test-kid',
+              kty: 'OKP',
+              crv: 'Ed25519',
+              x: 'dGVzdA' // just a dummy base64 string for format
+            }]
+          })
+        })
+      ) as jest.Mock
+
+      ;(crypto.createPublicKey as jest.Mock).mockReturnValue({} as any)
+      ;(crypto.verify as jest.Mock).mockReturnValue(true)
     })
 
-    it('debe lanzar error si la firma es invalida', async () => {
-      process.env.NEON_WEBHOOK_SECRET = 'secreto_super_seguro'
-      await expect(WebhooksService.validarFirma('{}', 'firma_falsa')).rejects.toThrow('Firma de webhook inválida')
+    it('debe lanzar error si faltan headers', async () => {
+      mockHeaders.delete('x-neon-signature')
+      await expect(WebhooksService.validarFirma('{}', mockHeaders)).rejects.toThrow('Faltan headers de firma de Neon Auth')
+    })
+
+    it('debe lanzar error si NEON_AUTH_BASE_URL no está configurado', async () => {
+      delete process.env.NEON_AUTH_BASE_URL
+      await expect(WebhooksService.validarFirma('{}', mockHeaders)).rejects.toThrow('NEON_AUTH_BASE_URL no configurado')
+    })
+
+    it('debe lanzar error si el KID no se encuentra en el JWKS', async () => {
+      mockHeaders.set('x-neon-signature-kid', 'unknown-kid')
+      await expect(WebhooksService.validarFirma('{}', mockHeaders)).rejects.toThrow('Key unknown-kid not found en JWKS')
     })
 
     it('debe retornar true si la firma es valida', async () => {
-      process.env.NEON_WEBHOOK_SECRET = 'secreto_super_seguro'
-      const payload = JSON.stringify({ type: 'user.created', data: { id: '1', email: 'a@b.com' } })
-      const firma = firmarPayload(payload, 'secreto_super_seguro')
-      const resultado = await WebhooksService.validarFirma(payload, firma)
+      const resultado = await WebhooksService.validarFirma('{}', mockHeaders)
       expect(resultado).toBe(true)
     })
 
-    it('debe rechazar una firma alterada (tampering)', async () => {
-      process.env.NEON_WEBHOOK_SECRET = 'secreto_super_seguro'
-      const payload = JSON.stringify({ type: 'user.created', data: { id: '1', email: 'a@b.com' } })
-      const firma = firmarPayload(payload, 'secreto_super_seguro')
-      const payloadAlterado = JSON.stringify({ type: 'user.created', data: { id: '1', email: 'malo@b.com' } })
-      await expect(WebhooksService.validarFirma(payloadAlterado, firma)).rejects.toThrow('Firma de webhook inválida')
+    it('debe lanzar error si la firma es invalida', async () => {
+      ;(crypto.verify as jest.Mock).mockReturnValue(false)
+      await expect(WebhooksService.validarFirma('{}', mockHeaders)).rejects.toThrow('Firma de webhook inválida')
     })
 
-    it('debe lanzar 401 si no se envía firma', async () => {
-      process.env.NEON_WEBHOOK_SECRET = 'secreto_super_seguro'
-      await expect(WebhooksService.validarFirma('{}', null)).rejects.toThrow('Firma de webhook inválida')
+    it('debe lanzar error si el timestamp ha expirado', async () => {
+      mockHeaders.set('x-neon-timestamp', (Date.now() - 10 * 60 * 1000).toString()) // 10 minutes ago
+      await expect(WebhooksService.validarFirma('{}', mockHeaders)).rejects.toThrow('Webhook timestamp expirado')
     })
   })
 
