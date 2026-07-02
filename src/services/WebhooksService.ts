@@ -2,6 +2,7 @@ import { prisma } from '../lib/db'
 import { AppError } from '../lib/AppError'
 import crypto, { createPublicKey } from 'crypto'
 import { z } from 'zod'
+import { enviarCodigoVerificacion, enviarMagicLink } from '../lib/mailer'
 
 const usuarioCreadoSchema = z.object({
   id: z.string().min(1),
@@ -95,5 +96,41 @@ export class WebhooksService {
     })
 
     console.log(`[Webhooks] Usuario ${id} (${email}) registrado con empresa ${empresa.id}.`)
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static async procesarEventoSendOtp(payload: any): Promise<void> {
+    const email = payload.email || payload.emailAddress || payload.to || payload.recipient
+    const otp = payload.otp || payload.code || payload.passcode
+
+    if (!email || !otp) {
+      throw new AppError('Payload de send.otp incompleto', 400)
+    }
+
+    try {
+      await enviarCodigoVerificacion(email, otp)
+      console.log(`[Webhooks] OTP enviado con éxito a ${email}`)
+    } catch (error) {
+      console.error('[SMTP ERROR]:', error)
+      throw error instanceof AppError ? error : new AppError('Error al enviar el OTP', 500)
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static async procesarEventoSendMagicLink(payload: any): Promise<void> {
+    const email = payload.email || payload.emailAddress || payload.to || payload.recipient
+    const url = payload.url || payload.link || payload.href
+
+    if (!email || !url) {
+      throw new AppError('Payload de send.magic_link incompleto', 400)
+    }
+
+    try {
+      await enviarMagicLink(email, url)
+      console.log(`[Webhooks] Magic link enviado con éxito a ${email}`)
+    } catch (error) {
+      console.error('[SMTP ERROR]:', error)
+      throw error instanceof AppError ? error : new AppError('Error al enviar el magic link', 500)
+    }
   }
 }
