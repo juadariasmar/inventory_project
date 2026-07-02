@@ -124,7 +124,7 @@ export default async function PaginaDetalleEmpresa({ params }: PaginaProps) {
                         <td className="py-3 pr-4 text-gray-500">{usuario.email}</td>
                         <td className="py-3 pr-4">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                            usuario.rol === 'ADMIN'
+                            usuario.rol === 'ADMIN' || usuario.rol === 'SUPER_ADMIN'
                               ? 'bg-purple-100 text-purple-800'
                               : 'bg-gray-100 text-gray-800'
                           }`}>
@@ -156,7 +156,7 @@ export default async function PaginaDetalleEmpresa({ params }: PaginaProps) {
                     <p className="text-xs text-gray-500">{usuario.email}</p>
                     <div className="flex gap-2 mt-1.5">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                        usuario.rol === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
+                        usuario.rol === 'ADMIN' || usuario.rol === 'SUPER_ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
                       }`}>
                         {usuario.rol}
                       </span>

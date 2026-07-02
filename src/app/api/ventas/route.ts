@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
   if (!empresaId) {
     return NextResponse.json({ error: 'Usuario sin empresa asignada' }, { status: 403 })
   }
-  const esAdmin = sesion.user.rol === 'ADMIN'
+  const esAdmin = sesion.user.rol === 'ADMIN' || sesion.user.rol === 'SUPER_ADMIN'
   if (!esAdmin && !(await tienePermiso('REALIZAR_VENTAS'))) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   }
