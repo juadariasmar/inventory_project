@@ -29,7 +29,7 @@ jobs:
           node-version: '20'
 
       - name: Instalar dependencias
-        run: npm install --legacy-peer-deps
+        run: npm ci
 
       - name: Preparar Base de Datos
         env:
