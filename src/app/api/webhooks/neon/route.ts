@@ -21,8 +21,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Payload inválido' }, { status: 400 })
     }
 
-    const eventType = payload.type
-    const eventData = payload.data || payload
+    console.log('[Webhook Payload Entry]:', JSON.stringify(payload, null, 2))
+
+    const eventType = payload.type || payload.event_type
+    const eventData = payload.data || payload.payload || payload
 
     if (eventType === 'user.created' || (!eventType && eventData.id)) {
       await WebhooksService.procesarEventoUsuarioCreado(eventData)
