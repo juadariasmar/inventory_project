@@ -210,12 +210,12 @@ export default function ListaUsuariosFiltrable({
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            u.rol === 'ADMIN'
+                            u.rol === 'ADMIN' || u.rol === 'SUPER_ADMIN'
                               ? 'bg-purple-100 text-purple-800'
                               : 'bg-gray-100 text-gray-800'
                           }`}
                         >
-                          {u.rol === 'ADMIN' ? 'Administrador' : 'Usuario'}
+                          {u.rol === 'SUPER_ADMIN' ? 'Super Admin' : u.rol === 'ADMIN' ? 'Administrador' : 'Usuario'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -267,12 +267,12 @@ export default function ListaUsuariosFiltrable({
                     <div className="flex gap-2">
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
-                          u.rol === 'ADMIN'
+                          u.rol === 'ADMIN' || u.rol === 'SUPER_ADMIN'
                             ? 'bg-purple-100 text-purple-800'
                             : 'bg-gray-100 text-gray-800'
                         }`}
                       >
-                        {u.rol === 'ADMIN' ? 'Administrador' : 'Usuario'}
+                        {u.rol === 'SUPER_ADMIN' ? 'Super Admin' : u.rol === 'ADMIN' ? 'Administrador' : 'Usuario'}
                       </span>
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
