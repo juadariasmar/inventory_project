@@ -30,9 +30,8 @@ export const NotificacionesService = {
   },
 
   async marcarLeida(id: number, empresaId: string) {
-    const notif = await prisma.notificacion.findUnique({ where: { id } })
+    const notif = await prisma.notificacion.findFirst({ where: { id, empresaId } })
     if (!notif) throw new AppError('Notificación no encontrada', 404)
-    if (notif.empresaId !== empresaId) throw new AppError('No autorizado', 403)
 
     return prisma.notificacion.update({
       where: { id },
