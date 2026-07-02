@@ -1,5 +1,4 @@
 import { AuthView } from '@neondatabase/auth-ui'
-import { authViewPaths } from '@neondatabase/auth-ui/server'
 
 export const dynamic = 'force-dynamic'
 
